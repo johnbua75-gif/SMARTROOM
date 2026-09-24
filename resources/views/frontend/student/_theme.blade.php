@@ -1,0 +1,346 @@
+<style>
+  :root {
+    --student-navy: #0b1640;
+    --student-navy-mid: #1a2f80;
+    --student-gold: #f5c518;
+    --student-bg: #f3f5fb;
+    --student-border: #e4e8f2;
+    --student-text: #0d1526;
+    --student-muted: #7585a0;
+    --student-blue: #2563eb;
+  }
+
+  body {
+    background: var(--student-bg);
+    color: var(--student-text);
+    font-family: 'Segoe UI', sans-serif;
+  }
+
+  #sidebar.student-sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 230px !important;
+    height: 100vh;
+    min-height: 100vh;
+    flex: 0 0 230px;
+    padding: 0 !important;
+    overflow: hidden;
+    z-index: 100;
+    background: var(--student-navy) !important;
+    border-right: 0 !important;
+    color: #fff;
+  }
+
+  #sidebar.student-sidebar::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(160deg, rgba(245, 197, 24, .06) 0%, transparent 55%);
+    pointer-events: none;
+  }
+
+  #sidebar.student-sidebar::after {
+    content: '';
+    position: absolute;
+    right: -60px;
+    bottom: -60px;
+    width: 180px;
+    height: 180px;
+    border: 1px solid rgba(245, 197, 24, .08);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  #sidebar.student-sidebar .sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 28px 20px 24px 24px;
+    margin-bottom: 8px;
+    color: #fff;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(255, 255, 255, .06);
+  }
+
+  #sidebar.student-sidebar .logo-mark {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    border-radius: 12px;
+    background: var(--student-gold);
+    color: var(--student-navy);
+    font-size: 1.1rem;
+    box-shadow: 0 4px 12px rgba(245, 197, 24, .4);
+  }
+
+  #sidebar.student-sidebar .logo-text {
+    line-height: 1;
+  }
+
+  #sidebar.student-sidebar .brand-psu {
+    display: block;
+    margin-bottom: 3px;
+    color: rgba(255, 255, 255, .45);
+    font-size: .6rem;
+    font-weight: 600;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+  }
+
+  #sidebar.student-sidebar .brand-main {
+    color: #fff;
+    font-size: 1.05rem;
+    font-weight: 700;
+  }
+
+  #sidebar.student-sidebar .brand-main span {
+    color: var(--student-gold);
+  }
+
+  #sidebar.student-sidebar .nav-section-label {
+    display: block;
+    padding: 16px 24px 6px;
+    color: rgba(255, 255, 255, .25);
+    font-size: .68rem;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+
+  #sidebar.student-sidebar .sidebar-nav {
+    list-style: none;
+    overflow-y: auto;
+    padding: 0 12px;
+    margin: 0;
+  }
+
+  #sidebar.student-sidebar .sidebar-nav::-webkit-scrollbar {
+    width: 0;
+  }
+
+  #sidebar.student-sidebar .sidebar-nav li {
+    margin-bottom: 2px;
+  }
+
+  #sidebar.student-sidebar .sidebar-nav a {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 11px 12px;
+    overflow: hidden;
+    color: rgba(255, 255, 255, .6);
+    font-size: .88rem;
+    font-weight: 500;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: all .22s cubic-bezier(.4, 0, .2, 1);
+  }
+
+  #sidebar.student-sidebar .sidebar-nav a .nav-icon,
+  #sidebar.student-sidebar .sidebar-logout-btn .nav-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    color: inherit;
+    font-size: .85rem;
+    background: rgba(255, 255, 255, .05);
+    border-radius: 8px;
+  }
+
+  #sidebar.student-sidebar .sidebar-nav a:hover {
+    color: rgba(255, 255, 255, .9);
+    background: rgba(255, 255, 255, .06);
+  }
+
+  #sidebar.student-sidebar .sidebar-nav a:hover .nav-icon {
+    background: rgba(255, 255, 255, .1);
+  }
+
+  #sidebar.student-sidebar .sidebar-nav a.active {
+    color: var(--student-gold);
+    background: rgba(245, 197, 24, .14);
+  }
+
+  #sidebar.student-sidebar .sidebar-nav a.active .nav-icon {
+    color: var(--student-gold);
+    background: rgba(245, 197, 24, .2);
+  }
+
+  #sidebar.student-sidebar .sidebar-nav a.active::before {
+    content: '';
+    position: absolute;
+    top: 20%;
+    bottom: 20%;
+    left: 0;
+    width: 3px;
+    background: var(--student-gold);
+    border-radius: 0 2px 2px 0;
+  }
+
+  #sidebar.student-sidebar .sidebar-footer {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    padding: 16px 12px 24px;
+    border-top: 1px solid rgba(255, 255, 255, .06);
+  }
+
+  #sidebar.student-sidebar .user-widget {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    background: rgba(255, 255, 255, .05);
+    border-radius: 8px;
+  }
+
+  #sidebar.student-sidebar .user-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+    color: var(--student-gold);
+    font-size: .78rem;
+    font-weight: 700;
+    background: var(--student-navy-mid);
+    border: 2px solid rgba(245, 197, 24, .4);
+    border-radius: 50%;
+  }
+
+  #sidebar.student-sidebar .user-widget-info {
+    min-width: 0;
+  }
+
+  #sidebar.student-sidebar .user-widget-name {
+    overflow: hidden;
+    color: #fff;
+    font-size: .83rem;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  #sidebar.student-sidebar .user-widget-role {
+    overflow: hidden;
+    color: rgba(255, 255, 255, .4);
+    font-size: .73rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  #sidebar.student-sidebar .sidebar-logout-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 9px 12px;
+    color: rgba(255, 255, 255, .4);
+    font-size: .84rem;
+    font-weight: 500;
+    font-family: inherit;
+    text-align: left;
+    background: none;
+    border: 0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all .22s;
+  }
+
+  #sidebar.student-sidebar .sidebar-logout-btn:hover {
+    color: #f87171;
+    background: rgba(244, 63, 94, .08);
+  }
+
+  main.flex-grow-1 {
+    min-width: 0;
+    margin-left: 230px;
+    padding: 28px 32px !important;
+  }
+
+  main.flex-grow-1 > .d-flex.justify-content-between:first-child {
+    min-height: 48px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--student-border);
+  }
+
+  main h3,
+  main h5,
+  main h6 {
+    color: var(--student-text);
+  }
+
+  .stat-card,
+  .schedule-card,
+  .room-card,
+  .weekly-card,
+  .notice-card,
+  .profile-card,
+  main .bg-white {
+    border-color: var(--student-border) !important;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, .04);
+  }
+
+  .stat-card,
+  .qa-card,
+  .notice-card,
+  .profile-card,
+  .schedule-card,
+  .room-card,
+  .weekly-card {
+    border-radius: 12px !important;
+  }
+
+  .btn-warning,
+  .btn-primary {
+    border: 0;
+    background: var(--student-gold);
+    color: var(--student-navy);
+  }
+
+  .btn-warning:hover,
+  .btn-primary:hover {
+    background: #eab308;
+    color: var(--student-navy);
+  }
+
+  @media (max-width: 768px) {
+    body > .d-flex {
+      display: block !important;
+    }
+
+    #sidebar {
+      width: 100% !important;
+      min-height: auto;
+      flex-basis: auto;
+    }
+
+    #sidebar.student-sidebar {
+      position: relative;
+      width: 100% !important;
+      height: auto;
+      min-height: auto;
+    }
+
+    #sidebar.student-sidebar .sidebar-footer {
+      position: relative;
+    }
+
+    main.flex-grow-1 {
+      margin-left: 0;
+      padding: 20px 16px !important;
+    }
+  }
+</style>

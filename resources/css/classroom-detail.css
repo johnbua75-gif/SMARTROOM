@@ -1,0 +1,358 @@
+.classroom-detail-container {
+    padding: 2.5rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.classroom-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.header-content {
+    flex: 1;
+}
+
+.classroom-header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0 0 0.5rem 0;
+}
+
+.location {
+    font-size: 0.95rem;
+    color: #6b7280;
+    margin: 0;
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.status-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.status-badge.status-available {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.status-badge.status-occupied {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.status-badge.status-reserved {
+    background-color: #dbeafe;
+    color: #0c2d6b;
+}
+
+.status-badge.status-maintenance {
+    background-color: #fee2e2;
+    color: #7f1d1d;
+}
+
+/* Detail Grid */
+.detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 2.5rem;
+}
+
+.info-section,
+.live-section {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 2rem;
+}
+
+.info-section h2,
+.live-section h2,
+.schedule-section h2,
+.activity-section h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+}
+
+.info-item {
+    padding: 1rem;
+    background: #f9fafb;
+    border-radius: 6px;
+}
+
+.info-item label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.info-item p {
+    font-size: 1rem;
+    color: #1f2937;
+    margin: 0;
+    font-weight: 500;
+}
+
+.rfid-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.status-indicator {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #d1d5db;
+}
+
+.status-indicator.active {
+    background-color: #10b981;
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+}
+
+/* Live Metrics */
+.live-metrics {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.metric-card {
+    background: linear-gradient(135deg, #f5a623 0%, #ff9f43 100%);
+    color: white;
+    padding: 1.25rem;
+    border-radius: 8px;
+}
+
+.metric-label {
+    font-size: 0.85rem;
+    opacity: 0.9;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.metric-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+}
+
+.metric-bar {
+    background-color: rgba(255, 255, 255, 0.2);
+    height: 6px;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.metric-fill {
+    background-color: white;
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+/* Schedule Section */
+.schedule-section {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 2rem;
+    margin-bottom: 2.5rem;
+}
+
+.schedule-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.schedule-item {
+    display: grid;
+    grid-template-columns: 100px 1fr auto;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1rem;
+    background: #f9fafb;
+    border-radius: 6px;
+    border-left: 4px solid #f5a623;
+}
+
+.schedule-time {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #f5a623;
+    white-space: nowrap;
+}
+
+.schedule-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.schedule-class {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0;
+}
+
+.schedule-instructor {
+    font-size: 0.85rem;
+    color: #6b7280;
+    margin: 0;
+}
+
+.schedule-attendance {
+    font-size: 0.9rem;
+    color: #6b7280;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.no-schedule,
+.no-activity {
+    text-align: center;
+    padding: 2rem;
+    color: #9ca3af;
+    font-style: italic;
+}
+
+/* Activity Section */
+.activity-section {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 2rem;
+}
+
+.activity-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.activity-item {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: #f9fafb;
+    border-radius: 6px;
+    border-left: 4px solid #5b9dd4;
+}
+
+.activity-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.activity-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.activity-name {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0;
+}
+
+.activity-card {
+    font-size: 0.85rem;
+    color: #6b7280;
+    margin: 0;
+    font-family: 'Courier New', monospace;
+}
+
+.activity-time {
+    font-size: 0.85rem;
+    color: #6b7280;
+    text-align: right;
+    white-space: nowrap;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .detail-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .classroom-detail-container {
+        padding: 1.5rem;
+    }
+
+    .classroom-header {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .schedule-item {
+        grid-template-columns: 80px 1fr;
+    }
+
+    .schedule-attendance {
+        grid-column: 2;
+        text-align: left;
+        padding-top: 0.5rem;
+    }
+
+    .activity-item {
+        grid-template-columns: auto 1fr;
+    }
+
+    .activity-time {
+        grid-column: 2;
+        text-align: left;
+        padding-top: 0.5rem;
+    }
+
+    .history-graph {
+        height: 200px;
+    }
+}

@@ -1,0 +1,42 @@
+[
+    {
+        "id": 5,
+        "classroom_id": 1,
+        "user_id": 4,
+        "start_at": "2026-05-15T03:08:00.000000Z",
+        "end_at": "2026-05-15T04:08:00.000000Z",
+        "status": "reserved"
+    },
+    {
+        "id": 4,
+        "classroom_id": 1,
+        "user_id": 9,
+        "start_at": "2026-05-14T14:00:54.000000Z",
+        "end_at": "2026-05-14T16:00:54.000000Z",
+        "status": "reserved"
+    },
+    {
+        "id": 3,
+        "classroom_id": 2,
+        "user_id": 4,
+        "start_at": "2026-05-15T02:17:00.000000Z",
+        "end_at": "2026-05-15T03:17:00.000000Z",
+        "status": "reserved"
+    },
+    {
+        "id": 2,
+        "classroom_id": 1,
+        "user_id": 4,
+        "start_at": "2026-05-15T01:43:00.000000Z",
+        "end_at": "2026-05-15T02:43:00.000000Z",
+        "status": "reserved"
+    },
+    {
+        "id": 1,
+        "classroom_id": 1,
+        "user_id": 4,
+        "start_at": "2026-05-12T11:27:00.000000Z",
+        "end_at": "2026-05-12T12:27:00.000000Z",
+        "status": "reserved"
+    }
+]
