@@ -56,7 +56,22 @@ $nav = [
     .notice-card { background: #fff; border-radius: 14px; border: 1px solid #e8eaf0; }
     .home-empty { padding: 2.25rem 1rem; text-align: center; color: #6b7280; }
     .home-empty-icon { width: 46px; height: 46px; margin: 0 auto 10px; display: grid; place-items: center; border-radius: 14px; background: #F0F4FF; color: var(--navy); font-size: 1.3rem; }
+    .student-home-hero { position:relative; overflow:hidden; margin:0 -32px 24px; padding:34px 32px 30px; color:#fff; background:linear-gradient(90deg,rgba(7,14,43,.94) 0%,rgba(11,22,64,.78) 46%,rgba(29,78,216,.3) 100%),url('/images/map.png') center/cover no-repeat; }
+    .student-home-hero-copy { position:relative; z-index:1; margin-bottom:24px; }
+    .student-home-hero h3 { color:#fff; font-size:1.55rem; }
+    .student-home-hero .hero-subtitle { color:rgba(255,255,255,.68); }
+    .student-home-stats { position:relative; z-index:1; padding:16px; border:1px solid #dce6f5; border-radius:18px; background:rgba(255,255,255,.96); box-shadow:0 10px 28px rgba(7,22,64,.14); }
+    .student-home-stats .stat-card { color:var(--student-text); background:#f8faff; border-color:#dce6f5; }
+    .student-home-stats .stat-card .fs-2 { color:var(--student-text) !important; }
+    .student-home-stats .stat-card .text-muted { color:#7585a0 !important; }
+    .student-home-stats .stat-card:hover { background:#fff; }
+    @media (max-width:768px) { .student-home-hero { margin:0 -16px 20px; padding:26px 20px 24px; } }
     @media (max-width: 768px) { #sidebar { width: 100%; min-height: auto; } body > .d-flex { display: block !important; } main { padding: 1.25rem !important; } }
+  </style>
+  <style>
+    .is-summary-loading { color: transparent !important; min-width: 2.5rem; min-height: 2rem; border-radius: 6px; background: linear-gradient(90deg,#eef1f5 25%,#fff 50%,#eef1f5 75%); background-size: 200% 100%; animation: summarySkeleton 1.35s ease-in-out infinite; }
+    @keyframes summarySkeleton { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    @media (prefers-reduced-motion: reduce) { .is-summary-loading { animation: none; background: #eef1f5; } }
   </style>
   @include('frontend.student._theme')
 </head>
@@ -74,22 +89,25 @@ $nav = [
       <span class="text-muted small"><i class="bi bi-person-check me-1"></i>Student dashboard</span>
     </div>
 
-    <!-- Greeting -->
-    <h3 class="fw-bold mb-0">Good morning, {{ $firstName }}! 👋</h3>
-    <p class="text-muted mb-4">Here's your schedule for today</p>
-
-    <!-- Stat Cards -->
-    <div class="row g-3 mb-4">
-      @foreach ($stats as $s)
-        <div class="col-md-4">
-          <div class="stat-card p-4">
-            <i class="bi {{ $s['icon'] }} fs-4 {{ $s['color'] }}"></i>
-            <div class="fs-2 fw-bold mt-2" @isset($s['id']) id="{{ $s['id'] }}" @endisset @if($s['label'] === "Today's Classes") id="today-classes-count" @elseif($s['label'] === 'Next Class') id="next-class-time" @endif>{{ $s['value'] }}</div>
-            <div class="text-muted small">{{ $s['label'] }}</div>
-          </div>
+    <section class="student-home-hero">
+      <div class="student-home-hero-copy">
+        <h3 class="fw-bold mb-0">Good morning, {{ $firstName }}!</h3>
+        <p class="hero-subtitle mb-0">Here's your schedule for today</p>
+      </div>
+      <div class="student-home-stats">
+        <div class="row g-3 mb-0">
+          @foreach ($stats as $s)
+            <div class="col-md-4">
+              <div class="stat-card p-4">
+                <i class="bi {{ $s['icon'] }} fs-4 {{ $s['color'] }}"></i>
+                <div class="fs-2 fw-bold mt-2" @isset($s['id']) id="{{ $s['id'] }}" @endisset @if($s['label'] === "Today's Classes") id="today-classes-count" @elseif($s['label'] === 'Next Class') id="next-class-time" @endif>{{ $s['value'] }}</div>
+                <div class="text-muted small">{{ $s['label'] }}</div>
+              </div>
+            </div>
+          @endforeach
         </div>
-      @endforeach
-    </div>
+      </div>
+    </section>
 
     <!-- Next Class Banner -->
     @if (!empty($todaySchedules) && $todaySchedules->count() > 0)
@@ -184,10 +202,17 @@ $nav = [
     var todayClassesCount = document.getElementById('today-classes-count');
     var nextClassTime = document.getElementById('next-class-time');
     var availableRoomsCount = document.getElementById('available-rooms-count');
+    var homeSummaryLoaded = false;
 
     async function refreshHomeSummary() {
       if (!todayClassesCount && !nextClassTime && !availableRoomsCount) {
         return;
+      }
+
+      if (!homeSummaryLoaded) {
+        [todayClassesCount, nextClassTime, availableRoomsCount].forEach(function (element) {
+          element?.classList.add('is-summary-loading');
+        });
       }
 
       try {
@@ -209,7 +234,14 @@ $nav = [
         if (todayClassesCount) todayClassesCount.textContent = String(payload.today_classes);
         if (nextClassTime) nextClassTime.textContent = payload.next_class;
         if (availableRoomsCount) availableRoomsCount.textContent = String(payload.available_rooms);
+        [todayClassesCount, nextClassTime, availableRoomsCount].forEach(function (element) {
+          element?.classList.remove('is-summary-loading');
+        });
+        homeSummaryLoaded = true;
       } catch (error) {
+        [todayClassesCount, nextClassTime, availableRoomsCount].forEach(function (element) {
+          element?.classList.remove('is-summary-loading');
+        });
       }
     }
 

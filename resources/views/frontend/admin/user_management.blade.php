@@ -506,6 +506,10 @@ body.editing-open {
 .summary-grid { animation: fadeSlideUp 0.4s both 0.10s; }
 .toolbar      { animation: fadeSlideUp 0.4s both 0.15s; }
 .table-card   { animation: fadeSlideUp 0.4s both 0.20s; }
+.is-table-loading tbody { opacity: .45; }
+.is-table-loading tbody tr { background: linear-gradient(90deg,transparent 25%,rgba(238,241,245,.75) 50%,transparent 75%); background-size: 200% 100%; animation: tableSkeleton 1.35s ease-in-out infinite; }
+@keyframes tableSkeleton { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+@media (prefers-reduced-motion: reduce) { .is-table-loading tbody tr { animation: none; background: #f4f5f7; } }
 
 /* ── Responsive ── */
 @media (max-width: 1200px) {
@@ -939,6 +943,8 @@ async function refreshUsersData() {
     return;
   }
 
+  document.getElementById('userTable')?.classList.add('is-table-loading');
+
   try {
     const response = await fetch(usersDataUrl, {
       method: 'GET',
@@ -958,6 +964,8 @@ async function refreshUsersData() {
     filterTable();
   } catch (_) {
     // Ignore transient refresh errors and keep current data visible.
+  } finally {
+    document.getElementById('userTable')?.classList.remove('is-table-loading');
   }
 }
 

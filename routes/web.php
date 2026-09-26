@@ -1,18 +1,19 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\AdminDataController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AdminDataController;
+use App\Http\Controllers\AiRecommendationController;
+use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\ReservationController as ApiReservationController;
+use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ClassroomController;
 use App\Http\Controllers\FacultyController;
-use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\FacultyScheduleAssistantController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\ScheduleController;
-use App\Http\Controllers\AiRecommendationController;
-use App\Http\Controllers\FacultyScheduleAssistantController;
 use App\Http\Controllers\StudentController;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('frontend.landing');
@@ -68,6 +69,8 @@ Route::middleware(['auth', 'password.changed', 'role:faculty'])->group(function 
     Route::get('/rooms', [FacultyController::class, 'rooms'])->name('faculty.rooms');
     Route::get('/rooms/export/csv', [FacultyController::class, 'exportRoomsCsv'])->name('faculty.rooms.export.csv');
     Route::get('/rfid-verification', [FacultyController::class, 'rfidVerification'])->name('faculty.rfid.verification');
+    Route::get('/faculty-notifications', [FacultyController::class, 'notifications'])->name('faculty.notifications');
+    Route::get('/faculty-notifications/data', [NotificationController::class, 'index'])->name('faculty.notifications.data');
 
     Route::get('/faculty-schedule', [ScheduleController::class, 'facultyIndex'])->name('faculty.schedule');
     Route::get('/faculty-schedule/export/ics', [ScheduleController::class, 'exportFacultyIcs'])->name('faculty.schedule.export.ics');
@@ -181,4 +184,3 @@ Route::middleware(['auth', 'password.changed', 'role:admin'])->group(function ()
     Route::delete('/admin/users/{user}/reassign', [AdminDataController::class, 'destroyUserWithReassign'])->name('admin.users.destroy.reassign');
 
 });
-

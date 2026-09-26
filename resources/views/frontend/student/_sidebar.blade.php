@@ -66,3 +66,25 @@
     </form>
   </div>
 </aside>
+<script>
+(function () {
+  const sidebar = document.getElementById('sidebar');
+  if (!sidebar || document.querySelector('.student-sidebar-toggle')) return;
+  const toggle = document.createElement('button');
+  toggle.type = 'button';
+  toggle.className = 'student-sidebar-toggle';
+  toggle.setAttribute('aria-label', 'Minimize sidebar');
+  toggle.innerHTML = '<i class="bi bi-chevron-left" aria-hidden="true"></i>';
+  sidebar.appendChild(toggle);
+
+  if (window.localStorage.getItem('studentSidebarCollapsed') === '1') {
+    document.body.classList.add('student-sidebar-collapsed');
+  }
+
+  toggle.addEventListener('click', function () {
+    const collapsed = document.body.classList.toggle('student-sidebar-collapsed');
+    window.localStorage.setItem('studentSidebarCollapsed', collapsed ? '1' : '0');
+    toggle.setAttribute('aria-label', collapsed ? 'Expand sidebar' : 'Minimize sidebar');
+  });
+})();
+</script>

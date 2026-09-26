@@ -380,6 +380,7 @@ svg.lc{width:100%;overflow:visible;display:block}
         <span class="nav-icon"><i class="fas fa-id-card"></i></span>RFID Verification
       </a>
     </li>
+    <li><a href="{{ route('faculty.notifications') }}" class="{{ Request::routeIs('faculty.notifications') ? 'active' : '' }}"><span class="nav-icon"><i class="fas fa-bell"></i></span>Notifications</a></li>
     <li>
       <a href="{{ url('/reports') }}" class="{{ Request::is('reports*') ? 'active' : '' }}">
         <span class="nav-icon"><i class="fas fa-chart-bar"></i></span>

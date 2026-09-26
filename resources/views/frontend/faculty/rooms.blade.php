@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 $facultyName = $facultyName ?? request()->user()?->name ?? 'Faculty';
 $facultyDept = $facultyDept ?? request()->user()?->department ?? 'Faculty';
 $facultyEmail = $facultyEmail ?? request()->user()?->email ?? '';
@@ -29,7 +29,7 @@ function amenity_icon($amenity) {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Room Availability – SmartDoor</title>
+<title>Room Availability â€“ SmartDoor</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -43,25 +43,25 @@ function amenity_icon($amenity) {
   --navy-mid:   #1a2f80;
   --navy-light: #e8ecfb;
   --white:      #ffffff;
-  --bg:         #f0f2f5;
-  --border:     #e5e7eb;
-  --text:       #1a1d2e;
-  --text-2:     #3d4a5c;
-  --text-3:     #6b7280;
-  --text-4:     #b0bac8;
+  --bg:         #f8f9fb;
+  --border:     #e8eaef;
+  --text:       #111827;
+  --text-2:     #4b5563;
+  --text-3:     #9ca3af;
+  --text-4:     #d1d5db;
   --accent:     #1a2b6d;
   --accent2:    #4a6cf7;
   --green:      #16a34a;
-  --green-bg:   #dcfce7;
+  --green-bg:   #f0fdf4;
   --green-bd:   #bbf7d0;
   --green-text: #15803d;
   --red:        #dc2626;
-  --red-bg:     #fee2e2;
+  --red-bg:     #fef2f2;
   --red-bd:     #fca5a5;
   --orange:     #f59e0b;
-  --shadow-sm:  0 1px 3px rgba(0,0,0,.07),0 1px 2px rgba(0,0,0,.05);
-  --shadow-md:  0 4px 16px rgba(0,0,0,.08),0 1px 4px rgba(0,0,0,.04);
-  --r-xs: 6px; --r-sm: 10px; --r: 14px; --r-lg: 18px;
+  --shadow-sm:  0 1px 3px rgba(0,0,0,.04);
+  --shadow-md:  0 4px 14px rgba(0,0,0,.06);
+  --r-xs: 6px; --r-sm: 8px; --r: 12px; --r-lg: 14px;
   --sidebar-w: 230px;
   --fh: 'Plus Jakarta Sans',sans-serif;
   --fb: 'DM Sans',sans-serif;
@@ -69,7 +69,7 @@ function amenity_icon($amenity) {
 
 body { font-family:var(--fb); background:var(--bg); color:var(--text); min-height:100vh; display:flex; -webkit-font-smoothing:antialiased; }
 
-/* ══ SIDEBAR (UNCHANGED) ══ */
+/* â•â• SIDEBAR (UNCHANGED) â•â• */
 .sidebar{position:fixed;left:0;top:0;width:var(--sidebar-w);height:100vh;background:var(--navy);display:flex;flex-direction:column;overflow:hidden;z-index:100}
 .sidebar::before{content:'';position:absolute;inset:0;background:linear-gradient(160deg,rgba(245,197,24,.06) 0%,transparent 55%);pointer-events:none}
 .sidebar::after{content:'';position:absolute;bottom:-60px;right:-60px;width:180px;height:180px;border-radius:50%;border:1px solid rgba(245,197,24,.08);pointer-events:none}
@@ -97,12 +97,12 @@ body { font-family:var(--fb); background:var(--bg); color:var(--text); min-heigh
 .sidebar-logout-btn{display:flex;align-items:center;gap:10px;padding:9px 12px;color:rgba(255,255,255,.4);font-size:.84rem;font-weight:500;border-radius:var(--r-sm);transition:all .22s;width:100%;background:none;border:none;cursor:pointer;font-family:inherit}
 .sidebar-logout-btn:hover{color:#f87171;background:rgba(244,63,94,.08)}
 
-/* ══ MAIN ══ */
+/* â•â• MAIN â•â• */
 .main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh}
 
-/* ── TOPBAR ── */
-.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:0 32px;height:64px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:50}
-.topbar-search{flex:1;max-width:420px;display:flex;align-items:center;gap:10px;background:var(--bg);border:1.5px solid var(--border);border-radius:24px;padding:9px 18px;transition:border-color .2s,box-shadow .2s}
+/* â”€â”€ TOPBAR â”€â”€ */
+.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:0 32px;height:56px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:50}
+.topbar-search{flex:1;max-width:420px;display:none!important;display:flex;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--border);border-radius:var(--r-sm);padding:8px 16px;transition:border-color .2s,box-shadow .2s}
 .topbar-search:focus-within{border-color:#93c5fd;box-shadow:0 0 0 3px rgba(59,130,246,.09)}
 .topbar-search i{color:var(--text-4);font-size:.88rem}
 .topbar-search input{border:none;outline:none;background:transparent;font-size:.88rem;font-family:var(--fb);color:var(--text);width:100%}
@@ -111,7 +111,7 @@ body { font-family:var(--fb); background:var(--bg); color:var(--text); min-heigh
 .topbar-profile{position:relative;display:flex;align-items:center;gap:10px;cursor:pointer}
 .topbar-profile-name{font-size:.88rem;font-weight:700;color:var(--text);line-height:1.2}
 .topbar-profile-role{font-size:.75rem;color:var(--text-3)}
-.topbar-avatar{width:38px;height:38px;border-radius:50%;background:#e0e7ff;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.8rem;color:var(--accent2);overflow:hidden}
+.topbar-avatar{width:34px;height:34px;border-radius:50%;background:#eef2ff;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.8rem;color:var(--accent2);overflow:hidden}
 .topbar-avatar img{width:100%;height:100%;object-fit:cover}
 
 /* Profile dropdown */
@@ -124,120 +124,177 @@ body { font-family:var(--fb); background:var(--bg); color:var(--text); min-heigh
 .profile-signout-btn{width:100%;margin-top:4px;border:none;outline:none;border-radius:999px;padding:7px 10px;font-size:.82rem;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px;background:var(--red-bg);color:var(--red);cursor:pointer;transition:background .16s,transform .08s;font-family:inherit}
 .profile-signout-btn:hover{background:#fee2e2;transform:translateY(-1px)}
 
-/* ══ CONTENT ══ */
+/* â•â• CONTENT â•â• */
 .content{padding:28px 32px 52px;display:flex;flex-direction:column;gap:22px}
 
-/* ── PAGE HEADER ── */
-.page-header{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px}
-.page-title{font-family:var(--fh);font-size:1.35rem;font-weight:800;color:var(--text)}
-.page-sub{font-size:.82rem;color:var(--text-3);margin-top:3px}
+/* â”€â”€ PAGE HEADER â”€â”€ */
+/* -- HERO BANNER -- */
+.hero-banner{position:relative;border-radius:0;overflow:hidden;min-height:250px;display:flex;flex-direction:column;justify-content:flex-end;background:linear-gradient(135deg,#0b1640 0%,rgba(26,47,128,.78) 40%,rgba(11,22,64,.12) 100%),url('/images/map.png') center/cover no-repeat;margin:-28px -32px -10px}
+.hero-banner::before{content:'';position:absolute;inset:0;background:linear-gradient(to right,rgba(11,22,64,.92) 0%,rgba(11,22,64,.7) 45%,rgba(11,22,64,.2) 75%,transparent 100%);z-index:1}
+.hero-content{position:relative;z-index:2;padding:28px 32px 24px}
+.hero-brand{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.hero-logo{width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.hero-logo i{font-size:1.1rem;color:var(--yellow)}
+.hero-brand-text{display:flex;flex-direction:column}
+.hero-brand-name{font-family:var(--fh);font-size:.88rem;font-weight:700;color:#fff;letter-spacing:.06em;text-transform:uppercase}
+.hero-brand-campus{font-size:.68rem;color:rgba(255,255,255,.5);letter-spacing:.04em;margin-top:1px}
+.hero-label{font-size:.62rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--yellow);margin-bottom:6px}
+.hero-title{font-family:var(--fh);font-size:1.5rem;font-weight:800;color:#fff;letter-spacing:-.02em;margin-bottom:4px}
+.hero-sub{font-size:.82rem;color:rgba(255,255,255,.6);max-width:440px}
+.page-header{display:none}
+.page-title{display:none}
+.page-sub{display:none}
+
+
 .header-actions{display:flex;gap:10px;align-items:center}
 .btn-outline{display:flex;align-items:center;gap:7px;padding:9px 16px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:var(--white);font-family:var(--fb);font-size:.82rem;font-weight:600;color:var(--text-2);cursor:pointer;transition:background .15s}
 .btn-outline:hover{background:var(--bg)}
 .btn-primary{display:flex;align-items:center;gap:7px;padding:9px 18px;border:none;border-radius:var(--r-sm);background:var(--accent);color:#fff;font-family:var(--fb);font-size:.82rem;font-weight:600;cursor:pointer;transition:opacity .15s}
 .btn-primary:hover{opacity:.88}
-.booking-toolbar{background:var(--white);border:1.5px solid var(--border);border-radius:var(--r);padding:16px 20px;box-shadow:var(--shadow-sm);display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap}
-.booking-toolbar-title{width:100%;font-family:var(--fh);font-size:.92rem;font-weight:800;color:var(--text)}
-.booking-toolbar-sub{width:100%;font-size:.76rem;color:var(--text-3);margin-top:-7px}
-.booking-field{display:flex;flex-direction:column;gap:5px;min-width:190px;flex:1}
-.booking-field label{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-3)}
-.booking-field input{height:39px;border:1.5px solid var(--border);border-radius:9px;padding:0 10px;background:var(--bg);font: .83rem var(--fb);color:var(--text);outline:none}
+.booking-toolbar{background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:16px 20px;display:grid;grid-template-columns:1.4fr 1fr 1fr auto;gap:14px;align-items:end;box-shadow:0 4px 16px rgba(0,0,0,.08);position:relative;z-index:10}
+.booking-toolbar-copy{align-self:center}
+.booking-toolbar-title{font-family:var(--fh);font-size:.95rem;font-weight:800;color:var(--text);display:flex;align-items:center;gap:8px}
+.booking-toolbar-title i{color:var(--accent2);font-size:.86rem}
+.booking-toolbar-sub{font-size:.75rem;line-height:1.45;color:var(--text-3);margin-top:5px;max-width:230px}
+.booking-field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.booking-field label{font-size:.68rem;font-weight:800;color:var(--text-3);letter-spacing:.05em;text-transform:uppercase}
+.booking-field input{height:42px;border:1px solid var(--border);border-radius:var(--r-sm);padding:0 11px;background:#fbfcfe;font: .83rem var(--fb);color:var(--text);outline:none;transition:border-color .15s,box-shadow .15s,background .15s}
 .booking-field input:focus{border-color:#93c5fd;box-shadow:0 0 0 3px rgba(59,130,246,.09);background:#fff}
-.booking-search-btn{height:39px;white-space:nowrap}
-.booking-result{width:100%;display:none;border-radius:8px;padding:8px 10px;font-size:.76rem;font-weight:600}
+.booking-search-btn{height:42px;white-space:nowrap;padding-inline:17px}
+.booking-result{grid-column:2/-1;width:100%;display:none;border-radius:8px;padding:8px 10px;font-size:.76rem;font-weight:600}
 .booking-result.is-visible{display:block}.booking-result.ok{background:var(--green-bg);color:var(--green-text)}.booking-result.warn{background:var(--red-bg);color:#991b1b}
-.my-reservations{background:var(--white);border:1.5px solid var(--border);border-radius:var(--r);padding:18px 20px;box-shadow:var(--shadow-sm)}
-.my-reservations-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}.my-reservations-title{font-family:var(--fh);font-size:.95rem;font-weight:800}.reservation-list{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.reservation-item{border:1px solid var(--border);border-radius:10px;padding:11px 12px;display:flex;justify-content:space-between;gap:12px;align-items:center}.reservation-room{font-weight:800;font-size:.8rem;color:var(--text)}.reservation-time{font-size:.74rem;color:var(--text-3);margin-top:3px}.reservation-status{font-size:.68rem;font-weight:700;color:var(--green-text);text-transform:uppercase}.reservation-cancel{border:1px solid var(--red-bd);background:#fff;color:var(--red);border-radius:7px;padding:7px 9px;cursor:pointer;font:700 .7rem var(--fb);white-space:nowrap}.reservation-cancel:hover{background:var(--red-bg)}.reservation-empty{color:var(--text-3);font-size:.78rem}
-@media(max-width:768px){.reservation-list{grid-template-columns:1fr}.booking-field{min-width:100%}.booking-search-btn{width:100%}}
+.my-reservations{background:linear-gradient(135deg,#fff 0%,#fbfcff 100%);border:1px solid var(--border);border-radius:var(--r-lg);padding:22px 24px;box-shadow:var(--shadow-sm)}
+.my-reservations-head{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:16px}
+.my-reservations-heading{display:flex;align-items:center;gap:11px}
+.my-reservations-icon{width:34px;height:34px;border-radius:10px;background:#eef2ff;color:var(--accent2);display:flex;align-items:center;justify-content:center;font-size:.85rem}
+.my-reservations-title{font-family:var(--fh);font-size:1rem;font-weight:800;color:var(--text)}
+.my-reservations-sub{font-size:.75rem;color:var(--text-3);margin-top:2px}
+.reservation-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.reservation-item{display:flex;align-items:center;gap:13px;min-width:0;padding:13px 14px;background:var(--white);border:1px solid var(--border);border-radius:var(--r);box-shadow:0 2px 7px rgba(15,23,41,.035);transition:border-color .16s,box-shadow .16s,transform .16s}
+.reservation-item:hover{border-color:#c7d2fe;box-shadow:0 7px 16px rgba(15,23,41,.07);transform:translateY(-1px)}
+.reservation-date{width:48px;min-width:48px;padding:7px 4px;text-align:center;background:#f2f5ff;border:1px solid #dbe3ff;border-radius:9px;color:var(--accent)}
+.reservation-date-day{display:block;font-size:.62rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--accent2)}
+.reservation-date-number{display:block;font-family:var(--fh);font-size:1.15rem;font-weight:800;line-height:1.1;margin-top:2px}
+.reservation-details{flex:1;min-width:0}
+.reservation-room{font-weight:800;font-size:.84rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.reservation-location{font-size:.7rem;color:var(--text-3);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.reservation-time{font-size:.75rem;color:var(--text-2);margin-top:7px;display:flex;align-items:center;gap:5px}.reservation-time i{color:var(--accent2);font-size:.68rem}
+.reservation-side{display:flex;flex-direction:column;align-items:flex-end;gap:10px;flex-shrink:0}
+.reservation-status{font-size:.64rem;font-weight:800;color:var(--green-text);background:var(--green-bg);border:1px solid var(--green-bd);border-radius:999px;padding:4px 8px;text-transform:uppercase;letter-spacing:.04em}
+.reservation-status.pending{color:#b45309;background:#fffbeb;border-color:#fde68a}.reservation-status.cancelled{color:var(--red);background:var(--red-bg);border-color:var(--red-bd)}
+.reservation-cancel{border:0;background:transparent;color:var(--text-3);border-radius:7px;padding:5px 7px;cursor:pointer;font:600 .72rem var(--fb);white-space:nowrap}.reservation-cancel:hover{background:var(--red-bg);color:var(--red)}.reservation-cancel:disabled{opacity:.55;cursor:not-allowed}
+.reservation-empty{grid-column:1/-1;display:flex;align-items:center;gap:9px;padding:16px;border:1px dashed var(--border);border-radius:var(--r-sm);color:var(--text-3);font-size:.78rem}.reservation-empty i{color:var(--text-4)}
+.reservation-skeleton{border:1px solid var(--border);border-radius:var(--r);padding:14px;display:flex;align-items:center;gap:13px}
+@keyframes skeletonShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+@media(prefers-reduced-motion:reduce){.sk-bar{animation:none!important;background:#f0f2f5!important}}
+.sk-bar{display:block;border-radius:5px;background:linear-gradient(90deg,#f0f2f5 25%,#e8eaef 38%,#f0f2f5 63%);background-size:200% 100%;animation:skeletonShimmer 1.6s ease-in-out infinite}
+.sk-bar.circle{border-radius:50%}
+.reservation-skeleton .sk-date{width:48px;height:52px;border-radius:9px}
+.reservation-skeleton .sk-lines{flex:1;display:flex;flex-direction:column;gap:6px}
+.reservation-skeleton .sk-line{height:10px;border-radius:5px}
+.reservation-skeleton .sk-pill{width:60px;height:22px;border-radius:12px;margin-left:auto;flex-shrink:0}
+@media(max-width:1000px){.booking-toolbar{grid-template-columns:1fr 1fr;align-items:end}.booking-toolbar-copy{grid-column:1/-1}.booking-toolbar-sub{max-width:none}.booking-result{grid-column:1/-1}}
+@media(max-width:768px){.reservation-list{grid-template-columns:1fr}.booking-toolbar{grid-template-columns:1fr;padding:16px}.booking-toolbar-copy,.booking-result{grid-column:auto}.booking-field{min-width:100%}.booking-search-btn{width:100%}.my-reservations{padding:18px}.my-reservations-head{align-items:flex-start}.my-reservations-sub{max-width:190px}.reservation-item{align-items:flex-start}.reservation-side{margin-left:auto}}
 
-/* ── SEARCH + FILTER ── */
-.search-filter-row{background:var(--white);border-radius:var(--r);padding:16px 20px;box-shadow:var(--shadow-sm);display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+/* â”€â”€ SEARCH + FILTER â”€â”€ */
+.search-filter-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .search-wrap{flex:1;position:relative;min-width:200px}
 .search-wrap i{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--text-4);font-size:.8rem;pointer-events:none}
-.search-wrap input{width:100%;padding:10px 14px 10px 36px;border:1.5px solid var(--border);border-radius:var(--r-sm);background:var(--bg);font-size:.85rem;font-family:var(--fb);color:var(--text);outline:none;transition:border .15s,box-shadow .15s}
+.search-wrap input{width:100%;padding:9px 14px 9px 34px;border:1px solid var(--border);border-radius:var(--r-sm);background:var(--white);font-size:.85rem;font-family:var(--fb);color:var(--text);outline:none;transition:border .15s,box-shadow .15s}
 .search-wrap input:focus{border-color:#93c5fd;box-shadow:0 0 0 3px rgba(59,130,246,.09);background:#fff}
 .search-wrap input::placeholder{color:var(--text-4)}
 .sf-divider{width:1px;height:26px;background:var(--border);flex-shrink:0}
 .filter-label{font-size:.75rem;font-weight:700;color:var(--text-3);white-space:nowrap}
 .filter-pills{display:flex;gap:5px}
-.filter-btn{padding:6px 16px;border-radius:20px;font-size:.78rem;font-weight:600;font-family:var(--fb);border:1.5px solid transparent;cursor:pointer;color:var(--text-3);background:var(--bg);text-decoration:none;transition:all .15s}
+.filter-btn{padding:6px 14px;border-radius:var(--r-xs);font-size:.78rem;font-weight:600;font-family:var(--fb);border:1px solid var(--border);cursor:pointer;color:var(--text-3);background:var(--white);text-decoration:none;transition:all .15s}
 .filter-btn:hover{background:#e8ecfb;color:var(--accent2);border-color:#c7d2fe}
 .filter-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
 
-/* ── CAMPUS MAP ── */
-.map-card{background:var(--white);border-radius:var(--r);box-shadow:var(--shadow-sm);overflow:hidden}
-.map-card-header{padding:18px 22px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+/* â”€â”€ CAMPUS MAP â”€â”€ */
+/* -- CAMPUS MAP -- */
+.map-card{background:var(--white);border-radius:var(--r);border:1px solid var(--border);overflow:hidden}
+.map-card-header{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--white)}
 .map-title-group{display:flex;align-items:center;gap:10px}
-.map-icon{width:32px;height:32px;border-radius:8px;background:#eff2ff;color:var(--accent2);display:flex;align-items:center;justify-content:center;font-size:.82rem}
-.map-title{font-family:var(--fh);font-size:.95rem;font-weight:700;color:var(--text)}
-.map-sub{font-size:.74rem;color:var(--text-3);margin-top:1px}
-.live-badge{display:flex;align-items:center;gap:5px;font-size:.72rem;font-weight:700;color:var(--green);background:var(--green-bg);padding:4px 11px;border-radius:20px;border:1px solid var(--green-bd)}
-.live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 1.6s infinite}
+.map-icon{width:32px;height:32px;border-radius:8px;background:var(--navy);color:var(--yellow);display:flex;align-items:center;justify-content:center;font-size:.78rem}
+.map-title{font-family:var(--fh);font-size:.88rem;font-weight:700;color:var(--text)}
+.map-sub{font-size:.72rem;color:var(--text-3);margin-top:1px}
+.live-badge{display:flex;align-items:center;gap:5px;font-size:.7rem;font-weight:600;color:var(--green);background:var(--green-bg);padding:4px 10px;border-radius:var(--r-xs);border:1px solid var(--green-bd)}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 1.6s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-.map-grid{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:2px;background:#cde0cd;min-height:240px;position:relative}
-.map-cell{background:#edf7ed;display:flex;align-items:center;justify-content:center;min-height:105px;position:relative}
-.map-cell:last-child{background:#f4f7f4}
-.building-pin{display:flex;flex-direction:column;align-items:center;gap:7px}
+.map-grid{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:0;background:#1a2340 url('/images/map.png') center/cover no-repeat;min-height:220px;position:relative}
+.map-grid::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(11,22,64,.55) 0%,rgba(11,22,64,.35) 100%);pointer-events:none;z-index:0}
+.map-cell{background:transparent;display:flex;align-items:center;justify-content:center;min-height:100px;position:relative;z-index:1}
+.building-pin{display:flex;flex-direction:column;align-items:center;gap:6px;transition:transform .2s}
 .building-pin.js-building-pin{cursor:pointer}
-.building-pin.is-selected .pin-box{outline:2px solid var(--yellow);outline-offset:2px}
-.pin-box{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;color:#fff;position:relative;box-shadow:0 4px 14px rgba(0,0,0,.18)}
-.pin-box.avail{background:linear-gradient(135deg,#22c55e,#16a34a)}
-.pin-box.full {background:linear-gradient(135deg,#f87171,#dc2626)}
-.pin-num{position:absolute;top:-7px;right:-7px;width:20px;height:20px;border:2px solid #fff;border-radius:50%;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.building-pin.js-building-pin:hover{transform:scale(1.08)}
+.building-pin.is-selected .pin-box{outline:2.5px solid var(--yellow);outline-offset:3px}
+.pin-box{width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;color:#fff;position:relative;box-shadow:0 4px 20px rgba(0,0,0,.3);border:2px solid rgba(255,255,255,.3);backdrop-filter:blur(2px);transition:all .2s}
+.pin-box.avail{background:rgba(22,163,74,.9)}
+.pin-box.full{background:rgba(220,38,38,.9)}
+.pin-box:hover{box-shadow:0 6px 28px rgba(0,0,0,.4);transform:translateY(-2px)}
+.pin-num{position:absolute;top:-8px;right:-8px;width:22px;height:22px;border:2px solid #fff;border-radius:50%;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.2)}
 .pin-num.g{background:#fff;color:var(--green)}
 .pin-num.r{background:#fff;color:var(--red)}
-.building-lbl{font-size:11px;font-weight:700;color:var(--text-2);text-align:center;max-width:90px;line-height:1.35}
-.map-north{position:absolute;top:12px;right:12px;width:26px;height:26px;background:#fff;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,.1);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:var(--navy);z-index:5}
-.map-legend{position:absolute;bottom:12px;left:12px;background:rgba(255,255,255,.96);backdrop-filter:blur(4px);border-radius:10px;padding:10px 14px;box-shadow:var(--shadow-sm);z-index:5;border:1px solid var(--border)}
-.legend-row{display:flex;align-items:center;gap:7px;font-size:.72rem;font-weight:600;color:var(--text-2);padding:2px 0}
-.legend-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.building-lbl{font-size:.72rem;font-weight:700;color:#fff;text-align:center;max-width:90px;line-height:1.3;text-shadow:0 1px 4px rgba(0,0,0,.5);letter-spacing:.02em}
+.map-north{position:absolute;top:12px;right:12px;width:28px;height:28px;background:rgba(255,255,255,.95);border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,.15);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:var(--navy);z-index:5;backdrop-filter:blur(4px)}
+.map-legend{position:absolute;bottom:12px;left:12px;background:rgba(11,22,64,.85);backdrop-filter:blur(8px);border-radius:8px;padding:10px 14px;z-index:5;border:1px solid rgba(255,255,255,.1)}
+.legend-row{display:flex;align-items:center;gap:7px;font-size:.7rem;font-weight:600;color:rgba(255,255,255,.85);padding:2px 0}
+.legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;box-shadow:0 0 6px currentColor}
 
-/* ── ROOMS SECTION ── */
+/* â”€â”€ ROOMS SECTION â”€â”€ */
 .rooms-header{display:flex;align-items:center;justify-content:space-between}
 .rooms-section-title{font-family:var(--fh);font-size:.95rem;font-weight:700;color:var(--text)}
-.rooms-count-badge{font-size:.78rem;color:var(--text-3);background:var(--white);padding:4px 13px;border-radius:20px;border:1.5px solid var(--border);font-weight:600;box-shadow:var(--shadow-sm)}
+.rooms-count-badge{font-size:.76rem;color:var(--text-3);background:var(--white);padding:4px 12px;border-radius:var(--r-xs);border:1px solid var(--border);font-weight:500}
 
-/* ── ROOM CARDS GRID ── */
-.rooms-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
-.room-card{background:var(--white);border:1.5px solid var(--border);border-radius:var(--r);padding:20px;box-shadow:var(--shadow-sm);transition:transform .18s,box-shadow .18s;display:flex;flex-direction:column}
-.room-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-md)}
-.card-strip{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-.room-id{font-size:.68rem;font-weight:700;letter-spacing:.07em;color:var(--text-4);text-transform:uppercase}
-.status-pill{display:inline-flex;align-items:center;gap:5px;font-size:.7rem;font-weight:700;padding:4px 10px;border-radius:20px}
+/* -- ROOM CARDS -- */
+.rooms-grid{display:flex;flex-direction:column;gap:14px}
+.room-card{background:var(--white);border:1px solid var(--border);border-radius:var(--r);transition:border-color .18s;display:flex;flex-direction:row;overflow:hidden}
+.room-card:hover{border-color:var(--text-4)}
+.room-thumb{width:170px;min-height:150px;background:linear-gradient(135deg,#eef2ff 0%,#e0e7ff 100%);display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;overflow:hidden}
+.room-thumb::after{content:'';position:absolute;inset:45% 0 0;background:linear-gradient(180deg,transparent,rgba(11,22,64,.58));pointer-events:none}
+.room-thumb-image{width:100%;height:100%;min-height:150px;display:block;object-fit:cover}
+.room-thumb i{position:absolute;z-index:0;font-size:2rem;color:var(--accent2);opacity:.3}
+.room-thumb-label{position:absolute;bottom:10px;left:10px;right:10px;background:rgba(255,255,255,.9);backdrop-filter:blur(4px);border-radius:var(--r-xs);padding:5px 8px;font-size:.64rem;font-weight:600;color:var(--text-2);text-align:center}
+.card-body{flex:1;padding:16px 20px;display:flex;flex-direction:column;min-width:0}
+.card-right{width:170px;padding:16px;display:flex;flex-direction:column;align-items:stretch;justify-content:space-between;border-left:1px solid var(--border);flex-shrink:0;text-align:center}
+.card-right .card-actions{flex-direction:column;width:100%;gap:6px}
+.card-right .btn-check,.card-right .btn-res{width:100%;flex:none;font-size:.76rem;padding:9px 10px}
+.card-strip{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.room-id{font-size:.66rem;font-weight:500;color:var(--text-4)}
+.status-pill{display:inline-flex;align-items:center;gap:4px;font-size:.68rem;font-weight:600;padding:3px 9px;border-radius:var(--r-xs)}
 .pill-avail{background:var(--green-bg);color:var(--green-text);border:1px solid var(--green-bd)}
-.pill-res  {background:#fff7ed;color:#c2410c;border:1px solid #fed7aa}
-.pill-occ  {background:var(--red-bg);color:var(--red);border:1px solid var(--red-bd)}
+.pill-res{background:#fff7ed;color:#c2410c;border:1px solid #fed7aa}
+.pill-occ{background:var(--red-bg);color:var(--red);border:1px solid var(--red-bd)}
 .pill-maint{background:#fef2f2;color:#991b1b;border:1px solid #fecaca}
-.room-name{font-family:var(--fh);font-size:1.05rem;font-weight:800;color:var(--text);margin-bottom:4px}
-.room-loc{display:flex;align-items:center;gap:5px;font-size:.77rem;color:var(--text-3);margin-bottom:14px}
-.room-loc i{font-size:.65rem;color:var(--text-4)}
-.room-meta{display:flex;margin-bottom:14px}
-.meta-chip{display:flex;align-items:center;gap:5px;font-size:.76rem;font-weight:500;color:var(--text-3);background:var(--bg);border:1px solid var(--border);padding:5px 10px}
+.room-name{font-family:var(--fh);font-size:1rem;font-weight:700;color:var(--text)}
+.room-loc{display:flex;align-items:center;gap:5px;font-size:.76rem;color:var(--text-3);margin-bottom:8px}
+.room-loc i{font-size:.6rem;color:var(--text-4)}
+.room-meta{display:flex;gap:0;margin-bottom:10px}
+.meta-chip{display:flex;align-items:center;gap:4px;font-size:.74rem;font-weight:500;color:var(--text-3);background:var(--bg);border:1px solid var(--border);padding:4px 10px}
 .meta-chip:first-child{border-radius:var(--r-xs) 0 0 var(--r-xs);border-right:none}
-.meta-chip:last-child {border-radius:0 var(--r-xs) var(--r-xs) 0}
-.meta-chip i{font-size:.65rem;color:var(--text-4)}
+.meta-chip:last-child{border-radius:0 var(--r-xs) var(--r-xs) 0}
+.meta-chip i{font-size:.6rem;color:var(--text-4)}
 .meta-chip.tg{background:var(--green-bg);color:var(--green-text);border-color:var(--green-bd);font-weight:600}
 .meta-chip.tg i{color:var(--green)}
 .meta-chip.ty{background:#fff7ed;color:#c2410c;border-color:#fed7aa;font-weight:600}
 .meta-chip.ty i{color:#c2410c}
 .meta-chip.tr{background:var(--red-bg);color:var(--red);border-color:var(--red-bd);font-weight:600}
 .meta-chip.tr i{color:var(--red)}
-.am-label{font-size:.67rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-4);margin-bottom:7px}
-.am-row{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:16px}
-.am-chip{display:inline-flex;align-items:center;gap:4px;background:var(--bg);border:1px solid var(--border);border-radius:var(--r-xs);padding:3px 9px;font-size:.72rem;color:var(--text-3);font-weight:500}
-.issue-note{display:none;margin-bottom:12px;padding:8px 10px;border-radius:8px;background:#fef2f2;border:1px solid #fecaca;color:#991b1b;font-size:.74rem;font-weight:600;line-height:1.35}
+.am-row{display:flex;flex-wrap:wrap;gap:4px;margin-top:auto}
+.am-chip{display:inline-flex;align-items:center;gap:4px;background:var(--bg);border:1px solid var(--border);border-radius:var(--r-xs);padding:3px 8px;font-size:.7rem;color:var(--text-3);font-weight:500}
+.issue-note{display:none;margin-top:6px;padding:7px 9px;border-radius:var(--r-xs);background:#fef2f2;border:1px solid #fecaca;color:#991b1b;font-size:.72rem;font-weight:600;line-height:1.3}
 .issue-note.is-visible{display:block}
-.card-actions{display:flex;gap:8px;margin-top:auto}
-.btn-check,.btn-res{flex:1;padding:10px;border-radius:var(--r-sm);font-size:.8rem;font-weight:700;font-family:var(--fb);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .15s}
-.btn-check{background:var(--bg);color:var(--text-2);border:1.5px solid var(--border)}
-.btn-check:hover{background:#e8ecfb;color:var(--accent2);border-color:#c7d2fe}
-.btn-res.on{background:var(--accent);color:#fff;box-shadow:0 2px 8px rgba(26,43,109,.22)}
-.btn-res.on:hover{background:var(--navy-mid);transform:translateY(-1px);box-shadow:0 4px 14px rgba(26,43,109,.3)}
-.btn-res.off{background:var(--bg);color:var(--text-4);cursor:not-allowed;border:1.5px solid var(--border)}
-.btn-view-temp{flex:1;padding:10px;border-radius:var(--r-sm);font-size:.8rem;font-weight:700;font-family:var(--fb);border:1.5px solid #10b981;background:#ecfdf5;color:#059669;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .15s}
-.btn-view-temp:hover{background:#d1fae5;transform:translateY(-1px)}
+.card-actions{display:flex;gap:6px}
+.btn-check,.btn-res{flex:1;padding:9px;border-radius:var(--r-sm);font-size:.78rem;font-weight:600;font-family:var(--fb);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;transition:all .15s}
+.btn-check{background:var(--bg);color:var(--text-2);border:1px solid var(--border)}
+.btn-check:hover{background:#eef2ff;color:var(--accent2);border-color:#c7d2fe}
+.btn-res.on{background:var(--accent);color:#fff}
+.btn-res.on:hover{background:var(--navy-mid)}
+.btn-res.off{background:var(--bg);color:var(--text-4);cursor:not-allowed;border:1px solid var(--border)}
+.btn-view-temp{flex:1;padding:9px;border-radius:var(--r-sm);font-size:.78rem;font-weight:600;font-family:var(--fb);border:1px solid #10b981;background:#f0fdf4;color:#059669;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;transition:all .15s}
+.btn-view-temp:hover{background:#dcfce7}
 
-/* ── CHECK AVAILABILITY OVERLAY ── */
+/* â”€â”€ CHECK AVAILABILITY OVERLAY â”€â”€ */
 .check-result{display:none;font-size:.77rem;border-radius:8px;padding:8px 10px;border:1px solid var(--border);background:#f8fafc;color:var(--text-2)}
 .check-result.is-visible{display:block}
 .check-result.ok{background:#ecfdf5;border-color:#86efac;color:#166534}
@@ -248,31 +305,32 @@ body { font-family:var(--fb); background:var(--bg); color:var(--text); min-heigh
 .check-cancelled-list{display:flex;flex-direction:column;gap:6px}
 .check-cancelled-item{font-size:.76rem;color:var(--text-2);background:#f9fafb;border:1px solid var(--border);border-radius:7px;padding:7px 8px}
 
-/* ── ANIMATIONS ── */
+/* â”€â”€ ANIMATIONS â”€â”€ */
 @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
-.page-header      {animation:fadeUp .35s both .02s}
+.hero-banner      {animation:fadeUp .35s both .02s}
 .search-filter-row{animation:fadeUp .35s both .07s}
 .map-card         {animation:fadeUp .35s both .12s}
 .rooms-header     {animation:fadeUp .35s both .17s}
 .rooms-grid       {animation:fadeUp .35s both .22s}
 
-@media(max-width:1200px){.rooms-grid{grid-template-columns:1fr}}
-@media(max-width:900px){.content{padding:20px 18px 40px}}
-@media(max-width:768px){:root{--sidebar-w:0px}.sidebar{display:none}}
 
-/* ── RESERVE OVERLAY ── */
-.reserve-overlay{position:fixed;inset:0;background:rgba(11,22,64,.42);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;z-index:2100;padding:18px}
+@media(max-width:900px){.content{padding:20px 18px 40px}.hero-banner{margin:-20px -18px -10px}}
+@media(max-width:768px){:root{--sidebar-w:0px}.sidebar{display:none}}
+@media(max-width:900px){.room-card{flex-direction:column}.room-thumb{width:100%;min-height:100px}.card-right{width:100%;border-left:none;border-top:1px solid var(--border);flex-direction:row;align-items:center;padding:12px 16px}.card-right .card-actions{flex-direction:row}.card-right .btn-check,.card-right .btn-res{flex:1;width:auto}}
+
+/* â”€â”€ RESERVE OVERLAY â”€â”€ */
+.reserve-overlay{position:fixed;inset:0;background:rgba(0,0,0,.3);backdrop-filter:blur(2px);display:none;align-items:center;justify-content:center;z-index:2100;padding:18px}
 .reserve-overlay.is-open{display:flex}
-.reserve-modal{width:min(460px,100%);background:var(--white);border:1.5px solid var(--border);border-radius:var(--r-lg);box-shadow:0 18px 45px rgba(11,22,64,.28);overflow:hidden}
-.reserve-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border);background:#f8faff}
+.reserve-modal{width:min(440px,100%);background:var(--white);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:0 16px 40px rgba(0,0,0,.12);overflow:hidden}
+.reserve-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border);background:var(--white)}
 .reserve-title{font-family:var(--fh);font-size:.95rem;font-weight:800;color:var(--text)}
 .reserve-sub{font-size:.75rem;color:var(--text-3);margin-top:2px}
-.reserve-close{width:30px;height:30px;border-radius:50%;border:1px solid var(--border);background:var(--white);display:flex;align-items:center;justify-content:center;color:var(--text-3);cursor:pointer;transition:all .15s}
+.reserve-close{width:28px;height:28px;border-radius:var(--r-xs);border:1px solid var(--border);background:var(--white);display:flex;align-items:center;justify-content:center;color:var(--text-3);cursor:pointer;transition:all .15s}
 .reserve-close:hover{background:var(--bg);color:var(--text-2)}
 .reserve-body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:10px}
 .reserve-group{display:flex;flex-direction:column;gap:5px}
 .reserve-label{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3)}
-.reserve-input{height:39px;border:1.5px solid var(--border);border-radius:9px;padding:0 11px;font-size:.83rem;font-family:var(--fb);color:var(--text);background:var(--bg);outline:none;transition:border-color .15s,box-shadow .15s,background .15s}
+.reserve-input{height:38px;border:1px solid var(--border);border-radius:var(--r-sm);padding:0 11px;font-size:.83rem;font-family:var(--fb);color:var(--text);background:var(--bg);outline:none;transition:border-color .15s,box-shadow .15s,background .15s}
 .reserve-input:focus{border-color:#93c5fd;box-shadow:0 0 0 3px rgba(59,130,246,.09);background:#fff}
 .reserve-textarea{min-height:72px;resize:vertical;padding:10px 11px}
 .reserve-error{display:none;font-size:.77rem;color:var(--red);background:var(--red-bg);border:1px solid var(--red-bd);border-radius:8px;padding:8px 10px}
@@ -281,7 +339,7 @@ body { font-family:var(--fb); background:var(--bg); color:var(--text); min-heigh
 .reserve-cancel,.reserve-submit{flex:1;height:39px;border-radius:9px;font-size:.82rem;font-weight:700;font-family:var(--fb);cursor:pointer;transition:all .15s}
 .reserve-cancel{border:1.5px solid var(--border);background:var(--white);color:var(--text-2)}
 .reserve-cancel:hover{background:var(--bg)}
-.reserve-submit{border:none;background:var(--accent);color:#fff;box-shadow:0 2px 8px rgba(26,43,109,.2)}
+.reserve-submit{border:none;background:var(--accent);color:#fff}
 .reserve-submit:hover{background:var(--navy-mid)}
 .reserve-submit:disabled{opacity:.7;cursor:not-allowed}
 
@@ -290,17 +348,325 @@ body { font-family:var(--fb); background:var(--bg); color:var(--text); min-heigh
 .temp-schedule-list{max-height:400px;overflow-y:auto}
 .temp-schedule-list .check-cancelled-item{margin-bottom:10px}
 
-/* ── TOAST ── */
+/* â”€â”€ TOAST â”€â”€ */
 .toast-wrap{position:fixed;right:18px;bottom:18px;display:flex;flex-direction:column;gap:8px;z-index:2200;pointer-events:none}
 .toast{min-width:240px;max-width:360px;padding:10px 12px;border-radius:10px;border:1px solid var(--border);box-shadow:var(--shadow-md);font-size:.8rem;font-weight:600;opacity:0;transform:translateY(10px);transition:opacity .2s,transform .2s;background:var(--white);color:var(--text-2)}
 .toast.is-visible{opacity:1;transform:translateY(0)}
 .toast.toast-success{background:#ecfdf5;border-color:#86efac;color:#166534}
+
+/* ============================================================
+   PSU SMARTDOOR — VISUAL REDESIGN OVERRIDES
+   UI-only: existing forms, IDs, routes, PHP variables and JS
+   hooks are intentionally preserved.
+   ============================================================ */
+:root{
+  --navy:#0b1f5b;
+  --navy-deep:#071640;
+  --navy-2:#173b91;
+  --blue:#2463eb;
+  --blue-soft:#eaf2ff;
+  --yellow:#f6c515;
+  --page:#f5f8fd;
+  --card:#ffffff;
+  --line:#e4eaf4;
+  --muted:#7d8ba5;
+  --shadow-soft:0 10px 30px rgba(21,44,91,.07);
+  --shadow-card:0 18px 45px rgba(21,44,91,.10);
+}
+
+body{
+  background:
+    radial-gradient(circle at 88% 4%,rgba(56,117,255,.08),transparent 22%),
+    linear-gradient(180deg,#f8faff 0%,#f4f7fc 100%);
+}
+
+/* Cleaner top bar — existing profile/dropdown behavior remains untouched. */
+.topbar{
+  height:70px;
+  padding:0 30px;
+  background:rgba(255,255,255,.92);
+  border-bottom:1px solid rgba(225,232,243,.95);
+  backdrop-filter:blur(14px);
+}
+.topbar-right{gap:12px}
+.topbar-profile{
+  padding:6px 8px 6px 12px;
+  border-radius:14px;
+  transition:background .18s,box-shadow .18s;
+}
+.topbar-profile:hover{background:#f5f8fd;box-shadow:0 5px 18px rgba(15,35,80,.06)}
+.topbar-avatar{width:38px;height:38px;background:#edf3ff;color:var(--navy-2);border-color:#dbe6fb}
+
+/* Main canvas */
+.content{
+  padding:26px 34px 56px;
+  gap:20px;
+}
+
+/* Hero redesigned to look like a real PSU Asingan campus landing section. */
+.hero-banner{
+  min-height:300px;
+  margin:-26px -34px -2px;
+  border-radius:0 0 30px 30px;
+  justify-content:center;
+  background-color:#dceaff;
+  background-image:
+    linear-gradient(90deg,rgba(247,250,255,.99) 0%,rgba(247,250,255,.94) 30%,rgba(247,250,255,.62) 51%,rgba(247,250,255,.10) 76%),
+    url('/images/map.png');
+  background-position:center;
+  background-size:cover;
+  box-shadow:0 16px 38px rgba(18,49,104,.08);
+}
+.hero-banner::before{
+  background:
+    linear-gradient(135deg,rgba(255,255,255,.55),transparent 42%),
+    linear-gradient(0deg,rgba(10,31,91,.04),transparent 45%);
+  z-index:1;
+}
+.hero-banner::after{
+  content:'';
+  position:absolute;
+  right:-90px;
+  bottom:-130px;
+  width:390px;
+  height:230px;
+  border-radius:50%;
+  border:2px solid rgba(36,99,235,.12);
+  box-shadow:0 0 0 26px rgba(36,99,235,.035),0 0 0 52px rgba(246,197,21,.035);
+  transform:rotate(-12deg);
+  z-index:1;
+}
+.hero-content{
+  width:100%;
+  padding:44px 42px 42px;
+  color:var(--navy);
+}
+.hero-brand{
+  gap:14px;
+  margin-bottom:18px;
+}
+.hero-logo{
+  width:54px;height:54px;border-radius:16px;
+  background:var(--yellow);
+  border:0;
+  color:var(--navy);
+  box-shadow:0 10px 22px rgba(246,197,21,.28);
+}
+.hero-logo i{font-size:1.3rem;color:var(--navy)}
+.hero-brand-name{
+  font-size:1rem;
+  color:var(--navy);
+  letter-spacing:.025em;
+}
+.hero-brand-campus{
+  font-size:.74rem;
+  color:#6680ad;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  font-weight:700;
+}
+.hero-label{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  color:var(--blue);
+  font-size:.68rem;
+  letter-spacing:.16em;
+  margin-bottom:7px;
+}
+.hero-label::before{
+  content:'';width:28px;height:3px;border-radius:999px;background:var(--yellow);
+}
+.hero-title{
+  color:var(--navy);
+  font-size:clamp(2rem,3.5vw,3rem);
+  line-height:1.02;
+  letter-spacing:-.045em;
+  margin-bottom:10px;
+  text-shadow:0 2px 10px rgba(255,255,255,.4);
+}
+.hero-sub{
+  color:#617394;
+  font-size:.9rem;
+  line-height:1.65;
+  max-width:520px;
+}
+
+/* Booking/search card: more premium, but all existing IDs and inputs stay intact. */
+.booking-toolbar{
+  margin-top:-4px;
+  background:rgba(255,255,255,.97);
+  border:1px solid #e1e8f2;
+  border-radius:22px;
+  padding:20px 22px;
+  grid-template-columns:minmax(240px,1.45fr) minmax(190px,1fr) minmax(190px,1fr) auto;
+  gap:16px;
+  box-shadow:var(--shadow-card);
+  z-index:20;
+}
+.booking-toolbar-copy{padding:2px 4px}
+.booking-toolbar-title{
+  font-size:1.02rem;
+  color:var(--navy);
+  letter-spacing:-.015em;
+}
+.booking-toolbar-title i{
+  width:38px;height:38px;border-radius:12px;
+  display:inline-flex;align-items:center;justify-content:center;
+  background:#e9f1ff;
+  color:var(--blue);
+  font-size:.95rem;
+}
+.booking-toolbar-sub{
+  margin-top:7px;
+  max-width:270px;
+  color:#8997ad;
+  line-height:1.55;
+}
+.booking-field{gap:7px}
+.booking-field label{
+  color:#8290a8;
+  font-size:.66rem;
+  letter-spacing:.09em;
+}
+.booking-field input{
+  height:48px;
+  border:1px solid #dfe7f2;
+  border-radius:13px;
+  padding:0 13px;
+  background:#f9fbfe;
+  font-size:.85rem;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.8);
+}
+.booking-field input:hover{border-color:#cbd8ea;background:#fff}
+.booking-field input:focus{
+  border-color:#7da7ff;
+  box-shadow:0 0 0 4px rgba(36,99,235,.10);
+  background:#fff;
+}
+.booking-search-btn{
+  height:48px;
+  padding:0 21px;
+  border-radius:13px;
+  background:linear-gradient(135deg,#17398f,#214aa9);
+  box-shadow:0 10px 20px rgba(24,57,143,.20);
+  font-weight:700;
+}
+.booking-search-btn:hover{opacity:1;transform:translateY(-1px);box-shadow:0 13px 24px rgba(24,57,143,.25)}
+
+/* Search/filter row */
+.search-filter-row{
+  padding:2px 0;
+  gap:12px;
+}
+.search-wrap input{
+  min-height:46px;
+  border-radius:13px;
+  border-color:#e0e7f1;
+  box-shadow:0 3px 12px rgba(22,43,85,.025);
+}
+.search-wrap input:focus{border-color:#8db1f5;box-shadow:0 0 0 4px rgba(36,99,235,.08)}
+.filter-label{color:#8290a8}
+.filter-btn{padding:8px 15px;border-radius:10px;border-color:#e0e7f1;background:#fff}
+.filter-btn.active{background:var(--navy);border-color:var(--navy);box-shadow:0 6px 14px rgba(11,31,91,.15)}
+
+/* Campus map */
+.map-card{
+  border-radius:20px;
+  border-color:#e1e8f2;
+  box-shadow:var(--shadow-soft);
+  background:#fff;
+}
+.map-card-header{padding:17px 21px;background:#fff}
+.map-icon{width:36px;height:36px;border-radius:11px;background:#eaf1ff;color:var(--blue)}
+.map-title{font-size:.94rem;color:var(--navy)}
+.map-sub{color:#8a98ad}
+.live-badge{border-radius:999px;padding:5px 11px}
+.map-grid{min-height:260px}
+
+/* Room list cards */
+.rooms-header{margin-top:2px}
+.rooms-section-title{font-family:var(--fh);color:var(--navy);font-weight:800}
+.rooms-count-badge{border-radius:999px;background:#eef4ff;color:#4567a6;border:1px solid #dce7fa}
+.rooms-grid{gap:16px}
+.room-card{
+  border-radius:18px;
+  border-color:#e2e9f3;
+  box-shadow:0 7px 22px rgba(22,43,85,.055);
+}
+.room-card:hover{
+  border-color:#cbdafa;
+  box-shadow:0 16px 30px rgba(22,43,85,.10);
+  transform:translateY(-2px);
+}
+
+
+.availability-highlights{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  background:rgba(255,255,255,.94);
+  border:1px solid #e4eaf4;
+  border-radius:20px;
+  box-shadow:0 10px 30px rgba(21,44,91,.055);
+  overflow:hidden;
+}
+.availability-highlight{
+  min-height:88px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:13px;
+  padding:16px 24px;
+  position:relative;
+}
+.availability-highlight:not(:last-child)::after{
+  content:'';position:absolute;right:0;top:22px;bottom:22px;width:1px;background:#e6ebf3;
+}
+.availability-highlight-icon{
+  width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.95rem;flex:0 0 44px;
+}
+.availability-highlight-icon.blue{background:#eaf2ff;color:#2563eb}
+.availability-highlight-icon.green{background:#e8faf3;color:#10a879}
+.availability-highlight-icon.purple{background:#f0edff;color:#7357e8}
+.availability-highlight strong{display:block;color:#173574;font-family:var(--fh);font-size:.82rem;font-weight:800}
+.availability-highlight small{display:block;margin-top:3px;color:#8a98ad;font-size:.71rem}
+@media(max-width:768px){
+  .availability-highlights{grid-template-columns:1fr}
+  .availability-highlight{justify-content:flex-start;padding:15px 20px}
+  .availability-highlight:not(:last-child)::after{right:20px;left:20px;top:auto;bottom:0;width:auto;height:1px}
+}
+
+/* Existing reservation / modal components inherit the same visual language. */
+.my-reservations{border-radius:20px;box-shadow:var(--shadow-soft);border-color:#e1e8f2}
+.reserve-modal{border-radius:20px;box-shadow:0 24px 70px rgba(7,22,64,.18)}
+
+@media(max-width:1100px){
+  .booking-toolbar{grid-template-columns:1fr 1fr;}
+  .booking-toolbar-copy{grid-column:1/-1}
+  .booking-toolbar-sub{max-width:none}
+  .booking-search-btn{width:100%}
+}
+@media(max-width:900px){
+  .content{padding:20px 18px 42px}
+  .hero-banner{margin:-20px -18px -2px;border-radius:0 0 24px 24px}
+  .hero-content{padding:34px 24px 36px}
+}
+@media(max-width:768px){
+  .topbar{height:62px;padding:0 16px}
+  .content{gap:16px}
+  .hero-banner{min-height:260px}
+  .hero-title{font-size:2rem}
+  .booking-toolbar{grid-template-columns:1fr;padding:17px}
+  .booking-toolbar-copy{grid-column:auto}
+  .booking-search-btn{width:100%}
+}
+
 </style>
 @include('partials.pro-motion')
 </head>
 <body>
 
-<!-- ═══ SIDEBAR — DO NOT CHANGE ═══ -->
+<!-- â•â•â• SIDEBAR â€” DO NOT CHANGE â•â•â• -->
 <div class="sidebar">
   <a href="<?= htmlspecialchars(url('/dashboard')) ?>" class="sidebar-logo">
     <div class="logo-mark"><i class="fas fa-door-open"></i></div>
@@ -344,6 +710,7 @@ body { font-family:var(--fb); background:var(--bg); color:var(--text); min-heigh
         <span class="nav-icon"><i class="fas fa-id-card"></i></span>RFID Verification
       </a>
     </li>
+    <li><a href="{{ route('faculty.notifications') }}" class="{{ Request::routeIs('faculty.notifications') ? 'active' : '' }}"><span class="nav-icon"><i class="fas fa-bell"></i></span>Notifications</a></li>
     <li>
       <a href="{{ url('/reports') }}" class="{{ Request::is('reports*') ? 'active' : '' }}">
         <span class="nav-icon"><i class="fas fa-chart-bar"></i></span>Reports
@@ -368,7 +735,7 @@ body { font-family:var(--fb); background:var(--bg); color:var(--text); min-heigh
   </div>
 </div>
 
-<!-- ═══ MAIN ═══ -->
+<!-- â•â•â• MAIN â•â•â• -->
 <div class="main">
 
   <!-- TOPBAR -->
@@ -415,26 +782,31 @@ body { font-family:var(--fb); background:var(--bg); color:var(--text); min-heigh
   <!-- CONTENT -->
   <div class="content">
 
-    <!-- Page Header -->
-    <div class="page-header">
-      <div>
-        <div class="page-title">Room Availability</div>
-        <div class="page-sub">Real-time overview of PSU SmartRoom availability across all buildings.</div>
+    <!-- Hero Banner -->
+    <div class="hero-banner">
+      <div class="hero-content">
+        <div class="hero-brand">
+          <div class="hero-logo"><i class="fas fa-building-columns"></i></div>
+          <div class="hero-brand-text">
+            <div class="hero-brand-name">Pangasinan State University</div>
+            <div class="hero-brand-campus">Asingan Campus</div>
+          </div>
+        </div>
+        <div class="hero-label">PSU SmartRoom</div>
+        <h1 class="hero-title">Room Availability</h1>
+        <div class="hero-sub">Real-time overview of PSU SmartRoom availability across all buildings.</div>
       </div>
     </div>
 
     <section class="booking-toolbar" aria-labelledby="bookingTitle">
-      <div class="booking-toolbar-title" id="bookingTitle"><i class="fas fa-calendar-plus"></i> Find a free room</div>
-      <div class="booking-toolbar-sub">Choose a time, check all rooms, then use Reserve on an available room.</div>
+      <div class="booking-toolbar-copy">
+        <div class="booking-toolbar-title" id="bookingTitle"><i class="fas fa-calendar-plus"></i> Find a free room</div>
+        <div class="booking-toolbar-sub">Choose a time, check all rooms, then use Reserve on an available room.</div>
+      </div>
       <div class="booking-field"><label for="bookingStartAt">Start</label><input id="bookingStartAt" type="datetime-local"></div>
       <div class="booking-field"><label for="bookingEndAt">End</label><input id="bookingEndAt" type="datetime-local"></div>
       <button type="button" class="btn-primary booking-search-btn" id="findFreeRoomsBtn"><i class="fas fa-magnifying-glass"></i> Find Free Rooms</button>
       <div class="booking-result" id="bookingResult"></div>
-    </section>
-
-    <section class="my-reservations" aria-labelledby="myReservationsTitle">
-      <div class="my-reservations-head"><div class="my-reservations-title" id="myReservationsTitle"><i class="fas fa-calendar-check"></i> My Reservations</div><button type="button" class="btn-outline" id="refreshReservationsBtn"><i class="fas fa-rotate"></i> Refresh</button></div>
-      <div class="reservation-list" id="reservationList"><div class="reservation-empty">Loading reservations...</div></div>
     </section>
 
     <!-- Search + Filter -->
@@ -442,7 +814,7 @@ body { font-family:var(--fb); background:var(--bg); color:var(--text); min-heigh
       <div class="search-filter-row">
         <div class="search-wrap">
           <i class="fas fa-magnifying-glass"></i>
-          <input type="text" name="search" placeholder="Search by room name or building…" value="<?= htmlspecialchars($search) ?>">
+          <input type="text" name="search" placeholder="Search by room name or buildingâ€¦" value="<?= htmlspecialchars($search) ?>">
         </div>
         <div class="sf-divider"></div>
         <span class="filter-label"><i class="fas fa-filter"></i>&nbsp; Show:</span>
@@ -501,6 +873,11 @@ body { font-family:var(--fb); background:var(--bg); color:var(--text); min-heigh
     <div class="rooms-grid">
       <?php foreach ($filtered_rooms as $room):
         $status = (string) ($room['status'] ?? 'available');
+        $roomSearchText = strtolower((string) ($room['name'] ?? '') . ' ' . (string) ($room['building'] ?? ''));
+        $roomImages = ['room-1.png', 'room-2.png', 'computer-lab.png'];
+        $roomImage = str_contains($roomSearchText, 'lab') || str_contains($roomSearchText, 'computer')
+          ? 'computer-lab.png'
+          : $roomImages[(int) ($room['id'] ?? 0) % count($roomImages)];
         $a = $status === 'available';
         $isReserved = $status === 'reserved';
         $isMaintenance = in_array($status, ['maintenance', 'unavailable'], true);
@@ -510,49 +887,68 @@ body { font-family:var(--fb); background:var(--bg); color:var(--text); min-heigh
         $tCls = $a ? 'tg' : ($isReserved ? 'ty' : 'tr');
       ?>
       <div class="room-card js-room-card" data-room-id="<?= (int) $room['id'] ?>" data-building="<?= htmlspecialchars((string) $room['building'], ENT_QUOTES) ?>">
-        <div class="card-strip">
-          <span class="room-id">ID · <?= $room['id'] ?></span>
-          <span class="status-pill <?= $pillCls ?>" data-status-pill><i class="<?= $pillIcon ?>"></i> <span data-status-label><?= $pillLbl ?></span></span>
+        <div class="room-thumb">
+          <i class="fas fa-door-open" aria-hidden="true"></i>
+          <img class="room-thumb-image" src="<?= htmlspecialchars(asset('images/' . $roomImage), ENT_QUOTES) ?>" alt="<?= htmlspecialchars($room['name']) ?> classroom" loading="lazy">
+          <div class="room-thumb-label"><?= htmlspecialchars($room['building']) ?> &middot; <?= htmlspecialchars($room['floor']) ?></div>
         </div>
-        <div class="room-name"><?= htmlspecialchars($room['name']) ?></div>
-        <div class="room-loc">
-          <i class="fas fa-location-dot"></i>
-          <?= htmlspecialchars($room['building']) ?> &bull; <?= htmlspecialchars($room['floor']) ?>
+        <div class="card-body">
+          <div class="card-strip">
+            <span class="room-name"><?= htmlspecialchars($room['name']) ?></span>
+            <span class="room-id">ID &middot; <?= $room['id'] ?></span>
+          </div>
+          <div class="room-loc">
+            <i class="fas fa-location-dot"></i>
+            <?= htmlspecialchars($room['building']) ?> &bull; <?= htmlspecialchars($room['floor']) ?>
+          </div>
+          <div class="room-meta">
+            <div class="meta-chip"><i class="fas fa-users"></i> <?= $room['seats'] ?> seats</div>
+            <div class="meta-chip <?= $tCls ?>" data-time-chip><i class="fas fa-clock"></i> <span data-time-info><?= htmlspecialchars($room['time_info']) ?></span></div>
+          </div>
+          <div class="am-row">
+            <?php foreach ($room['amenities'] as $am): ?>
+            <span class="am-chip"><?= amenity_icon($am) ?> <?= htmlspecialchars($am) ?></span>
+            <?php endforeach; ?>
+          </div>
         </div>
-        <div class="room-meta">
-          <div class="meta-chip"><i class="fas fa-users"></i> <?= $room['seats'] ?> seats</div>
-          <div class="meta-chip <?= $tCls ?>" data-time-chip><i class="fas fa-clock"></i> <span data-time-info><?= htmlspecialchars($room['time_info']) ?></span></div>
-        </div>
-        <div class="am-label">Amenities</div>
-        <div class="am-row">
-          <?php foreach ($room['amenities'] as $am): ?>
-          <span class="am-chip"><?= amenity_icon($am) ?> <?= htmlspecialchars($am) ?></span>
-          <?php endforeach; ?>
-        </div>
-        <div class="issue-note <?= (!empty($room['issue_note']) && in_array($status, ['maintenance', 'unavailable'], true)) ? 'is-visible' : '' ?>" data-issue-note>
-          <i class="fas fa-triangle-exclamation"></i>
-          <span data-issue-note-text><?= htmlspecialchars((string) ($room['issue_note'] ?? '')) ?></span>
-        </div>
-        <div class="card-actions">
-          <button
-            class="btn-check js-check-btn"
-            data-room-id="<?= (int) $room['id'] ?>"
-            data-room-name="<?= htmlspecialchars($room['name'], ENT_QUOTES) ?>"
-          >
-            <i class="fas fa-magnifying-glass-clock"></i> Check Availability
-          </button>
-          <button
-            class="btn-res js-reserve-btn <?= $a ? 'on' : 'off' ?>"
-            data-room-id="<?= (int) $room['id'] ?>"
-            data-room-name="<?= htmlspecialchars($room['name'], ENT_QUOTES) ?>"
-            <?= $a ? '' : 'disabled' ?>
-          >
-            <i class="fas fa-calendar-plus"></i> Reserve
-          </button>
+        <div class="card-right">
+          <div>
+            <span class="status-pill <?= $pillCls ?>" data-status-pill><i class="<?= $pillIcon ?>"></i> <span data-status-label><?= $pillLbl ?></span></span>
+            <div class="issue-note <?= (!empty($room['issue_note']) && in_array($status, ['maintenance', 'unavailable'], true)) ? 'is-visible' : '' ?>" data-issue-note>
+              <i class="fas fa-triangle-exclamation"></i>
+              <span data-issue-note-text><?= htmlspecialchars((string) ($room['issue_note'] ?? '')) ?></span>
+            </div>
+          </div>
+          <div class="card-actions">
+            <button class="btn-check js-check-btn" data-room-id="<?= (int) $room['id'] ?>" data-room-name="<?= htmlspecialchars($room['name'], ENT_QUOTES) ?>">
+              <i class="fas fa-magnifying-glass-clock"></i> Check
+            </button>
+            <button class="btn-res js-reserve-btn <?= $a ? 'on' : 'off' ?>" data-room-id="<?= (int) $room['id'] ?>" data-room-name="<?= htmlspecialchars($room['name'], ENT_QUOTES) ?>" <?= $a ? '' : 'disabled' ?>>
+              <i class="fas fa-calendar-plus"></i> Reserve
+            </button>
+          </div>
         </div>
       </div>
       <?php endforeach; ?>
     </div>
+
+    <!-- Upcoming reservations -->
+    <section class="my-reservations" aria-labelledby="myReservationsTitle">
+      <div class="my-reservations-head">
+        <div class="my-reservations-heading">
+          <span class="my-reservations-icon"><i class="fas fa-calendar-check"></i></span>
+          <div>
+            <div class="my-reservations-title" id="myReservationsTitle">My Reservations</div>
+            <div class="my-reservations-sub">Your upcoming room bookings</div>
+          </div>
+        </div>
+        <button type="button" class="btn-outline" id="refreshReservationsBtn"><i class="fas fa-rotate"></i> Refresh</button>
+      </div>
+      <div class="reservation-list" id="reservationList" aria-busy="true" aria-live="polite">
+        <div class="reservation-skeleton" aria-hidden="true"><div class="sk-bar sk-date"></div><div class="sk-lines"><div class="sk-bar sk-line" style="width:70%"></div><div class="sk-bar sk-line" style="width:50%"></div><div class="sk-bar sk-line" style="width:40%"></div></div><div class="sk-bar sk-pill"></div></div>
+        <div class="reservation-skeleton" aria-hidden="true"><div class="sk-bar sk-date"></div><div class="sk-lines"><div class="sk-bar sk-line" style="width:55%"></div><div class="sk-bar sk-line" style="width:65%"></div><div class="sk-bar sk-line" style="width:35%"></div></div><div class="sk-bar sk-pill"></div></div>
+      </div>
+    </section>
 
   </div><!-- /content -->
 </div><!-- /main -->
@@ -809,8 +1205,19 @@ document.addEventListener('DOMContentLoaded', function () {
       + ' - ' + new Date(endAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
   }
 
+  function showReservationSkeleton() {
+    reservationList.setAttribute('aria-busy', 'true');
+    reservationList.innerHTML = '<div class="reservation-skeleton" aria-hidden="true"><div class="sk-bar sk-date"></div><div class="sk-lines"><div class="sk-bar sk-line" style="width:70%"></div><div class="sk-bar sk-line" style="width:50%"></div><div class="sk-bar sk-line" style="width:40%"></div></div><div class="sk-bar sk-pill"></div></div>'
+      + '<div class="reservation-skeleton" aria-hidden="true"><div class="sk-bar sk-date"></div><div class="sk-lines"><div class="sk-bar sk-line" style="width:60%"></div><div class="sk-bar sk-line" style="width:45%"></div><div class="sk-bar sk-line" style="width:55%"></div></div><div class="sk-bar sk-pill"></div></div>';
+  }
+
+  function finishReservationLoading() {
+    reservationList.setAttribute('aria-busy', 'false');
+  }
+
   async function loadMyReservations() {
     if (!reservationList) return;
+    showReservationSkeleton();
     try {
       var response = await fetch('{{ route('faculty.reservations.mine') }}', {
         credentials: 'same-origin',
@@ -820,19 +1227,29 @@ document.addEventListener('DOMContentLoaded', function () {
       if (!response.ok) throw new Error(payload.message || 'Unable to load reservations.');
       var reservations = Array.isArray(payload.data) ? payload.data : [];
       if (!reservations.length) {
-        reservationList.innerHTML = '<div class="reservation-empty">No upcoming reservations.</div>';
+        reservationList.innerHTML = '<div class="reservation-empty"><i class="fas fa-calendar-xmark"></i> No upcoming reservations.</div>';
+        finishReservationLoading();
         return;
       }
       reservationList.innerHTML = reservations.map(function (reservation) {
         var room = reservation.classroom || {};
-        return '<div class="reservation-item">'
-          + '<div><div class="reservation-room">' + escapeHtml(room.name || 'Unknown room') + '</div>'
-          + '<div class="reservation-time">' + escapeHtml(formatReservationTime(reservation.start_at, reservation.end_at)) + '</div>'
-          + '<div class="reservation-status">' + escapeHtml(reservation.status) + '</div></div>'
-          + '<button type="button" class="reservation-cancel js-cancel-reservation" data-reservation-id="' + reservation.id + '"><i class="fas fa-xmark"></i> Cancel</button></div>';
+        var startDate = new Date(reservation.start_at);
+        var status = String(reservation.status || 'reserved');
+        var statusClass = status.toLowerCase() === 'pending' ? ' pending' : (status.toLowerCase() === 'cancelled' ? ' cancelled' : '');
+        var location = [room.building, room.floor].filter(Boolean).join(' · ');
+        return '<article class="reservation-item">'
+          + '<div class="reservation-date"><span class="reservation-date-day">' + escapeHtml(startDate.toLocaleDateString([], { weekday: 'short' })) + '</span>'
+          + '<strong class="reservation-date-number">' + escapeHtml(startDate.toLocaleDateString([], { day: 'numeric' })) + '</strong></div>'
+          + '<div class="reservation-details"><div class="reservation-room">' + escapeHtml(room.name || 'Unknown room') + '</div>'
+          + (location ? '<div class="reservation-location"><i class="fas fa-location-dot"></i> ' + escapeHtml(location) + '</div>' : '')
+          + '<div class="reservation-time"><i class="fas fa-clock"></i> ' + escapeHtml(formatReservationTime(reservation.start_at, reservation.end_at)) + '</div></div>'
+          + '<div class="reservation-side"><span class="reservation-status' + statusClass + '">' + escapeHtml(status) + '</span>'
+          + '<button type="button" class="reservation-cancel js-cancel-reservation" aria-label="Cancel reservation" title="Cancel reservation" data-reservation-id="' + reservation.id + '"><i class="fas fa-xmark"></i></button></div></article>';
       }).join('');
+      finishReservationLoading();
     } catch (error) {
       reservationList.innerHTML = '<div class="reservation-empty">' + escapeHtml(error.message) + '</div>';
+      finishReservationLoading();
     }
   }
 

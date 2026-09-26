@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\AccessLog;
 use App\Models\AccessCard;
+use App\Models\AccessLog;
 use App\Models\Classroom;
 use App\Models\Course;
+use App\Models\Notification;
 use App\Models\Reservation;
 use App\Models\Schedule;
 use App\Services\RoomAvailabilityService;
@@ -45,19 +46,25 @@ class FacultyController extends Controller
 
     public function rfidVerification(Request $request): View
     {
-        $search = trim((string) $request->query('search', ''));
+        $cards = AccessCard::query()
+            ->with(['user', 'classroom'])
+            ->where('user_id', $request->user()->id)
+            ->orderByDesc('last_accessed_at')
+            ->orderByDesc('id')
+            ->get();
 
-        $cardsQuery = AccessCard::query()->with(['user', 'classroom']);
-        if ($search !== '') {
-            $cardsQuery->where(function ($query) use ($search): void {
-                $query->where('card_number', 'ilike', "%{$search}%")
-                    ->orWhere('rfid_uid', 'ilike', "%{$search}%")
-                    ->orWhereHas('user', fn ($userQuery) => $userQuery->where('name', 'ilike', "%{$search}%"));
-            });
-        }
+        return view('frontend.faculty.rfid-verification', compact('cards'));
+    }
 
-        $cards = $cardsQuery->orderByDesc('last_accessed_at')->orderByDesc('id')->limit(50)->get();
-        return view('frontend.faculty.rfid-verification', compact('cards', 'search'));
+    public function notifications(Request $request): View
+    {
+        $notifications = Notification::query()
+            ->where('user_id', $request->user()->id)
+            ->latest()
+            ->limit(100)
+            ->get();
+
+        return view('frontend.faculty.notifications', compact('notifications'));
     }
 
     public function dashboard(Request $request): View
@@ -92,21 +99,21 @@ class FacultyController extends Controller
             ->where('current_occupancy', 0);
 
         $availableRooms = (clone $availableClassroomsQuery)->count();
-        
+
         $myReservations = Reservation::query()
             ->where('user_id', $user->id)
             ->whereIn('status', ['reserved', 'approved'])
             ->whereBetween('start_at', [$now->copy()->startOfWeek(), $now->copy()->endOfWeek()])
             ->count();
-        
+
         $activeClasses = Course::query()->where('instructor_user_id', $user->id)->count();
-        
+
         // Deduplicate total students: count each course's enrollment only once
         $allSchedules = (clone $facultyScheduleQuery)->get();
         $uniqueCourses = [];
         foreach ($allSchedules as $schedule) {
             $courseId = (int) ($schedule->course_id ?? 0);
-            if (!isset($uniqueCourses[$courseId])) {
+            if (! isset($uniqueCourses[$courseId])) {
                 $uniqueCourses[$courseId] = (int) ($schedule->enrolled ?? 0);
             }
         }

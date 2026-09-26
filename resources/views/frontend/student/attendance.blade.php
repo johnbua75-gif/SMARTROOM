@@ -53,6 +53,11 @@ $nav = [
     .scanner-status { min-height:24px; margin-top:12px; color:var(--student-blue); font-size:.82rem; font-weight:700; }
     @media (max-width:640px) { .attendance-hero { align-items:flex-start; flex-direction:column; } .scan-qr-btn { width:100%; justify-content:center; } }
   </style>
+  <style>
+    .is-summary-loading { color: transparent !important; min-width: 2.5rem; min-height: 2rem; border-radius: 6px; background: linear-gradient(90deg,#eef1f5 25%,#fff 50%,#eef1f5 75%); background-size: 200% 100%; animation: summarySkeleton 1.35s ease-in-out infinite; }
+    @keyframes summarySkeleton { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    @media (prefers-reduced-motion: reduce) { .is-summary-loading { animation: none; background: #eef1f5; } }
+  </style>
   @include('frontend.student._theme')
 </head>
 <body>
@@ -162,6 +167,7 @@ $nav = [
   const scannerStatus = document.getElementById('scannerStatus');
   let qrScanner = null;
   let scannerLocked = false;
+  let attendanceSummaryLoaded = false;
 
   function setScannerStatus(message, isError = false) {
     scannerStatus.textContent = message;
@@ -225,6 +231,12 @@ $nav = [
   async function refreshStudentAttendanceSummary() {
     if (document.hidden) return;
 
+    if (!attendanceSummaryLoaded) {
+      ['student-attended-count', 'student-absent-count', 'student-attendance-rate'].forEach(function (id) {
+        document.getElementById(id)?.classList.add('is-summary-loading');
+      });
+    }
+
     try {
       const response = await fetch('{{ route('student.attendance.summary') }}', {
         headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
@@ -235,8 +247,13 @@ $nav = [
       document.getElementById('student-attended-count').textContent = payload.attended;
       document.getElementById('student-absent-count').textContent = payload.absent;
       document.getElementById('student-attendance-rate').textContent = `${payload.rate}%`;
+      attendanceSummaryLoaded = true;
     } catch (error) {
       // Keep the last known attendance summary when the network is unavailable.
+    } finally {
+      ['student-attended-count', 'student-absent-count', 'student-attendance-rate'].forEach(function (id) {
+        document.getElementById(id)?.classList.remove('is-summary-loading');
+      });
     }
   }
 

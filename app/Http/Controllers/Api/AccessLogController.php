@@ -6,9 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\StoreAccessLogRequest;
 use App\Http\Requests\Api\UpdateAccessLogRequest;
 use App\Http\Resources\AccessLogResource;
-use App\Models\AccessLog;
-use App\Models\Reservation;
 use App\Models\AccessCard;
+use App\Models\AccessLog;
+use App\Models\Notification;
+use App\Models\Reservation;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -48,7 +49,7 @@ class AccessLogController extends Controller
 
         // If a card id or rfid uid is present in the payload, ensure the card belongs to the claimed user.
         $card = null;
-        if (!empty($validated['access_card_id'])) {
+        if (! empty($validated['access_card_id'])) {
             $card = AccessCard::find($validated['access_card_id']);
         }
         if (! $card && ! empty($validated['metadata']['rfid_uid'])) {
@@ -88,7 +89,7 @@ class AccessLogController extends Controller
 
         // If user_id is provided, verify they have an approved reservation
         if ($userId && $classroomId) {
-            $reservation = \App\Models\Reservation::where('user_id', $userId)
+            $reservation = Reservation::where('user_id', $userId)
                 ->where('classroom_id', $classroomId)
                 ->where('status', 'approved')
                 ->where('start_at', '<=', $now->copy()->addMinutes(10))
@@ -96,13 +97,32 @@ class AccessLogController extends Controller
                 ->first();
 
             // Update result based on reservation validity
-            if (!$reservation && $validated['result'] !== 'denied') {
+            if (! $reservation && $validated['result'] !== 'denied') {
                 $validated['result'] = 'denied';
                 $validated['reason'] = $validated['reason'] ?? 'No valid reservation during access time';
             }
         }
 
         $log = AccessLog::create($validated)->load(['accessCard', 'classroom', 'user']);
+
+        if (
+            $log->result === 'granted'
+            && $log->user_id
+            && strtolower((string) data_get($log->metadata, 'method')) === 'rfid'
+        ) {
+            Notification::create([
+                'user_id' => $log->user_id,
+                'type' => 'rfid_access_granted',
+                'title' => 'RFID Access Granted',
+                'body' => 'Your RFID card granted access to '.($log->classroom?->name ?? 'the assigned room').'.',
+                'data' => [
+                    'access_log_id' => $log->id,
+                    'classroom_id' => $log->classroom_id,
+                    'accessed_at' => $log->accessed_at?->toIso8601String(),
+                    'method' => 'RFID',
+                ],
+            ]);
+        }
 
         return new AccessLogResource($log);
     }

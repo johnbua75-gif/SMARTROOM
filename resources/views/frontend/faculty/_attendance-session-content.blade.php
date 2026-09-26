@@ -282,6 +282,7 @@ body { font-family: var(--font-body); background: var(--bg); color: var(--text);
   <span class="nav-section-label">Tools</span>
   <ul class="sidebar-nav">
     <li><a href="{{ route('faculty.rfid.verification') }}" class="{{ Request::is('rfid-verification') ? 'active' : '' }}"><span class="nav-icon"><i class="fas fa-id-card"></i></span>RFID Verification</a></li>
+    <li><a href="{{ route('faculty.notifications') }}" class="{{ Request::routeIs('faculty.notifications') ? 'active' : '' }}"><span class="nav-icon"><i class="fas fa-bell"></i></span>Notifications</a></li>
     <li><a href="{{ url('/ai-recommendations') }}" class="{{ Request::is('ai-recommendations') ? 'active' : '' }}"><span class="nav-icon"><i class="fas fa-robot"></i></span>AI Recommendations</a></li>
     <li><a href="{{ url('/reports') }}" class="{{ Request::is('reports*') ? 'active' : '' }}"><span class="nav-icon"><i class="fas fa-chart-bar"></i></span>Reports</a></li>
   </ul>

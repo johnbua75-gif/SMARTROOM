@@ -270,6 +270,10 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
    RECOMMENDATION CARDS
 ════════════════════════════ */
 .rec-list { display: flex; flex-direction: column; gap: 0; }
+.recommendation-skeleton-list { display:flex; flex-direction:column; gap:10px; padding:14px 0; }
+.recommendation-skeleton-list span { display:block; height:82px; border-radius:10px; background:linear-gradient(90deg,#f1f3f8 25%,#fff 50%,#f1f3f8 75%); background-size:200% 100%; animation:recommendationSkeleton 1.35s ease-in-out infinite; }
+@keyframes recommendationSkeleton { 0% { background-position:200% 0; } 100% { background-position:-200% 0; } }
+@media (prefers-reduced-motion:reduce) { .recommendation-skeleton-list span { animation:none; background:#f1f3f8; } }
 
 .rec-card {
   display: flex; align-items: center; gap: 16px; padding: 16px 22px;
@@ -438,6 +442,7 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
   <span class="nav-section-label">Tools</span>
   <ul class="sidebar-nav">
     <li><a href="{{ route('faculty.rfid.verification') }}" class="{{ Request::is('rfid-verification') ? 'active' : '' }}"><span class="nav-icon"><i class="fas fa-id-card"></i></span>RFID Verification</a></li>
+    <li><a href="{{ route('faculty.notifications') }}" class="{{ Request::routeIs('faculty.notifications') ? 'active' : '' }}"><span class="nav-icon"><i class="fas fa-bell"></i></span>Notifications</a></li>
     <li><a href="{{ url('/reports') }}" class="{{ Request::is('reports*') ? 'active' : '' }}"><span class="nav-icon"><i class="fas fa-chart-bar"></i></span>Reports</a></li>
   </ul>
 
@@ -567,7 +572,7 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
           <span class="card-head-meta" id="recommendationUpdatedAt">Syncing…</span>
         </div>
         <div class="rec-list" id="recommendationList">
-          <div class="rec-empty">Loading live recommendations...</div>
+          <div class="recommendation-skeleton-list" aria-hidden="true"><span></span><span></span><span></span></div>
         </div>
       </div>
 
@@ -704,7 +709,8 @@ document.addEventListener('DOMContentLoaded', function () {
   async function loadRecommendations() {
     if (!recommendationList) return;
     refreshButton?.classList.add('is-loading');
-    recommendationList.innerHTML = '<div class="rec-empty">Loading live recommendations...</div>';
+    recommendationList.setAttribute('aria-busy', 'true');
+    recommendationList.innerHTML = '<div class="recommendation-skeleton-list" aria-hidden="true"><span></span><span></span><span></span></div>';
 
     try {
       const response = await fetch('/api/ai/recommendations?hours=2', {
@@ -727,8 +733,10 @@ document.addEventListener('DOMContentLoaded', function () {
       if (roomsAvailableNow) roomsAvailableNow.textContent = String(payload.available_count ?? 0);
       if (conflictCount) conflictCount.textContent = String(payload.conflict_count ?? 0);
       if (campusLoad) campusLoad.textContent = payload.total_rooms ? `${Math.round(((payload.total_rooms - (payload.available_count ?? 0)) / payload.total_rooms) * 100)}%` : '0%';
+      recommendationList.setAttribute('aria-busy', 'false');
     } catch (error) {
       recommendationList.innerHTML = '<div class="rec-empty">Unable to load recommendations. Please try again.</div>';
+      recommendationList.setAttribute('aria-busy', 'false');
     } finally {
       refreshButton?.classList.remove('is-loading');
     }

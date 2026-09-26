@@ -372,6 +372,7 @@ $attendanceCards = collect($courses ?? [])->map(function ($course) {
         <span class="nav-icon"><i class="fas fa-id-card"></i></span>RFID Verification
       </a>
     </li>
+    <li><a href="{{ route('faculty.notifications') }}" class="{{ Request::routeIs('faculty.notifications') ? 'active' : '' }}"><span class="nav-icon"><i class="fas fa-bell"></i></span>Notifications</a></li>
     <li>
       <a href="{{ url('/reports') }}" class="{{ Request::is('reports*') ? 'active' : '' }}">
         <span class="nav-icon"><i class="fas fa-chart-bar"></i></span>Reports
@@ -704,7 +705,7 @@ $attendanceCards = collect($courses ?? [])->map(function ($course) {
     <div class="student-roster-table-wrap">
       <table class="student-roster-table">
         <thead><tr><th>Student</th><th>Block</th><th>Status</th><th>Check-in time</th></tr></thead>
-        <tbody id="student-roster-rows"></tbody>
+        <tbody id="student-roster-rows"><tr class="roster-skeleton" aria-hidden="true"><td></td><td></td><td></td><td></td></tr><tr class="roster-skeleton" aria-hidden="true"><td></td><td></td><td></td><td></td></tr><tr class="roster-skeleton" aria-hidden="true"><td></td><td></td><td></td><td></td></tr></tbody>
       </table>
     </div>
   </section>
@@ -1088,7 +1089,8 @@ $attendanceCards = collect($courses ?? [])->map(function ($course) {
       if (!rosterModal) return;
       rosterModal.classList.add('is-open');
       document.body.style.overflow = 'hidden';
-      rosterRows.innerHTML = '<tr><td colspan="4" class="roster-empty"><i class="fas fa-spinner fa-spin"></i> Loading students...</td></tr>';
+      rosterRows.setAttribute('aria-busy', 'true');
+      rosterRows.innerHTML = '<tr class="roster-skeleton" aria-hidden="true"><td></td><td></td><td></td><td></td></tr><tr class="roster-skeleton" aria-hidden="true"><td></td><td></td><td></td><td></td></tr><tr class="roster-skeleton" aria-hidden="true"><td></td><td></td><td></td><td></td></tr>';
       try {
         const response = await fetch(link.dataset.studentsUrl, { headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, cache: 'no-store' });
         const payload = await response.json();
@@ -1097,8 +1099,10 @@ $attendanceCards = collect($courses ?? [])->map(function ($course) {
         rosterStudents = payload.students || [];
         rosterFilter.value = 'all';
         renderStudentRoster();
+        rosterRows.setAttribute('aria-busy', 'false');
       } catch (error) {
         rosterRows.innerHTML = `<tr><td colspan="4" class="roster-empty roster-error">${escapeRosterHtml(error.message)}</td></tr>`;
+        rosterRows.setAttribute('aria-busy', 'false');
       }
     });
   });
@@ -1227,6 +1231,10 @@ $attendanceCards = collect($courses ?? [])->map(function ($course) {
 .roster-status.is-checked { background: #dcfce7; color: #15803d; }
 .roster-status.is-absent { background: #fee2e2; color: #b91c1c; }
 .roster-empty { padding: 38px 24px !important; color: #64748b !important; text-align: center; }
+.roster-skeleton td { height: 48px; border-top: 1px solid #edf1f7; }
+.roster-skeleton td::after { content: ''; display: block; height: 12px; border-radius: 5px; background: linear-gradient(90deg,#eef1f5 25%,#fff 50%,#eef1f5 75%); background-size: 200% 100%; animation: rosterSkeleton 1.35s ease-in-out infinite; }
+@keyframes rosterSkeleton { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+@media (prefers-reduced-motion: reduce) { .roster-skeleton td::after { animation: none; background: #eef1f5; } }
 .roster-error { color: #b91c1c !important; }
 
 @media (max-width: 640px) {

@@ -1,8 +1,8 @@
-<?php
+﻿<?php
 $faculty_name     = $faculty_name ?? request()->user()?->name ?? 'Faculty';
 $faculty_dept     = $faculty_dept ?? request()->user()?->department ?? 'Department';
 $faculty_initials = $faculty_initials ?? strtoupper(substr((string) $faculty_name, 0, 1));
-$semester         = $semester ?? "1st Semester 2025–2026";
+$semester         = $semester ?? "1st Semester 2025â€“2026";
 
 $facultyName     = $facultyName     ?? $faculty_name;
 $facultyDept     = $facultyDept     ?? $faculty_dept;
@@ -25,7 +25,7 @@ $dayMeta = [
 $now = now();
 $monday = $now->copy()->startOfWeek();
 $friday = $monday->copy()->addDays(4);
-$weekRange = $monday->format('M d') . ' – ' . $friday->format('M d, Y');
+$weekRange = $monday->format('M d') . ' â€“ ' . $friday->format('M d, Y');
 
 $palette = ['blue', 'violet', 'emerald', 'amber'];
 
@@ -58,7 +58,7 @@ foreach ($facultySchedules as $entry) {
 
   $durationText = $start->format('g:i A');
   if ($end) {
-    $durationText .= ' – ' . $end->format('g:i A');
+    $durationText .= ' â€“ ' . $end->format('g:i A');
   }
 
   $classData = [
@@ -173,7 +173,7 @@ $classroomOptions = collect($classrooms)->map(fn($c) => [
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>SmartDoor — Semester Schedule</title>
+<title>SmartDoor â€” Semester Schedule</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -193,16 +193,16 @@ $classroomOptions = collect($classrooms)->map(fn($c) => [
   --yellow-light:#fef9e7;
 
   /* Content surface */
-  --bg:#f3f5fb;
+  --bg:#f8f9fb;
   --surface:#ffffff;
-  --surface-2:#f8fafc;
-  --border:#e4e8f2;
-  --border-2:#d1d9ec;
+  --surface-2:#f5f7fa;
+  --border:#e8eaef;
+  --border-2:#d5dae5;
 
   /* Text */
-  --tx:#0d1526;
-  --tx-2:#3b4d6b;
-  --tx-3:#7585a0;
+  --tx:#111827;
+  --tx-2:#4b5563;
+  --tx-3:#9ca3af;
   --tx-4:#b0bdd0;
 
   /* Accents */
@@ -215,10 +215,10 @@ $classroomOptions = collect($classrooms)->map(fn($c) => [
   --ff:'Instrument Sans',sans-serif;
   --ff-head:'Sora',sans-serif;
   --ff-mono:'JetBrains Mono',monospace;
-  --r:12px;--r2:8px;--r3:6px;
-  --shadow-sm:0 1px 3px rgba(10,17,40,.06),0 1px 2px rgba(10,17,40,.04);
-  --shadow:0 4px 16px rgba(10,17,40,.08),0 1px 4px rgba(10,17,40,.04);
-  --shadow-lg:0 12px 40px rgba(10,17,40,.12),0 4px 16px rgba(10,17,40,.06);
+  --r:10px;--r2:8px;--r3:6px;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.04);
+  --shadow:0 4px 12px rgba(0,0,0,.06);
+  --shadow-lg:0 12px 32px rgba(0,0,0,.1);
 }
 
 html{scroll-behavior:smooth}
@@ -226,9 +226,9 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
 ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:var(--border-2);border-radius:99px}
 ::-webkit-scrollbar-track{background:transparent}
 
-/* ══════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    SIDEBAR
-══════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .sidebar {
   position: fixed; left: 0; top: 0;
   width: var(--sidebar-w); height: 100vh;
@@ -321,28 +321,18 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
 }
 .sidebar-logout-btn:hover { color: #f87171; background: rgba(244,63,94,0.08); }
 
-/* ══════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    MAIN
-══════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh}
 
 /* Topbar */
 .topbar{
   background:var(--surface);border-bottom:1px solid var(--border);
-  padding:0 30px;height:60px;
+  padding:0 30px;height:56px;
   display:flex;align-items:center;justify-content:space-between;gap:16px;
   position:sticky;top:0;z-index:100;
-  box-shadow:var(--shadow-sm);
-}
-.tb-search{
-  display:flex;align-items:center;gap:8px;background:var(--surface-2);
-  border:1px solid var(--border);border-radius:24px;
-  padding:7px 16px;width:300px;transition:border-color .2s,box-shadow .2s;
-}
-.tb-search:focus-within{border-color:var(--blue-bdr);box-shadow:0 0 0 3px rgba(37,99,235,.08)}
-.tb-search i{color:var(--tx-4);font-size:14px}
-.tb-search input{border:none;outline:none;background:transparent;font-size:.82rem;font-family:var(--ff);color:var(--tx);width:100%}
-.tb-search input::placeholder{color:var(--tx-4)}
+  }
 .tb-right{display:flex;align-items:center;gap:10px}
 .tb-icon-btn{
   width:36px;height:36px;border-radius:8px;
@@ -353,7 +343,7 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
 .tb-icon-btn:hover{background:#eef1fb;border-color:var(--blue-bdr);color:var(--blue)}
 .tb-profile{
   display:flex;align-items:center;gap:9px;padding:5px 10px 5px 5px;
-  border-radius:24px;cursor:pointer;border:1px solid var(--border);
+  border-radius:var(--r2);cursor:pointer;border:1px solid var(--border);
   background:var(--surface-2);transition:all .15s;position:relative;
 }
 .tb-profile:hover{border-color:var(--blue-bdr);background:#f0f4ff}
@@ -383,32 +373,33 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
 }
 .prof-signout:hover{background:#fee2e2}
 
-/* ══════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    CONTENT
-══════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .content{padding:26px 30px 60px;display:flex;flex-direction:column;gap:20px}
 
 /* Page header */
 .page-header{
-  background:linear-gradient(130deg,#0d1e56 0%,#0a1128 100%);
-  border-radius:14px;padding:24px 28px;
-  display:flex;align-items:center;justify-content:space-between;
+  background:linear-gradient(90deg,rgba(7,14,43,.94) 0%,rgba(11,22,64,.78) 46%,rgba(29,78,216,.3) 100%),url('/images/map.png') center/cover no-repeat;
+  border-radius:0;padding:30px 30px;
+  margin:-26px -30px 0;
+  min-height:220px;
+  display:flex;flex-direction:column;align-items:stretch;justify-content:flex-end;gap:24px;
   position:relative;overflow:hidden;
-  border:1px solid rgba(255,255,255,.05);
-  box-shadow:var(--shadow-lg);
+  border:0;
   animation:fadeUp .35s ease both;
 }
-.page-header::before{content:'';position:absolute;top:-80px;right:-80px;width:280px;height:280px;border-radius:50%;background:rgba(245,197,24,.04);pointer-events:none}
-.page-header::after{content:'';position:absolute;bottom:-60px;left:260px;width:200px;height:200px;border-radius:50%;background:rgba(37,99,235,.06);pointer-events:none}
+.page-header::before{display:none}
+.page-header::after{display:none}
 .ph-left{display:flex;align-items:center;gap:16px;position:relative}
 .ph-icon{
   width:46px;height:46px;border-radius:12px;
-  background:rgba(245,197,24,.14);border:1px solid rgba(245,197,24,.2);
+  background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);
   display:flex;align-items:center;justify-content:center;
-  color:var(--yellow);font-size:1.2rem;flex-shrink:0;
+  color:var(--yellow);font-size:1.1rem;flex-shrink:0;backdrop-filter:blur(4px);
 }
-.ph-title h1{font-family:var(--ff-head);font-size:1.45rem;font-weight:700;color:#fff;letter-spacing:-.03em}
-.ph-title p{font-size:.75rem;color:rgba(255,255,255,.45);margin-top:5px;display:flex;align-items:center;gap:6px}
+.ph-title h1{font-family:var(--ff-head);font-size:1.2rem;font-weight:700;color:#fff;letter-spacing:-.03em}
+.ph-title p{font-size:.75rem;color:rgba(255,255,255,.64);margin-top:5px;display:flex;align-items:center;gap:6px}
 .ph-actions{display:flex;gap:8px;position:relative}
 .btn{
   display:inline-flex;align-items:center;gap:6px;padding:9px 16px;
@@ -416,13 +407,13 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
   font-size:.77rem;font-weight:600;transition:all .15s;white-space:nowrap;
 }
 .btn i{font-size:14px}
-.btn:hover{transform:translateY(-1px)}
-.btn-ghost-white{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);color:#fff}
-.btn-ghost-white:hover{background:rgba(255,255,255,.18)}
-.btn-gold{background:var(--yellow);color:var(--navy);font-weight:700;box-shadow:0 4px 14px rgba(245,197,24,.35)}
-.btn-gold:hover{box-shadow:0 6px 20px rgba(245,197,24,.5)}
-.btn-primary{background:var(--blue);color:#fff;box-shadow:0 3px 10px rgba(37,99,235,.25)}
-.btn-primary:hover{background:var(--blue-dk);box-shadow:0 4px 14px rgba(37,99,235,.35)}
+.btn:hover{opacity:.9}
+.btn-ghost-white{background:var(--surface-2);border:1px solid var(--border);color:var(--tx-2)}
+.btn-ghost-white:hover{background:var(--border);color:var(--tx)}
+.btn-gold{background:var(--navy);color:#fff;font-weight:700}
+.btn-gold:hover{background:var(--navy-mid)}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-primary:hover{background:var(--blue-dk)}
 .btn-outline{background:var(--surface);border:1px solid var(--border);color:var(--tx-2)}
 .btn-outline:hover{background:var(--surface-2);border-color:var(--border-2)}
 
@@ -433,13 +424,14 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
 
 /* Stats grid */
 .stats-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;animation:fadeUp .35s ease .06s both}
+.page-header .stats-grid{width:100%;animation:none}
 .stat-card{
   background:var(--surface);border:1px solid var(--border);
   border-radius:var(--r);padding:16px;position:relative;overflow:hidden;
-  box-shadow:var(--shadow-sm);transition:transform .18s,box-shadow .18s;
+  transition:border-color .18s;
 }
-.stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
-.stat-card::after{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:linear-gradient(135deg,var(--accent-a) 0%,transparent 60%);opacity:.04}
+.stat-card:hover{border-color:var(--border-2)}
+.stat-card::after{display:none}
 .stat-card.blue{--accent-a:var(--blue)}
 .stat-card.violet{--accent-a:var(--violet)}
 .stat-card.emerald{--accent-a:var(--emerald)}
@@ -450,7 +442,7 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
 .stat-card.violet .stat-ic{background:var(--violet-lt);color:var(--violet)}
 .stat-card.emerald .stat-ic{background:var(--emerald-lt);color:var(--emerald)}
 .stat-card.amber .stat-ic{background:var(--amber-lt);color:var(--amber)}
-.stat-val{font-family:var(--ff-head);font-size:1.9rem;font-weight:700;letter-spacing:-.04em;line-height:1;color:var(--tx)}
+.stat-val{font-family:var(--ff-head);font-size:1.7rem;font-weight:700;letter-spacing:-.04em;line-height:1;color:var(--tx)}
 .stat-label{font-size:.72rem;font-weight:600;color:var(--tx-3);letter-spacing:.01em;margin-bottom:2px}
 .stat-sub{font-size:.65rem;color:var(--tx-4)}
 .stat-accent-bar{position:absolute;bottom:0;left:0;right:0;height:2px}
@@ -463,12 +455,12 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
 .toolbar{
   display:flex;align-items:center;gap:10px;
   background:var(--surface);border:1px solid var(--border);
-  border-radius:var(--r);padding:10px 14px;box-shadow:var(--shadow-sm);
+  border-radius:var(--r);padding:10px 14px;
   animation:fadeUp .35s ease .1s both;
 }
 .search-box{
   display:flex;align-items:center;gap:7px;background:var(--surface-2);
-  border:1px solid var(--border);border-radius:24px;
+  border:1px solid var(--border);border-radius:var(--r2);
   padding:7px 14px;flex:0 0 240px;transition:all .15s;
 }
 .search-box:focus-within{border-color:var(--blue-bdr);box-shadow:0 0 0 3px rgba(37,99,235,.08)}
@@ -479,8 +471,8 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
 .sem-badge{
   display:flex;align-items:center;gap:6px;
   background:var(--blue-lt);border:1px solid var(--blue-bdr);
-  border-radius:24px;padding:6px 12px;
-  font-size:.71rem;font-weight:700;color:var(--blue-dk);
+  border-radius:var(--r3);padding:6px 12px;
+  font-size:.71rem;font-weight:600;color:var(--blue-dk);
 }
 .view-switcher{display:flex;gap:3px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:3px}
 .vs-btn{
@@ -502,21 +494,21 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
   border-radius:8px;background:var(--navy);
   font-family:var(--ff);font-size:.75rem;font-weight:600;color:#fff;cursor:pointer;border:none;transition:all .15s;
 }
-.tb-add-btn:hover{background:var(--navy-mid);transform:translateY(-1px)}
+.tb-add-btn:hover{background:var(--navy-mid)}
 .tb-add-btn i{font-size:13px}
 
-/* ══════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    CALENDAR VIEW
-══════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .calendar-section{
   background:var(--surface);border:1px solid var(--border);
-  border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow-sm);
+  border-radius:var(--r);overflow:hidden;
   animation:fadeUp .35s ease .14s both;
 }
 .cal-header{
   display:flex;align-items:center;justify-content:space-between;
   padding:16px 20px;border-bottom:1px solid var(--border);
-  background:linear-gradient(135deg,#f8faff 0%,#fff 100%);
+  background:var(--surface);
 }
 .cal-header-left{display:flex;align-items:center;gap:10px}
 .cal-header-icon{width:32px;height:32px;border-radius:8px;background:var(--blue-lt);color:var(--blue);display:flex;align-items:center;justify-content:center;font-size:14px}
@@ -540,7 +532,7 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
 .cal-day.has-classes{
   background:var(--blue-lt);border:1px solid var(--blue-bdr);cursor:pointer;
 }
-.cal-day.has-classes:hover{background:#dde9ff;border-color:var(--blue);transform:scale(1.05);box-shadow:0 4px 12px rgba(37,99,235,.15);z-index:2}
+.cal-day.has-classes:hover{background:#dde9ff;border-color:var(--blue)}
 .cal-day.empty{opacity:0}
 .cal-day.today .cal-day-num{background:var(--blue);color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center}
 .cal-day-num{font-size:.78rem;font-weight:600;color:var(--tx-2);line-height:1}
@@ -556,7 +548,7 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
 /* Week View Header */
 .week-view-header{
   display:flex;align-items:center;justify-content:space-between;
-  background:linear-gradient(135deg,#f0f7ff 0%,#fff 100%);
+  background:var(--surface);
   border:1px solid var(--border);border-radius:var(--r);
   padding:20px 24px;margin-bottom:16px;
   box-shadow:var(--shadow-sm);animation:fadeUp .35s ease .12s both;
@@ -566,52 +558,52 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
 .wvh-right{display:flex;align-items:center;gap:16px;font-size:.85rem;color:var(--tx-3)}
 .wvh-right strong{color:var(--blue);font-weight:700}
 
-/* ══════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    SCHEDULE GRID
-══════════════════════════════════════ */
-.sched-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px;align-items:start}
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+.sched-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;align-items:start}
 .day-col{
   background:var(--surface);border:1px solid var(--border);
-  border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow-sm);
-  transition:transform .18s,box-shadow .18s;
+  border-radius:var(--r);overflow:hidden;
+  transition:border-color .18s;
   animation:fadeUp .4s ease var(--d,.15s) both;
 }
-.day-col:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+.day-col:hover{border-color:var(--border-2)}
 .day-col-header{
-  display:flex;align-items:center;gap:10px;padding:12px 14px;
+  display:flex;align-items:center;gap:8px;padding:10px 12px;
   border-bottom:1px solid var(--border);
-  background:linear-gradient(135deg,#f9fafb 0%,#fff 100%);
+  background:var(--surface-2);
 }
 .day-abbr{
-  width:36px;height:36px;border-radius:9px;
+  width:28px;height:28px;border-radius:6px;
   background:var(--navy);color:#fff;
   display:flex;align-items:center;justify-content:center;
-  font-family:var(--ff-head);font-size:.64rem;font-weight:700;letter-spacing:.04em;flex-shrink:0;
+  font-family:var(--ff-head);font-size:.58rem;font-weight:700;letter-spacing:.04em;flex-shrink:0;
 }
 .day-col.today-col .day-abbr{background:var(--blue)}
-.day-name{font-family:var(--ff-head);font-size:.84rem;font-weight:700;color:var(--tx)}
+.day-name{font-family:var(--ff-head);font-size:.82rem;font-weight:700;color:var(--tx)}
 .day-hrs{
-  margin-left:auto;display:flex;align-items:center;gap:4px;
-  background:var(--surface-2);border:1px solid var(--border);
-  border-radius:20px;padding:3px 8px;
-  font-size:.6rem;font-weight:700;color:var(--tx-3);
+  margin-left:auto;display:flex;align-items:center;gap:3px;
+  background:transparent;border:none;
+  padding:0;
+  font-size:.6rem;font-weight:600;color:var(--tx-4);
 }
 .day-hrs i{font-size:11px}
 .day-classes{display:flex;flex-direction:column;gap:0;padding:0}
-.no-class{padding:20px 14px;text-align:center;font-size:.73rem;color:var(--tx-4);display:flex;flex-direction:column;align-items:center;gap:6px}
-.no-class i{font-size:20px;opacity:.4}
+.no-class{padding:28px 14px;text-align:center;font-size:.72rem;color:var(--tx-4);display:flex;flex-direction:column;align-items:center;gap:6px}
+.no-class i{font-size:18px;opacity:.3}
 
 /* Class card */
 .cls-card{
-  border-bottom:1px solid var(--border);padding:12px 14px;
-  cursor:pointer;transition:background .15s;position:relative;
+  border-bottom:1px solid var(--border);padding:14px 14px 14px 16px;
+  cursor:pointer;transition:all .15s;position:relative;
   background:var(--surface);
 }
 .cls-card:last-child{border-bottom:none}
-.cls-card:hover{background:var(--surface-2)}
+.cls-card:hover{background:var(--card-lt)}
 .cls-card::before{
-  content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
-  background:var(--card-c);border-radius:0;
+  content:'';position:absolute;left:0;top:6px;bottom:6px;width:3px;
+  background:var(--card-c);border-radius:3px;
 }
 .cls-card.blue{--card-c:var(--blue);--card-lt:var(--blue-lt);--card-bdr:var(--blue-bdr);--card-txt:var(--blue-dk)}
 .cls-card.violet{--card-c:var(--violet);--card-lt:var(--violet-lt);--card-bdr:var(--violet-bdr);--card-txt:var(--violet)}
@@ -619,30 +611,29 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
 .cls-card.amber{--card-c:var(--amber);--card-lt:var(--amber-lt);--card-bdr:var(--amber-bdr);--card-txt:var(--amber)}
 .cls-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
 .cls-code{
-  font-family:var(--ff-mono);font-size:.62rem;font-weight:600;
-  padding:2px 7px;border-radius:20px;
+  font-family:var(--ff-mono);font-size:.6rem;font-weight:700;
+  padding:3px 8px;border-radius:4px;
   background:var(--card-lt);color:var(--card-txt);border:1px solid var(--card-bdr);
-  letter-spacing:.04em;
 }
-.cls-time{font-family:var(--ff-mono);font-size:.62rem;color:var(--tx-4)}
-.cls-name{font-size:.78rem;font-weight:600;color:var(--tx);margin-bottom:7px;line-height:1.35}
+.cls-time{font-family:var(--ff-mono);font-size:.62rem;color:var(--tx-3);font-weight:500}
+.cls-name{font-size:.8rem;font-weight:600;color:var(--tx);margin-bottom:8px;line-height:1.4}
 .cls-meta{display:flex;align-items:center;justify-content:space-between}
-.cls-room{display:flex;align-items:center;gap:4px;font-size:.65rem;color:var(--tx-3)}
+.cls-room{display:flex;align-items:center;gap:4px;font-size:.66rem;color:var(--tx-3)}
 .cls-room i{font-size:11px}
-.cls-students{display:flex;align-items:center;gap:4px;font-size:.65rem;color:var(--tx-3)}
+.cls-students{display:flex;align-items:center;gap:4px;font-size:.66rem;color:var(--tx-3)}
 .cls-students span{font-family:var(--ff-mono);font-weight:600;color:var(--card-txt)}
 .status-badge{
   display:inline-flex;align-items:center;gap:3px;padding:2px 6px;
-  border-radius:20px;font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;
+  border-radius:var(--r3);font-size:.58rem;font-weight:600;
 }
 .status-cancelled{background:var(--red-lt);border:1px solid var(--red-bdr);color:var(--red)}
 .status-completed{background:var(--emerald-lt);border:1px solid var(--emerald-bdr);color:var(--emerald)}
 .status-ongoing{background:var(--blue-lt);border:1px solid var(--blue-bdr);color:var(--blue-dk)}
-.block-badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:20px;background:var(--navy-light);border:1px solid var(--border-2);color:var(--navy-mid);font-size:.58rem;font-weight:700;letter-spacing:.03em}
+.block-badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:4px;background:var(--surface-2);border:1px solid var(--border);color:var(--tx-2);font-size:.58rem;font-weight:600}
 
-/* ══════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    TIMELINE VIEW
-══════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .timeline-section{display:none;flex-direction:column;gap:14px}
 .tl-day-block{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow-sm)}
 .tl-day-hd{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--surface-2)}
@@ -667,14 +658,14 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
 .tl-sub{font-size:.68rem;color:var(--tx-3);display:flex;align-items:center;gap:6px}
 .tl-code-tag{
   font-family:var(--ff-mono);font-size:.6rem;font-weight:600;
-  padding:2px 6px;border-radius:20px;
+  padding:2px 6px;border-radius:var(--r3);
   background:var(--card-lt);color:var(--card-txt);border:1px solid var(--card-bdr);
 }
 .tl-no-class{padding:16px;font-size:.75rem;color:var(--tx-4)}
 
-/* ══════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    SUBJECT OVERVIEW
-══════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .subj-section{
   background:var(--surface);border:1px solid var(--border);
   border-radius:var(--r);padding:20px;box-shadow:var(--shadow-sm);
@@ -692,13 +683,13 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
   transition:transform .18s,border-color .18s,box-shadow .18s;
   position:relative;overflow:hidden;
 }
-.subj-card:hover{transform:translateY(-2px);box-shadow:var(--shadow);border-color:var(--card-bdr)}
+.subj-card:hover{border-color:var(--card-bdr)}
 .subj-card.blue{--card-lt:var(--blue-lt);--card-bdr:var(--blue-bdr);--card-txt:var(--blue-dk);--card-c:var(--blue)}
 .subj-card.violet{--card-lt:var(--violet-lt);--card-bdr:var(--violet-bdr);--card-txt:var(--violet);--card-c:var(--violet)}
 .subj-card.emerald{--card-lt:var(--emerald-lt);--card-bdr:var(--emerald-bdr);--card-txt:var(--emerald);--card-c:var(--emerald)}
 .subj-card.amber{--card-lt:var(--amber-lt);--card-bdr:var(--amber-bdr);--card-txt:var(--amber);--card-c:var(--amber)}
 .subj-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--card-c)}
-.sc-code-tag{display:inline-block;font-family:var(--ff-mono);font-size:.62rem;font-weight:600;padding:2px 8px;border-radius:20px;margin-bottom:8px;background:var(--card-lt);color:var(--card-txt);border:1px solid var(--card-bdr)}
+.sc-code-tag{display:inline-block;font-family:var(--ff-mono);font-size:.62rem;font-weight:600;padding:2px 8px;border-radius:var(--r3);margin-bottom:8px;background:var(--card-lt);color:var(--card-txt);border:1px solid var(--card-bdr)}
 .sc-name{font-size:.79rem;font-weight:600;color:var(--tx);margin-bottom:10px;line-height:1.35;min-height:36px}
 .sc-divider{height:1px;background:var(--border);margin-bottom:9px}
 .sc-rows{display:flex;flex-direction:column;gap:4px}
@@ -707,25 +698,25 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
 .sc-val{font-weight:700;color:var(--tx-2);font-family:var(--ff-mono)}
 .sc-status{margin-top:9px;padding:6px 8px;border-radius:6px;background:var(--amber-lt);border:1px solid var(--amber-bdr);color:var(--amber);font-size:.66rem;font-weight:600;line-height:1.3}
 
-/* ══════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    ADD SCHEDULE CARD
-══════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .add-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;box-shadow:var(--shadow-sm)}
 .add-card-title{font-size:.85rem;font-weight:700;color:var(--tx);margin-bottom:2px}
 .add-card-note{font-size:.72rem;color:var(--tx-3)}
 
-/* ══════════════════════════════════════
-   MODALS — BASE
-══════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   MODALS â€” BASE
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .modal-overlay{
   position:fixed;inset:0;z-index:2000;display:none;
   align-items:center;justify-content:center;
-  background:rgba(10,17,40,.5);backdrop-filter:blur(4px);padding:20px;
+  background:rgba(0,0,0,.3);backdrop-filter:blur(2px);padding:20px;
 }
 .modal-overlay.open{display:flex}
 .modal{
   background:var(--surface);border:1px solid var(--border);
-  border-radius:16px;box-shadow:var(--shadow-lg);
+  border-radius:var(--r);box-shadow:var(--shadow-lg);
   max-height:calc(100vh - 40px);overflow:auto;
   animation:scaleIn .2s ease both;
 }
@@ -769,7 +760,7 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
 .avail-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;border-radius:7px;background:var(--surface);border:1px solid var(--border)}
 .avail-name{font-size:.77rem;font-weight:600;color:var(--tx)}
 .avail-meta{font-size:.68rem;color:var(--tx-3);margin-top:1px}
-.avail-status{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:2px 7px;border-radius:20px}
+.avail-status{font-size:.62rem;font-weight:600;padding:2px 7px;border-radius:var(--r3)}
 .avail-status.is-available{background:var(--emerald-lt);border:1px solid var(--emerald-bdr);color:var(--emerald)}
 .avail-status.is-occupied{background:var(--red-lt);border:1px solid var(--red-bdr);color:var(--red)}
 .avail-status.is-reserved{background:var(--amber-lt);border:1px solid var(--amber-bdr);color:var(--amber)}
@@ -793,7 +784,7 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
   border:1px solid var(--border);border-radius:10px;overflow:hidden;cursor:pointer;
   transition:all .15s;position:relative;
 }
-.day-cls-item:hover{border-color:var(--card-bdr);box-shadow:0 4px 12px rgba(10,17,40,.07);transform:translateY(-1px)}
+.day-cls-item:hover{border-color:var(--card-bdr)}
 .day-cls-item::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--card-c)}
 .day-cls-item.blue{--card-c:var(--blue);--card-lt:var(--blue-lt);--card-bdr:var(--blue-bdr);--card-txt:var(--blue-dk)}
 .day-cls-item.violet{--card-c:var(--violet);--card-lt:var(--violet-lt);--card-bdr:var(--violet-bdr);--card-txt:var(--violet)}
@@ -818,7 +809,7 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
 .session-detail-header.emerald .session-icon{background:var(--emerald-lt);color:var(--emerald)}
 .session-detail-header.amber .session-icon{background:var(--amber-lt);color:var(--amber)}
 .session-header-txt .sess-name{font-size:.88rem;font-weight:700;color:var(--tx);line-height:1.3}
-.session-header-txt .sess-code{display:inline-block;margin-top:5px;font-family:var(--ff-mono);font-size:.62rem;font-weight:600;padding:2px 7px;border-radius:20px;background:var(--card-lt);color:var(--card-txt);border:1px solid var(--card-bdr)}
+.session-header-txt .sess-code{display:inline-block;margin-top:5px;font-family:var(--ff-mono);font-size:.62rem;font-weight:600;padding:2px 7px;border-radius:var(--r3);background:var(--card-lt);color:var(--card-txt);border:1px solid var(--card-bdr)}
 .session-detail-header.blue{--card-lt:var(--blue-lt);--card-bdr:var(--blue-bdr);--card-txt:var(--blue-dk)}
 .session-detail-header.violet{--card-lt:var(--violet-lt);--card-bdr:var(--violet-bdr);--card-txt:var(--violet)}
 .session-detail-header.emerald{--card-lt:var(--emerald-lt);--card-bdr:var(--emerald-bdr);--card-txt:var(--emerald)}
@@ -831,6 +822,7 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
 .makeup-section{border:1px solid var(--border);border-radius:8px;padding:12px}
 .makeup-title{font-size:.67rem;font-weight:700;color:var(--tx-3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px}
 .makeup-list{display:flex;flex-direction:column;gap:6px}
+.makeup-skeleton{display:flex;flex-direction:column;gap:6px}.makeup-skeleton span{height:28px;border-radius:6px;background:linear-gradient(90deg,#f1f3f8 25%,#fff 50%,#f1f3f8 75%);background-size:200% 100%;animation:makeupSkeleton 1.35s ease-in-out infinite}@keyframes makeupSkeleton{0%{background-position:200% 0}100%{background-position:-200% 0}}@media(prefers-reduced-motion:reduce){.makeup-skeleton span{animation:none;background:#f1f3f8}}
 .makeup-item{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:7px;background:var(--emerald-lt);border:1px solid var(--emerald-bdr)}
 .makeup-item-lbl{font-size:.74rem;color:#065f46;font-weight:500}
 .makeup-meta{font-size:.66rem;color:var(--emerald)}
@@ -845,7 +837,7 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
 @media(max-width:1400px){.sched-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.stats-grid{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:1200px){.stats-grid{grid-template-columns:repeat(2,1fr)}.subj-grid{grid-template-columns:repeat(2,1fr)}.sched-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:960px){.sidebar{display:none}.main{margin-left:0}}
-@media(max-width:680px){.sched-grid{grid-template-columns:1fr}.content{padding:16px 14px 40px}.form-grid{grid-template-columns:1fr}.form-row{grid-template-columns:1fr}.stats-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:680px){.sched-grid{grid-template-columns:1fr}.content{padding:16px 14px 40px}.page-header{margin:-16px -14px 0;padding:24px 20px;min-height:190px}.form-grid{grid-template-columns:1fr}.form-row{grid-template-columns:1fr}.stats-grid{grid-template-columns:1fr 1fr}}
 
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 </style>
@@ -853,9 +845,9 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
 </head>
 <body>
 
-<!-- ═══════════════════════════════════════════
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
      SIDEBAR
-═══════════════════════════════════════════ -->
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
 <div class="sidebar">
   <a href="<?= htmlspecialchars(url('/dashboard')) ?>" class="sidebar-logo">
     <div class="logo-mark"><i class="fas fa-door-open"></i></div>
@@ -904,6 +896,7 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
         RFID Verification
       </a>
     </li>
+    <li><a href="{{ route('faculty.notifications') }}" class="{{ Request::routeIs('faculty.notifications') ? 'active' : '' }}"><span class="nav-icon"><i class="fas fa-bell"></i></span>Notifications</a></li>
     <li>
       <a href="{{ url('/reports') }}" class="{{ Request::is('reports*') ? 'active' : '' }}">
         <span class="nav-icon"><i class="fas fa-chart-bar"></i></span>
@@ -930,14 +923,10 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
   </div>
 </div>
 
-<!-- ═══════════ MAIN ═══════════ -->
+<!-- â•â•â•â•â•â•â•â•â•â•â• MAIN â•â•â•â•â•â•â•â•â•â•â• -->
 <div class="main">
   <!-- Topbar -->
   <div class="topbar">
-    <div class="tb-search">
-      <i class="ti ti-search"></i>
-      <input type="text" placeholder="Search classrooms, subjects…">
-    </div>
     <div class="tb-right">
       <div class="tb-profile" id="profileToggle">
         <div class="tb-prof-avatar"><?= htmlspecialchars($facultyInitials) ?></div>
@@ -980,14 +969,11 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
           <h1>Semester Schedule</h1>
           <p>
             <i class="ti ti-user" style="font-size:12px"></i>
-            <?= htmlspecialchars($facultyName) ?> &nbsp;·&nbsp; <?= htmlspecialchars($semester) ?>
+            <?= htmlspecialchars($facultyName) ?> &nbsp;Â·&nbsp; <?= htmlspecialchars($semester) ?>
           </p>
         </div>
       </div>
-    </div>
-
-    <!-- Stats -->
-    <div class="stats-grid">
+      <div class="stats-grid">
       <?php foreach ($stats as $s): ?>
       <div class="stat-card <?= htmlspecialchars($s['color']) ?>">
         <div class="stat-top">
@@ -999,13 +985,14 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
         <div class="stat-accent-bar"></div>
       </div>
       <?php endforeach ?>
+      </div>
     </div>
 
     <!-- Toolbar -->
     <div class="toolbar">
       <div class="search-box">
         <i class="ti ti-search"></i>
-        <input type="text" id="classFilter" placeholder="Filter classes…">
+        <input type="text" id="classFilter" placeholder="Filter classesâ€¦">
       </div>
       <div class="spacer"></div>
       <div class="sem-badge"><i class="ti ti-calendar" style="font-size:12px"></i> <?= htmlspecialchars($semester) ?></div>
@@ -1022,13 +1009,7 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
       </button>
     </div>
 
-    <!-- Add Schedule note -->
-    <div class="add-card">
-      <div class="add-card-title">Add Schedule For My Subject</div>
-      <div class="add-card-note">You can only add schedules for subjects assigned to your account.</div>
-    </div>
-
-    <!-- ══════ CALENDAR VIEW ══════ -->
+    <!-- â•â•â•â•â•â• CALENDAR VIEW â•â•â•â•â•â• -->
     <div class="calendar-section" id="calendarView" style="display:none">
       <div class="cal-header">
         <div class="cal-header-left">
@@ -1058,18 +1039,7 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
       </div>
     </div>
 
-    <!-- ══════ WEEKLY SCHEDULE SECTION ══════ -->
-    <div class="week-view-header">
-      <div class="wvh-left">
-        <h3 style="margin:0;font-size:1.1rem;font-weight:700;color:var(--tx)">This Week</h3>
-        <p style="margin:3px 0 0 0;font-size:.85rem;color:var(--tx-3)"><?= htmlspecialchars($weekRange) ?></p>
-      </div>
-      <div class="wvh-right">
-        <span style="font-size:.8rem;color:var(--tx-3)"><strong><?= count(array_filter($schedule, fn($d) => !empty($d['classes']))) ?></strong> days with classes</span>
-      </div>
-    </div>
-
-    <!-- ══════ SCHEDULE GRID VIEW ══════ -->
+    <!-- â•â•â•â•â•â• SCHEDULE GRID VIEW â•â•â•â•â•â• -->
     <div class="sched-grid" id="gridView">
       <?php foreach ($schedule as $di => $day):
         $delay = round(.14 + $di * .05, 2);
@@ -1126,7 +1096,7 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
       <?php endforeach ?>
     </div>
 
-    <!-- ══════ TIMELINE VIEW ══════ -->
+    <!-- â•â•â•â•â•â• TIMELINE VIEW â•â•â•â•â•â• -->
     <div class="timeline-section" id="timelineView">
       <?php foreach ($schedule as $day): ?>
       <div class="tl-day-block">
@@ -1180,35 +1150,10 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
       <?php endforeach ?>
     </div>
 
-    <!-- Subject Overview -->
-    <div class="subj-section">
-      <div class="section-header">
-        <div class="section-icon amber"><i class="ti ti-books"></i></div>
-        <h2 class="section-h2">Subject Overview</h2>
-      </div>
-      <div class="subj-grid">
-        <?php foreach ($subjects as $s): ?>
-        <div class="subj-card <?= htmlspecialchars($s['color']) ?>">
-          <span class="sc-code-tag"><?= htmlspecialchars($s['code']) ?></span>
-          <div class="sc-name"><?= htmlspecialchars($s['name']) ?></div>
-          <div class="sc-divider"></div>
-          <div class="sc-rows">
-            <div class="sc-row"><span class="sc-lbl">Sections</span><span class="sc-val"><?= $s['sections'] ?></span></div>
-            <div class="sc-row"><span class="sc-lbl">Students</span><span class="sc-val"><?= $s['students'] ?></span></div>
-            <div class="sc-row"><span class="sc-lbl">Classes/Week</span><span class="sc-val"><?= $s['classes'] ?></span></div>
-            <div class="sc-row"><span class="sc-lbl">Units</span><span class="sc-val"><?= $s['units'] ?></span></div>
-            <?php if (!$s['room_assigned']): ?>
-              <div class="sc-status"><i class="ti ti-alert-circle"></i> Room pending admin assignment</div>
-            <?php endif ?>
-          </div>
-        </div>
-        <?php endforeach ?>
-      </div>
-    </div>
   </div><!-- /content -->
 </div><!-- /main -->
 
-<!-- ═══════════ ADD SCHEDULE MODAL ═══════════ -->
+<!-- â•â•â•â•â•â•â•â•â•â•â• ADD SCHEDULE MODAL â•â•â•â•â•â•â•â•â•â•â• -->
 @php
   $bsitCatalog=[['code'=>'A_CC 101','title'=>'Introduction to Computing'],['code'=>'A_CC 102','title'=>'Fundamental of Programming'],['code'=>'A_CC 103','title'=>'Intermediate Programming'],['code'=>'A_CC 104','title'=>'Data Structures and Algorithms'],['code'=>'A_CC 105','title'=>'Information Management 1'],['code'=>'A_CC 106','title'=>'Application Development & Emerging Tech'],['code'=>'A_OOP 101','title'=>'Object Oriented Programming'],['code'=>'A_WD 101','title'=>'Web Development'],['code'=>'A_WS 101','title'=>'Web Systems and Technologies 1'],['code'=>'A_NET 101','title'=>'Networking 1'],['code'=>'A_NET 102','title'=>'Networking 2'],['code'=>'A_SAD 101','title'=>'System Analysis and Design'],['code'=>'A_HCI 101','title'=>'Human Computer Interaction 1'],['code'=>'A_HCI 102','title'=>'Human Computer Interaction 2'],['code'=>'A_MD 101','title'=>'Mobile Application Development 1'],['code'=>'A_IM 102','title'=>'Information Management 2'],['code'=>'A_CAP 101','title'=>'Capstone Project 1'],['code'=>'A_CAP 102','title'=>'Capstone Project 2'],['code'=>'A_IAS 101','title'=>'Information Assurance and Security 1'],['code'=>'A_IAS 102','title'=>'Information Assurance and Security 2'],['code'=>'A_IPT 101','title'=>'Integrative Programming and Technologies'],['code'=>'A_SIA 101','title'=>'Systems Integration and Architecture'],['code'=>'A_OS 101','title'=>'Operating System Applications'],['code'=>'A_SA 101','title'=>'System Administration and Maintenance'],['code'=>'A_MT 101','title'=>'Multimedia Technologies'],['code'=>'A_MS 101','title'=>'Discrete Mathematics'],['code'=>'A_MS 102','title'=>'Quantitative Methods'],['code'=>'A_SP 101','title'=>'Social and Professional Issues'],['code'=>'A_GE 1','title'=>'Understanding the Self'],['code'=>'A_GE 2','title'=>'Readings in Philippine History'],['code'=>'A_GE 3','title'=>'Art Appreciation'],['code'=>'A_GE 4','title'=>'Purposive Communication'],['code'=>'A_GE 5','title'=>'The Contemporary World'],['code'=>'A_GE 6','title'=>'Science, Technology and Society'],['code'=>'A_GE 7','title'=>'Mathematics in the Modern World'],['code'=>'A_GE_8','title'=>'Ethics'],['code'=>'A_GE_9','title'=>'The Life and Works of Rizal'],['code'=>'A_CO 101','title'=>'Computer Organization'],['code'=>'A_ELEC1','title'=>'Elective 1'],['code'=>'A_ELEC2','title'=>'Elective 2'],['code'=>'A_ELEC3','title'=>'Elective 3'],['code'=>'A_ELEC4','title'=>'Elective 4'],['code'=>'A_TECH 101','title'=>'Technopreneurship'],['code'=>'A_GEE 1','title'=>'Living in the IT Era'],['code'=>'A_GEE 2','title'=>'The Entrepreneurial Mind'],['code'=>'A_GEE 3','title'=>'Reading Visual Art'],['code'=>'A_GEE 4','title'=>'Global Citizenship'],['code'=>'A_IC 1','title'=>'Personality Development'],['code'=>'A_NSTP 1','title'=>'ROTC/CWTS 1'],['code'=>'A_NSTP 2','title'=>'ROTC/CWTS 2'],['code'=>'A_PE1','title'=>'PATH-FIT I'],['code'=>'A_PE2','title'=>'PATH-FIT II'],['code'=>'A_PE3','title'=>'PATH-FIT III'],['code'=>'A_PE4','title'=>'PATH-FIT IV']];
   $facultyLookup=collect($facultyCourses??[])->keyBy(fn($c)=>(string)($c->code??''));
@@ -1245,20 +1190,20 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
         <div class="fg full">
           <label class="flabel">Subject</label>
           <select name="course_id" class="fselect" required>
-            <option value="">Select your subject…</option>
+            <option value="">Select your subjectâ€¦</option>
             @foreach($bsitOptions as $option)
               @php $course=$facultyLookup->get((string)$option['code']); @endphp
               @if($course)
                 <option value="{{ $course->id }}" data-room-id="{{ $courseRoomAssignments->get($course->id, 0) }}" {{ (string)old('course_id')===(string)$course->id?'selected':'' }}>
-                  {{ $option['code'] }} – {{ $course->title }}
+                  {{ $option['code'] }} â€“ {{ $course->title }}
                 </option>
               @endif
             @endforeach
             @if($remainingFacultyCourses->isNotEmpty())
-              <option value="" disabled>— Other Subjects —</option>
+              <option value="" disabled>â€” Other Subjects â€”</option>
               @foreach($remainingFacultyCourses as $course)
                 <option value="{{ $course->id }}" data-room-id="{{ $courseRoomAssignments->get($course->id, 0) }}" {{ (string)old('course_id')===(string)$course->id?'selected':'' }}>
-                  {{ $course->code }} – {{ $course->title }}
+                  {{ $course->code }} â€“ {{ $course->title }}
                 </option>
               @endforeach
             @endif
@@ -1267,7 +1212,7 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
         <div class="fg">
           <label class="flabel" for="facultyBlockSection">Block</label>
           <select id="facultyBlockSection" name="block_section" class="fselect" required>
-            <option value="">Select block…</option>
+            <option value="">Select blockâ€¦</option>
             <option value="Block A" {{ old('block_section') === 'Block A' ? 'selected' : '' }}>Block A</option>
             <option value="Block B" {{ old('block_section') === 'Block B' ? 'selected' : '' }}>Block B</option>
           </select>
@@ -1284,7 +1229,7 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
         <div class="form-row">
           <div class="fg"><label class="flabel">Day 1</label>
             <select name="day1" class="fselect">
-              <option value="">Select day…</option>
+              <option value="">Select dayâ€¦</option>
               <option value="1" {{ old('day1')=='1'?'selected':'' }}>Monday</option>
               <option value="2" {{ old('day1')=='2'?'selected':'' }}>Tuesday</option>
               <option value="3" {{ old('day1')=='3'?'selected':'' }}>Wednesday</option>
@@ -1303,7 +1248,7 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
         <div class="form-row">
           <div class="fg"><label class="flabel">Day 2</label>
             <select name="day2" class="fselect">
-              <option value="">Select day…</option>
+              <option value="">Select dayâ€¦</option>
               <option value="1" {{ old('day2')=='1'?'selected':'' }}>Monday</option>
               <option value="2" {{ old('day2')=='2'?'selected':'' }}>Tuesday</option>
               <option value="3" {{ old('day2')=='3'?'selected':'' }}>Wednesday</option>
@@ -1342,12 +1287,12 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
   </div>
 </div>
 
-<!-- ═══════════ DAY CLASSES MODAL ═══════════ -->
+<!-- â•â•â•â•â•â•â•â•â•â•â• DAY CLASSES MODAL â•â•â•â•â•â•â•â•â•â•â• -->
 <div class="modal-overlay" id="dayModal" aria-hidden="true">
   <div class="modal day-modal" role="dialog" aria-labelledby="dayModalTitle">
     <div class="modal-head">
       <div>
-        <div class="modal-title" id="dayModalTitle">Classes on —</div>
+        <div class="modal-title" id="dayModalTitle">Classes on â€”</div>
         <div class="modal-sub" id="dayModalSub"></div>
       </div>
       <button class="modal-close" id="closeDayModal" type="button"><i class="ti ti-x"></i></button>
@@ -1359,7 +1304,7 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
   </div>
 </div>
 
-<!-- ═══════════ SESSION MODAL ═══════════ -->
+<!-- â•â•â•â•â•â•â•â•â•â•â• SESSION MODAL â•â•â•â•â•â•â•â•â•â•â• -->
 <div class="modal-overlay" id="sessionModal" aria-hidden="true">
   <div class="modal session-modal" role="dialog" aria-labelledby="sessionModalTitle">
     <div class="modal-head">
@@ -1401,7 +1346,7 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
       </div>
       <div class="makeup-section">
         <div class="makeup-title">Make-up Suggestions</div>
-        <div class="makeup-list" id="makeupList"><div style="font-size:.73rem;color:var(--tx-4)">Loading suggestions…</div></div>
+        <div class="makeup-list" id="makeupList" aria-busy="true"><div class="makeup-skeleton" aria-hidden="true"><span></span><span></span><span></span></div></div>
       </div>
       <form id="sessionCancelForm" method="POST">
         @csrf @method('PATCH')
@@ -1425,17 +1370,17 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
 <script type="application/json" id="scheduleData">@json($calendarSchedule)</script>
 
 <script>
-// ── Schedule data ─────────────────────────────────────────────
+// â”€â”€ Schedule data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const schedule = JSON.parse(document.getElementById('scheduleData').textContent || '[]');
 const classrooms = JSON.parse(document.getElementById('classroomData').textContent || '[]');
 
-// ── Endpoints ─────────────────────────────────────────────────
+// â”€â”€ Endpoints â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const availEndpoint = "{{ url('/api/v1/room-availability/check') }}";
 const roomStatusEndpoint = "{{ url('/api/v1/room-statuses') }}";
 const cancelEndpoint = "{{ route('faculty.schedule.cancel', ['schedule' => '__ID__']) }}";
 const cancellationReason = document.getElementById('cancellationReason');
 
-// ── Helpers ───────────────────────────────────────────────────
+// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function toDateKey(d) {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
@@ -1462,7 +1407,7 @@ async function checkAvail(roomId, start, end) {
   } catch { return null; }
 }
 
-// ── Modals ────────────────────────────────────────────────────
+// â”€â”€ Modals â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function openModal(id) {
   const el = document.getElementById(id);
   if (!el) return;
@@ -1484,7 +1429,7 @@ function closeModal(id) {
   });
 });
 
-// ── Add Schedule Modal ─────────────────────────────────────────
+// â”€â”€ Add Schedule Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 ['openAddModal','openAddModal2'].forEach(id => {
   document.getElementById(id)?.addEventListener('click', () => {
     openModal('addModal');
@@ -1522,7 +1467,7 @@ async function runAvailCheck() {
     return;
   }
 
-  availList.innerHTML = '<div style="font-size:.72rem;color:var(--tx-3)">Checking…</div>';
+  availList.innerHTML = '<div style="font-size:.72rem;color:var(--tx-3)">Checkingâ€¦</div>';
 
   const configs = [
     {label:'Day 1', isoDay: parseInt(day1), start: day1s, end: day1e},
@@ -1544,7 +1489,7 @@ async function runAvailCheck() {
     if (!av) continue;
 
     const status = av.status || (av.available ? 'available' : 'occupied');
-    items.push({ label: cfg.label, dateLabel: `${dk} ${cfg.start}–${cfg.end}`, status, reason: av.reason });
+    items.push({ label: cfg.label, dateLabel: `${dk} ${cfg.start}â€“${cfg.end}`, status, reason: av.reason });
 
     if (!av.available) {
       const dur = (minsFromTime(cfg.end)||0) - (minsFromTime(cfg.start)||0);
@@ -1566,7 +1511,7 @@ async function runAvailCheck() {
     <div class="avail-item">
       <div>
         <div class="avail-name">${i.label}</div>
-        <div class="avail-meta">${i.dateLabel}${i.reason?` · ${i.reason}`:''}</div>
+        <div class="avail-meta">${i.dateLabel}${i.reason?` Â· ${i.reason}`:''}</div>
       </div>
       <span class="avail-status is-${i.status}">${i.status}</span>
     </div>`).join('') || '<div style="font-size:.72rem;color:var(--tx-4)">No data.</div>';
@@ -1574,7 +1519,7 @@ async function runAvailCheck() {
   suggestList.innerHTML = timeSugg.map(s => `
     <div class="suggest-item">
       <div>
-        <div style="font-size:.77rem;font-weight:600;color:var(--tx)">${s.dayKey} · ${s.start}–${s.end}</div>
+        <div style="font-size:.77rem;font-weight:600;color:var(--tx)">${s.dayKey} Â· ${s.start}â€“${s.end}</div>
         <div style="font-size:.68rem;color:var(--tx-3)">Suggested slot on ${s.dk}</div>
       </div>
       <button class="suggest-btn" data-day="${s.dayKey}" data-start="${s.start}" data-end="${s.end}">Apply</button>
@@ -1612,8 +1557,8 @@ document.querySelector('#addModal form')?.addEventListener('submit', e => {
   const day2Start = form.querySelector('[name=day2_start]')?.value;
   const day2End = form.querySelector('[name=day2_end]')?.value;
   const sessions = [
-    day1 && day1Start && day1End ? `${day1} ${day1Start}–${day1End}` : null,
-    day2 && day2Start && day2End ? `${day2} ${day2Start}–${day2End}` : null,
+    day1 && day1Start && day1End ? `${day1} ${day1Start}â€“${day1End}` : null,
+    day2 && day2Start && day2End ? `${day2} ${day2Start}â€“${day2End}` : null,
   ].filter(Boolean).join(', ');
 
   const message = [
@@ -1629,7 +1574,7 @@ document.querySelector('#addModal form')?.addEventListener('submit', e => {
     e.preventDefault();
   }
 });
-// ── View Switcher ─────────────────────────────────────────────
+// â”€â”€ View Switcher â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const gridView = document.getElementById('gridView');
 const calView = document.getElementById('calendarView');
 const tlView = document.getElementById('timelineView');
@@ -1652,7 +1597,7 @@ btnCal.addEventListener('click', () => setView('cal'));
 btnTl.addEventListener('click', () => setView('tl'));
 setView('grid');
 
-// ── Class filter ─────────────────────────────────────────────
+// â”€â”€ Class filter â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 document.getElementById('classFilter')?.addEventListener('input', function() {
   const q = this.value.toLowerCase();
   document.querySelectorAll('.cls-card').forEach(c => {
@@ -1664,7 +1609,7 @@ document.getElementById('classFilter')?.addEventListener('input', function() {
   });
 });
 
-// ── Calendar ──────────────────────────────────────────────────
+// â”€â”€ Calendar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 let calYear, calMonth;
 const now = new Date();
 const scheduleDates = schedule
@@ -1755,13 +1700,13 @@ document.getElementById('calNext')?.addEventListener('click', () => {
   renderCalendar();
 });
 
-// ── Day Classes Modal ─────────────────────────────────────────
+// â”€â”€ Day Classes Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function openDayModal(dateKey, classes) {
   const d = new Date(dateKey + 'T12:00:00');
   const dayName = d.toLocaleDateString('en-US', {weekday:'long', month:'long', day:'numeric', year:'numeric'});
   document.getElementById('dayModalTitle').textContent = 'Classes on ' + d.toLocaleDateString('en-US',{weekday:'long'});
   document.getElementById('dayModalSub').textContent = d.toLocaleDateString('en-US',{month:'long', day:'numeric', year:'numeric'});
-  document.getElementById('dayModalDate').innerHTML = `<i class="ti ti-calendar"></i> ${dayName} · ${classes.length} class${classes.length>1?'es':''}`;
+  document.getElementById('dayModalDate').innerHTML = `<i class="ti ti-calendar"></i> ${dayName} Â· ${classes.length} class${classes.length>1?'es':''}`;
 
   const list = document.getElementById('dayClsList');
   if (!classes.length) {
@@ -1809,7 +1754,7 @@ function openDayModal(dateKey, classes) {
 
 document.getElementById('closeDayModal')?.addEventListener('click', () => closeModal('dayModal'));
 
-// ── Session Modal ─────────────────────────────────────────────
+// â”€â”€ Session Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function openSessionFromEl(el) {
   const data = {
     id: el.dataset.id||'',
@@ -1830,7 +1775,7 @@ function openSessionFromEl(el) {
 
 function openSessionModal(data) {
   document.getElementById('sessionModalTitle').textContent = data.subject;
-  document.getElementById('sessionModalSub').textContent = `${data.code} · ${data.status.charAt(0).toUpperCase()+data.status.slice(1)}`;
+  document.getElementById('sessionModalSub').textContent = `${data.code} Â· ${data.status.charAt(0).toUpperCase()+data.status.slice(1)}`;
   document.getElementById('sessName').textContent = data.subject;
   document.getElementById('sessCode').textContent = data.code;
   document.getElementById('sessDate').textContent = data.date;
@@ -1850,7 +1795,8 @@ function openSessionModal(data) {
   if (cancellationReason) cancellationReason.value = '';
 
   const makeupList = document.getElementById('makeupList');
-  makeupList.innerHTML = '<div style="font-size:.73rem;color:var(--tx-4)">Loading suggestions…</div>';
+  makeupList.setAttribute('aria-busy', 'true');
+  makeupList.innerHTML = '<div class="makeup-skeleton" aria-hidden="true"><span></span><span></span><span></span></div>';
   loadMakeupSuggestions(data, makeupList);
 
   closeModal('dayModal');
@@ -1860,11 +1806,12 @@ function openSessionModal(data) {
 async function loadMakeupSuggestions(data, el) {
   if (!data.roomId || !data.startAt || !data.endAt) {
     el.innerHTML = '<div style="font-size:.73rem;color:var(--tx-4)">No suggestions available.</div>';
+    el.setAttribute('aria-busy', 'false');
     return;
   }
   const start = new Date(data.startAt);
   const end = new Date(data.endAt);
-  if (isNaN(start) || isNaN(end)) { el.innerHTML = '<div style="font-size:.73rem;color:var(--tx-4)">No suggestions.</div>'; return; }
+  if (isNaN(start) || isNaN(end)) { el.innerHTML = '<div style="font-size:.73rem;color:var(--tx-4)">No suggestions.</div>'; el.setAttribute('aria-busy', 'false'); return; }
   const dur = Math.round((end-start)/60000);
   const sugg = [];
   for (let offset = 1; offset <= 7 && sugg.length < 3; offset++) {
@@ -1875,11 +1822,12 @@ async function loadMakeupSuggestions(data, el) {
     const em = nd.getHours()*60+nd.getMinutes()+dur;
     const te = `${String(Math.floor(em/60)).padStart(2,'0')}:${String(em%60).padStart(2,'0')}`;
     const av = await checkAvail(data.roomId, buildDT(dk,ts), buildDT(dk,te));
-    if (av?.available) sugg.push(`${dk} ${ts}–${te}`);
+    if (av?.available) sugg.push(`${dk} ${ts}â€“${te}`);
   }
   el.innerHTML = sugg.length
     ? sugg.map(s=>`<div class="makeup-item"><span class="makeup-item-lbl"><i class="ti ti-calendar-check" style="font-size:12px"></i> ${s}</span><span class="makeup-meta">Available</span></div>`).join('')
     : '<div style="font-size:.73rem;color:var(--tx-4)">No available slots found.</div>';
+  el.setAttribute('aria-busy', 'false');
 }
 
 document.getElementById('closeSessionModal')?.addEventListener('click', () => closeModal('sessionModal'));
@@ -1897,14 +1845,14 @@ document.querySelectorAll('.cls-card, .tl-item').forEach(el => {
   el.addEventListener('click', () => openSessionFromEl(el));
 });
 
-// ── Profile dropdown ──────────────────────────────────────────
+// â”€â”€ Profile dropdown â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 document.getElementById('profileToggle')?.addEventListener('click', e => {
   e.stopPropagation();
   document.getElementById('profileDropdown')?.classList.toggle('open');
 });
 document.addEventListener('click', () => document.getElementById('profileDropdown')?.classList.remove('open'));
 
-// ── Escape key ────────────────────────────────────────────────
+// â”€â”€ Escape key â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
     ['sessionModal','dayModal','addModal'].forEach(closeModal);

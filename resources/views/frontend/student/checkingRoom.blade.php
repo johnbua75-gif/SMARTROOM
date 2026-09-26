@@ -1,4 +1,4 @@
-@php
+﻿@php
 $studentName = optional($student)->name ?? 'Student';
 $studentId = optional($student)->student_id ?? 'N/A';
 $firstName = explode(' ', $studentName)[0];
@@ -36,22 +36,45 @@ $availableRoomsCount = $classrooms->where('status', 'available')->count();
     .campus-icon{background:rgba(255,255,255,.2);border-radius:14px;width:60px;height:60px;display:grid;place-items:center;font-size:1.8rem;}
 
     /* Map */
-    .map-wrap{background:#e8f5e9;border-radius:14px;border:1px solid #c8e6c9;position:relative;height:340px;overflow:hidden;}
-    .map-grid{position:absolute;inset:0;background-image:linear-gradient(#c8e6c9 1px,transparent 1px),linear-gradient(90deg,#c8e6c9 1px,transparent 1px);background-size:60px 60px;}
-    .map-circle{position:absolute;border-radius:50%;background:rgba(34,168,74,.15);}
-    .building-pin{position:absolute;transform:translate(-50%,-50%);text-align:center;cursor:pointer;}
-    .pin-btn{width:54px;height:54px;border-radius:14px;border:none;color:#fff;font-size:1.2rem;position:relative;display:grid;place-items:center;}
-    .pin-btn .badge-count{position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;font-size:.65rem;display:grid;place-items:center;font-weight:700;}
-    .pin-label{font-size:.7rem;font-weight:600;color:#1B2A5E;margin-top:4px;white-space:nowrap;}
-    .compass{position:absolute;top:12px;right:12px;background:#fff;border-radius:50%;width:30px;height:30px;display:grid;place-items:center;font-size:.75rem;font-weight:700;color:var(--navy);box-shadow:0 2px 6px rgba(0,0,0,.1);}
-    .legend{position:absolute;bottom:14px;left:14px;background:#fff;border-radius:10px;padding:10px 14px;font-size:.72rem;box-shadow:0 2px 8px rgba(0,0,0,.1);}
-    .legend-dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:6px;}
+    .map-card{background:#fff;border-radius:14px;border:1px solid #e8eaf0;overflow:hidden}
+    .map-card-header{padding:14px 20px;border-bottom:1px solid #e8eaf0;display:flex;align-items:center;justify-content:space-between;background:#fff}
+    .map-title-group{display:flex;align-items:center;gap:10px}
+    .map-icon{width:32px;height:32px;border-radius:8px;background:var(--navy);color:#F5A800;display:flex;align-items:center;justify-content:center;font-size:.78rem}
+    .map-title{font-size:.88rem;font-weight:700;color:#111827}
+    .map-sub{font-size:.72rem;color:#9ca3af;margin-top:1px}
+    .live-badge{display:flex;align-items:center;gap:5px;font-size:.7rem;font-weight:600;color:#15803d;background:#f0fdf4;padding:4px 10px;border-radius:6px;border:1px solid #bbf7d0}
+    .live-dot{width:6px;height:6px;border-radius:50%;background:#15803d;animation:pulse 1.6s infinite}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+    .map-grid{background:#1a2340 url('/images/map.png') center/cover no-repeat;min-height:240px;position:relative;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}
+    .map-grid::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(11,22,64,.55) 0%,rgba(11,22,64,.35) 100%);pointer-events:none;z-index:0}
+    .map-cell{display:flex;align-items:center;justify-content:center;min-height:110px;position:relative;z-index:1}
+    .building-pin{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;transition:transform .2s}
+    .building-pin:hover{transform:scale(1.08)}
+    .building-pin.is-selected .pin-box{outline:2.5px solid #F5A800;outline-offset:3px}
+    .pin-box{width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;color:#fff;position:relative;box-shadow:0 4px 20px rgba(0,0,0,.3);border:2px solid rgba(255,255,255,.3);transition:all .2s}
+    .pin-box.avail{background:rgba(22,163,74,.9)}
+    .pin-box.full{background:rgba(220,38,38,.9)}
+    .pin-box:hover{box-shadow:0 6px 28px rgba(0,0,0,.4);transform:translateY(-2px)}
+    .pin-num{position:absolute;top:-8px;right:-8px;width:22px;height:22px;border:2px solid #fff;border-radius:50%;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+    .pin-num.g{background:#fff;color:#15803d}
+    .pin-num.r{background:#fff;color:#dc2626}
+    .building-lbl{font-size:.72rem;font-weight:700;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.5);letter-spacing:.02em}
+    .map-north{position:absolute;top:12px;right:12px;width:28px;height:28px;background:rgba(255,255,255,.95);border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,.15);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#1B2A5E;z-index:5}
+    .map-legend{position:absolute;bottom:12px;left:12px;background:rgba(11,22,64,.85);backdrop-filter:blur(8px);border-radius:8px;padding:10px 14px;z-index:5;border:1px solid rgba(255,255,255,.1)}
+    .legend-row{display:flex;align-items:center;gap:7px;font-size:.7rem;font-weight:600;color:rgba(255,255,255,.85);padding:2px 0}
+    .legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;box-shadow:0 0 6px currentColor}
 
     /* Room cards */
     .room-card{border-radius:14px;border:1px solid #e8eaf0;background:#fff;}
     .amenity-tag{background:#F0F4FF;color:#555;border-radius:6px;font-size:.72rem;padding:3px 8px;}
     .btn-map{background:var(--navy);color:#fff;border-radius:10px;border:none;}
     .btn-map-gray{background:#F0F4FF;color:#aaa;border-radius:10px;border:none;}
+  </style>
+  <style>
+    .is-room-syncing .room-card { opacity: .62; }
+    .is-room-syncing .room-card::after { content: ''; display: block; position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(90deg,transparent 25%,rgba(255,255,255,.55) 50%,transparent 75%); background-size: 200% 100%; animation: roomSyncSkeleton 1.35s ease-in-out infinite; pointer-events: none; }
+    @keyframes roomSyncSkeleton { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    @media (prefers-reduced-motion: reduce) { .is-room-syncing .room-card::after { animation: none; background: rgba(255,255,255,.35); } }
   </style>
   @include('frontend.student._theme')
 </head>
@@ -92,56 +115,50 @@ $availableRoomsCount = $classrooms->where('status', 'available')->count();
     </div>
 
     <!-- Campus Map -->
-    <div class="bg-white rounded-4 border p-3 mb-4">
-      <div class="d-flex align-items-center gap-2 mb-3">
-        <div style="background:var(--navy);border-radius:8px;width:32px;height:32px;display:grid;place-items:center">
-          <i class="bi bi-building text-white small"></i>
+    <div class="map-card mb-4">
+      <div class="map-card-header">
+        <div class="map-title-group">
+          <div class="map-icon"><i class="bi bi-map"></i></div>
+          <div>
+            <div class="map-title">Campus Map</div>
+            <div class="map-sub">PSU Assingan Campus Layout</div>
+          </div>
         </div>
-        <div><div class="fw-bold small">Campus Map</div><div class="text-muted" style="font-size:.72rem">PSU Assingan Campus Layout</div></div>
+        <span class="live-badge"><span class="live-dot"></span> Live</span>
       </div>
-
-      <div class="map-wrap">
-        <div class="map-grid"></div>
-        <!-- decorative circles -->
-        <div class="map-circle" style="width:90px;height:90px;top:5%;left:5%"></div>
-        <div class="map-circle" style="width:70px;height:70px;top:15%;right:10%"></div>
-        <div class="map-circle" style="width:80px;height:80px;bottom:10%;right:15%"></div>
-
+      <div class="map-grid">
         @php
           $buildings_list = $classrooms->groupBy('building')->map(function($rooms, $building) {
             return [
               'name' => $building,
               'available' => $rooms->where('status', 'available')->count(),
-              'color' => $rooms->where('status', 'available')->count() > 0 ? 'success' : 'danger'
+              'is_full' => $rooms->where('status', 'available')->count() === 0
             ];
           })->values();
-          
-          $positions = [
-            ['x' => '28%', 'y' => '22%'],
-            ['x' => '58%', 'y' => '37%'],
-            ['x' => '22%', 'y' => '57%'],
-          ];
         @endphp
 
         @foreach ($buildings_list as $idx => $b)
-          @php $pos = $positions[$idx] ?? ['x' => '50%', 'y' => '50%']; @endphp
-          <div class="building-pin" data-building="{{ $b['name'] }}" data-left="{{ $pos['x'] }}" data-top="{{ $pos['y'] }}">
-            <div class="pin-btn bg-{{ $b['color'] }}">
+        <div class="map-cell">
+          <div class="building-pin" data-building="{{ $b['name'] }}">
+            <div class="pin-box {{ $b['is_full'] ? 'full' : 'avail' }}">
               <i class="bi bi-building"></i>
-              <span class="badge-count bg-white text-{{ $b['color'] }}" data-building-count>{{ $b['available'] }}</span>
+              <span class="pin-num {{ $b['is_full'] ? 'r' : 'g' }}" data-building-count>{{ $b['available'] }}</span>
             </div>
-            <div class="pin-label">{{ $b['name'] }}</div>
+            <span class="building-lbl">{{ $b['name'] }}</span>
           </div>
+        </div>
         @endforeach
 
-        <div class="compass">N</div>
+        @for ($fill = $buildings_list->count(); $fill < 4; $fill++)
+        <div class="map-cell"></div>
+        @endfor
 
-        <!-- Legend -->
-        <div class="legend">
-          <div class="fw-bold mb-2" style="font-size:.72rem">LEGEND</div>
-          <div class="mb-1"><span class="legend-dot bg-success"></span>Has Available Rooms</div>
-          <div class="mb-1"><span class="legend-dot bg-danger"></span>All Rooms Occupied</div>
-          <div><span class="legend-dot bg-warning"></span>Selected Room</div>
+        <div class="map-north">N</div>
+
+        <div class="map-legend">
+          <div class="legend-row"><span class="legend-dot" style="background:#16a34a;color:#16a34a"></span> Has Available Rooms</div>
+          <div class="legend-row"><span class="legend-dot" style="background:#dc2626;color:#dc2626"></span> All Rooms Occupied</div>
+          <div class="legend-row"><span class="legend-dot" style="background:#F5A800;color:#F5A800"></span> Selected Room</div>
         </div>
       </div>
     </div>
@@ -151,7 +168,7 @@ $availableRoomsCount = $classrooms->where('status', 'available')->count();
       <span id="rooms-found-count" class="fw-semibold small text-muted">{{ $classrooms->count() ?? 0 }} rooms found</span>
       <span id="room-sync-status" class="small text-muted"><i class="bi bi-arrow-repeat me-1"></i>Syncing live status...</span>
     </div>
-    <div class="row g-3">
+    <div class="row g-3" id="roomResultsGrid">
       @forelse ($classrooms ?? [] as $room)
         <div class="col-md-6 room-result" data-room-card data-room-id="{{ $room->id }}" data-room-building="{{ $room->building }}" data-room-name="{{ $room->name }}" data-room-status="{{ $room->status === 'available' ? 'available' : 'occupied' }}">
           <div class="room-card p-4 h-100">
@@ -190,15 +207,11 @@ $availableRoomsCount = $classrooms->where('status', 'available')->count();
   document.addEventListener('DOMContentLoaded', function () {
     var roomCards = Array.from(document.querySelectorAll('[data-room-card]'));
     var activeFilter = 'all';
+    var roomStatusesLoaded = false;
     var searchInput = document.getElementById('room-search');
     var syncStatus = document.getElementById('room-sync-status');
 
-    document.querySelectorAll('.building-pin').forEach(function(pin) {
-      var left = pin.dataset.left || '50%';
-      var top = pin.dataset.top || '50%';
-      pin.style.left = left;
-      pin.style.top = top;
-    });
+    // Building pins are positioned by CSS grid layout
 
     function escapeText(value) {
       return String(value ?? '').toLowerCase();
@@ -260,6 +273,7 @@ $availableRoomsCount = $classrooms->where('status', 'available')->count();
     }
 
     function syncRoomStatuses() {
+      // Only show skeleton on very first load (no flash on subsequent polls)
       syncStatus.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i>Updating live status...';
       fetch('{{ url('/api/v1/room-statuses') }}', { headers: { Accept: 'application/json' } })
         .then(function(response) {
@@ -282,9 +296,12 @@ $availableRoomsCount = $classrooms->where('status', 'available')->count();
           document.getElementById('available-rooms-count').textContent = availableCount;
           document.getElementById('total-rooms-count').textContent = rooms.length;
           syncStatus.innerHTML = '<i class="bi bi-check-circle me-1 text-success"></i>Live status updated ' + new Date().toLocaleTimeString();
+          document.getElementById('roomResultsGrid')?.classList.remove('is-room-syncing');
+          roomStatusesLoaded = true;
           applyRoomFilters();
         })
         .catch(function() {
+          document.getElementById('roomResultsGrid')?.classList.remove('is-room-syncing');
           syncStatus.innerHTML = '<i class="bi bi-exclamation-triangle me-1 text-warning"></i>Live status unavailable';
         });
     }
