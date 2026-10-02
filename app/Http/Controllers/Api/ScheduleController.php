@@ -129,11 +129,12 @@ class ScheduleController extends Controller
         return new ScheduleResource($schedule);
     }
 
-    public function destroy(Schedule $schedule): JsonResponse
+    public function destroy(Request $request, Schedule $schedule): JsonResponse
     {
+        abort_unless(strtolower((string) $request->user()?->role) === 'admin', 403);
+
         $this->ensureItScheduleScope($schedule);
 
-        $payload = ['schedule_id' => $schedule->id, 'classroom_id' => $schedule->classroom_id, 'course_id' => $schedule->course_id];
         $schedule->delete();
 
         return response()->json(['message' => 'Schedule deleted successfully.']);
@@ -146,7 +147,7 @@ class ScheduleController extends Controller
 
         $reservation = Reservation::find($reservationId);
 
-        if (!$reservation) {
+        if (! $reservation) {
             return response()->json(['message' => 'Reservation not found.'], 404);
         }
 
@@ -194,10 +195,11 @@ class ScheduleController extends Controller
     private function applyItDepartmentScope($query): void
     {
         $query->where(function ($scope): void {
-            $scope->whereRaw('LOWER(COALESCE(department, \'\')) LIKE ?', ['%it%'])
-                ->orWhereRaw('LOWER(COALESCE(department, \'\')) LIKE ?', ['%cit%'])
-                ->orWhereRaw('LOWER(COALESCE(department, \'\')) LIKE ?', ['%cite%'])
-                ->orWhereRaw('LOWER(COALESCE(department, \'\')) LIKE ?', ['%information technology%']);
+            $scope->whereRaw(
+                "LOWER(TRIM(COALESCE(department, ''))) IN (?, ?, ?, ?, ?)",
+                ['it', 'cit', 'cite', 'ict', 'bsit']
+            )->orWhereRaw("LOWER(COALESCE(department, '')) LIKE ?", ['%information technology%'])
+                ->orWhereRaw("LOWER(COALESCE(department, '')) LIKE ?", ['%computer science%']);
         });
     }
 }

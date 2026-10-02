@@ -8,12 +8,14 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+
 use function Pest\Laravel\actingAs;
 use function Pest\Laravel\getJson;
 
 uses(RefreshDatabase::class);
 
-function createAiFacultyUser(): User {
+function createAiFacultyUser(): User
+{
     return User::create([
         'name' => 'AI Faculty',
         'email' => 'ai.faculty@example.com',

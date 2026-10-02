@@ -7,6 +7,7 @@ use App\Http\Requests\Api\CheckRoomAvailabilityRequest;
 use App\Models\Classroom;
 use App\Models\Schedule;
 use App\Services\RoomAvailabilityService;
+use App\Support\RoomAvailabilityStatus;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -26,10 +27,8 @@ class RoomAvailabilityController extends Controller
             $endAt
         );
 
-        $cancelledClasses = Schedule::query()
-            ->with(['course.instructor'])
+        $cancelledClasses = $availabilityService->itScopedCancelledSchedules()
             ->where('classroom_id', (int) $payload['classroom_id'])
-            ->where('status', 'cancelled')
             ->where('start_at', '<', $endAt)
             ->where('end_at', '>', $startAt)
             ->orderBy('start_at')
@@ -37,9 +36,6 @@ class RoomAvailabilityController extends Controller
             ->map(function (Schedule $schedule): array {
                 return [
                     'schedule_id' => $schedule->id,
-                    'subject' => (string) ($schedule->course?->title ?? 'Untitled Subject'),
-                    'course_code' => (string) ($schedule->course?->code ?? ''),
-                    'instructor' => (string) ($schedule->course?->instructor?->name ?? 'Unassigned'),
                     'start_at' => optional($schedule->start_at)->toIso8601String(),
                     'end_at' => optional($schedule->end_at)->toIso8601String(),
                 ];
@@ -77,14 +73,17 @@ class RoomAvailabilityController extends Controller
             ], 422);
         }
 
-        $classrooms = Classroom::query()->orderBy('building')->orderBy('name')->get();
+        $classrooms = $availabilityService->itScopedClassrooms()
+            ->orderBy('building')
+            ->orderBy('name')
+            ->get();
 
         $statuses = $availabilityService->buildRoomStatuses($classrooms, $startAt, $endAt, now())
             ->keyBy('classroom_id');
 
         $data = $classrooms->map(function (Classroom $classroom) use ($statuses): array {
             $status = $statuses->get($classroom->id, [
-                'status' => 'available',
+                'status' => RoomAvailabilityStatus::AVAILABLE,
                 'status_label' => 'Available',
                 'time_info' => 'Available all day',
                 'reason' => null,

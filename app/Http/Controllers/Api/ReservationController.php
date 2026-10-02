@@ -3,16 +3,17 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\CheckAccessReservationRequest;
 use App\Http\Requests\Api\StoreReservationRequest;
 use App\Http\Requests\Api\UpdateReservationRequest;
+use App\Models\AccessCard;
 use App\Models\Reservation;
 use App\Models\Schedule;
 use App\Services\RoomAvailabilityService;
 use Carbon\Carbon;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
-use App\Models\AccessCard;
 
 class ReservationController extends Controller
 {
@@ -21,11 +22,23 @@ class ReservationController extends Controller
         $this->authorize('create', Reservation::class);
 
         $payload = $request->validated();
-        // App timezone is Asia/Manila — parse directly, no conversion needed
+        // App timezone is Asia/Manila - parse directly, no conversion needed
         $startAt = Carbon::parse($payload['start_at']);
         $endAt = Carbon::parse($payload['end_at']);
 
         $reservation = DB::transaction(function () use ($request, $payload, $startAt, $endAt, $availabilityService): Reservation {
+            $classroom = $availabilityService->lockClassroomForUpdate((int) $payload['classroom_id']);
+            $unavailability = $availabilityService->classroomUnavailability($classroom);
+
+            if ($unavailability) {
+                throw new HttpResponseException(response()->json([
+                    'message' => $unavailability['reason'],
+                    'errors' => [
+                        'classroom_id' => [$unavailability['reason']],
+                    ],
+                ], 422));
+            }
+
             $scheduleConflict = $availabilityService->checkOfficialScheduleConflict(
                 (int) $payload['classroom_id'],
                 $startAt,
@@ -99,7 +112,7 @@ class ReservationController extends Controller
 
         $payload = $request->validated();
 
-        // App timezone is Asia/Manila — parse directly, no conversion needed
+        // App timezone is Asia/Manila - parse directly, no conversion needed
         $startAt = isset($payload['start_at']) ? Carbon::parse($payload['start_at']) : $reservation->start_at;
         $endAt = isset($payload['end_at']) ? Carbon::parse($payload['end_at']) : $reservation->end_at;
 
@@ -109,6 +122,18 @@ class ReservationController extends Controller
             $nextStatus = $payload['status'] ?? $reservation->status;
 
             if ($nextStatus !== 'cancelled') {
+                $classroom = $availabilityService->lockClassroomForUpdate((int) $reservation->classroom_id);
+                $unavailability = $availabilityService->classroomUnavailability($classroom);
+
+                if ($unavailability) {
+                    throw new HttpResponseException(response()->json([
+                        'message' => $unavailability['reason'],
+                        'errors' => [
+                            'classroom_id' => [$unavailability['reason']],
+                        ],
+                    ], 422));
+                }
+
                 $scheduleConflict = $availabilityService->checkOfficialScheduleConflict(
                     (int) $reservation->classroom_id,
                     $startAt,
@@ -184,25 +209,31 @@ class ReservationController extends Controller
         ]);
     }
 
-    public function checkAccess(\Illuminate\Http\Request $request): \Illuminate\Http\JsonResponse
+    public function checkAccess(CheckAccessReservationRequest $request): JsonResponse
     {
-        // Debug log — shows incoming rfid_uid when ESP32 calls this endpoint
+        // Debug log - shows incoming rfid_uid when ESP32 calls this endpoint
         \Log::debug('reservations/check called', [
             'user_id' => $request->input('user_id'),
             'classroom_id' => $request->input('classroom_id'),
             'rfid_uid' => $request->input('rfid_uid', '(none)'),
             'server_time' => now()->toIso8601String(),
         ]);
-        $request->validate([
-            'user_id'      => ['required', 'integer', 'exists:users,id'],
-            'classroom_id' => ['required', 'integer', 'exists:classrooms,id'],
-        ]);
+        $request->validated();
 
-        // App timezone is Asia/Manila — now() is already in Manila time
+        // App timezone is Asia/Manila - now() is already in Manila time
         $now = now();
         $graceMinutes = 0;
         $userId = $request->integer('user_id');
         $classroomId = $request->integer('classroom_id');
+        $device = $request->attributes->get('device');
+
+        if ($device && (int) $device->classroom_id !== $classroomId) {
+            return response()->json([
+                'allowed' => false,
+                'message' => 'Access denied',
+                'reason' => 'Device is not registered for this classroom',
+            ], 403);
+        }
 
         // If an access card id or rfid uid is supplied, ensure it belongs to the claimed user.
         // This prevents callers from passing someone else's user_id to gain access.
@@ -245,7 +276,15 @@ class ReservationController extends Controller
                 return response()->json([
                     'allowed' => false,
                     'message' => 'Access denied',
-                    'reason'  => 'Access card not recognized',
+                    'reason' => 'Access card not recognized',
+                ], 403);
+            }
+
+            if ((string) $card->status !== 'active' || ($card->expires_at && $card->expires_at->isPast())) {
+                return response()->json([
+                    'allowed' => false,
+                    'message' => 'Access denied',
+                    'reason' => 'Access card is inactive or expired',
                 ], 403);
             }
 
@@ -253,32 +292,33 @@ class ReservationController extends Controller
                 return response()->json([
                     'allowed' => false,
                     'message' => 'Access denied',
-                    'reason'  => 'Scanned card does not belong to the claimed user',
+                    'reason' => 'Scanned card does not belong to the claimed user',
                 ], 403);
             }
+
         }
 
         // Check for active reservation within grace period (before start + grace period, and after end)
         $reservation = Reservation::where('user_id', $userId)
             ->where('classroom_id', $classroomId)
-            ->whereIn('status', ['reserved', 'approved'])
+            ->where('status', 'approved')
             ->where('start_at', '<=', $now->copy()->addMinutes($graceMinutes))
             ->where('end_at', '>=', $now)
             ->first();
 
         if ($reservation) {
             return response()->json([
-                'allowed'        => true,
-                'message'        => 'Access granted',
+                'allowed' => true,
+                'message' => 'Access granted',
                 'reservation_id' => $reservation->id,
-                'reservation'    => $reservation,
-                'server_time'    => $now->toIso8601String(),
+                'reservation' => $reservation,
+                'server_time' => $now->toIso8601String(),
             ], 200);
         }
 
         $officialSchedule = Schedule::query()
             ->where('classroom_id', $classroomId)
-            ->where('status', 'scheduled')
+            ->whereIn('status', ['scheduled', 'ongoing'])
             ->where('day_of_week', $now->dayOfWeek)
             ->whereTime('start_at', '<=', $now->format('H:i:s'))
             ->whereTime('end_at', '>=', $now->format('H:i:s'))
@@ -303,25 +343,25 @@ class ReservationController extends Controller
             ->where('classroom_id', $classroomId)
             ->first();
 
-        if (!$anyReservation) {
+        if (! $anyReservation) {
             return response()->json([
                 'allowed' => false,
                 'message' => 'No schedule',
-                'reason'  => 'No active reservation or class schedule is valid at this time.',
+                'reason' => 'No active reservation or class schedule is valid at this time.',
                 'server_time' => $now->toIso8601String(),
             ], 200);
-        } elseif (!in_array($anyReservation->status, ['reserved', 'approved'])) {
+        } elseif (! in_array($anyReservation->status, ['reserved', 'approved'])) {
             $reason = "Reservation status is '{$anyReservation->status}', not active.";
         } elseif ($now->isBefore($anyReservation->start_at->copy()->subMinutes($graceMinutes))) {
-            $reason = 'Access reserved for: ' . $anyReservation->start_at->format('Y-m-d H:i');
+            $reason = 'Access reserved for: '.$anyReservation->start_at->format('Y-m-d H:i');
         } else {
-            $reason = 'Reservation time has expired. Reserved until: ' . $anyReservation->end_at->format('Y-m-d H:i');
+            $reason = 'Reservation time has expired. Reserved until: '.$anyReservation->end_at->format('Y-m-d H:i');
         }
 
         return response()->json([
-            'allowed'     => false,
-            'message'     => 'Access denied',
-            'reason'      => $reason,
+            'allowed' => false,
+            'message' => 'Access denied',
+            'reason' => $reason,
             'server_time' => $now->toIso8601String(),
         ], 403);
     }

@@ -4,10 +4,11 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
-        if (!Schema::hasTable('attendance_sessions')) {
+        if (! Schema::hasTable('attendance_sessions')) {
             Schema::create('attendance_sessions', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('schedule_id')->nullable();

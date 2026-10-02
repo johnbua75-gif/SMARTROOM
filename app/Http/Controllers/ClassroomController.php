@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\OccupancyUpdated;
 use App\Http\Requests\Api\StoreClassroomRequest;
 use App\Http\Requests\Api\UpdateClassroomRequest;
 use App\Models\Classroom;
 use App\Services\RoomAvailabilityService;
-use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -108,7 +108,7 @@ class ClassroomController extends Controller
 
     /**
      * Simple QR route placeholder.
-     * Currently redirects to the classroom show page —
+     * Currently redirects to the classroom show page -
      * can be expanded to render/generate a QR code.
      */
     public function qr(Classroom $classroom)
@@ -139,9 +139,9 @@ class ClassroomController extends Controller
 
         // Broadcast update (requires broadcasting driver configured)
         try {
-            event(new \App\Events\OccupancyUpdated($classroom->id, $occ, $capacity));
+            event(new OccupancyUpdated($classroom->id, $occ, $capacity));
         } catch (\Throwable $e) {
-            // non-fatal — broadcasting may not be configured in every environment
+            // non-fatal - broadcasting may not be configured in every environment
         }
 
         return response()->json(['message' => 'Occupancy updated.', 'data' => [

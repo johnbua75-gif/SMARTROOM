@@ -15,7 +15,7 @@
     <div class="card mx-auto" style="max-width:540px">
       <div class="card-body text-center">
         <h5 class="card-title">Class Check-in</h5>
-        <p class="text-muted">Session: {{ $session->id }} — {{ optional($session->course)->code ?? 'Course' }}</p>
+        <p class="text-muted">Session: {{ $session->id }} - {{ optional($session->course)->code ?? 'Course' }}</p>
         @if ($checkinUnavailable ?? false)
           <div class="alert alert-warning mb-0">This attendance session is closed or expired. Ask your instructor to open a new session.</div>
         @else

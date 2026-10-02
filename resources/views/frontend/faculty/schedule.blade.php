@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 $faculty_name     = $faculty_name ?? request()->user()?->name ?? 'Faculty';
 $faculty_dept     = $faculty_dept ?? request()->user()?->department ?? 'Department';
 $faculty_initials = $faculty_initials ?? strtoupper(substr((string) $faculty_name, 0, 1));
@@ -893,7 +893,7 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
     <li>
       <a href="{{ route('faculty.rfid.verification') }}" class="{{ Request::is('rfid-verification') ? 'active' : '' }}">
         <span class="nav-icon"><i class="fas fa-id-card"></i></span>
-        RFID Verification
+        RFID
       </a>
     </li>
     <li><a href="{{ route('faculty.notifications') }}" class="{{ Request::routeIs('faculty.notifications') ? 'active' : '' }}"><span class="nav-icon"><i class="fas fa-bell"></i></span>Notifications</a></li>

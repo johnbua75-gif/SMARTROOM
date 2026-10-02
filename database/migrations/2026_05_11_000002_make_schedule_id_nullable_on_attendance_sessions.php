@@ -14,6 +14,7 @@ return new class extends Migration
 
         if (DB::getDriverName() === 'pgsql') {
             DB::statement('ALTER TABLE attendance_sessions ALTER COLUMN schedule_id DROP NOT NULL');
+
             return;
         }
 
@@ -31,6 +32,7 @@ return new class extends Migration
 
         if (DB::getDriverName() === 'pgsql') {
             DB::statement('ALTER TABLE attendance_sessions ALTER COLUMN schedule_id SET NOT NULL');
+
             return;
         }
 

@@ -70,12 +70,12 @@ foreach (\range(0, 4) as $offset) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>SmartDoor – Schedule</title>
+  <title>SmartDoor  -  Schedule</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   <style>
-    :root{--gold:#F5A800;--navy:#1B2A5E;--indigo:#4F46E5;--purple:#7C3AED;}
-    body{background:#F4F6FA;font-family:'Segoe UI',sans-serif;}
+    :root{-gold:#f5c518;-navy:#0b1640;-indigo:#4F46E5;-purple:#7C3AED;-ink:#111827;-muted:#6b7280;-line:#e5e7eb;}
+    body{background:#f8f9fb;font-family:'Segoe UI',sans-serif;color:var(--ink);}
 
     /* Sidebar */
     #sidebar{width:220px;min-height:100vh;background:#fff;border-right:1px solid #e8eaf0;}
@@ -86,34 +86,46 @@ foreach (\range(0, 4) as $offset) {
     .avatar{width:36px;height:36px;background:var(--navy);border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:700;font-size:.8rem;}
 
     /* Stat cards */
-    .stat-card{border-radius:14px;border:1px solid #e8eaf0;background:#fff;}
+    .stat-card{border-radius:12px;border:1px solid var(--line);background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.04);padding:16px 24px;}
+    .stat-card .fs-3 { font-weight: 700; color: var(--ink); letter-spacing: -0.01em; }
 
     /* Day tabs */
-    .day-tab{border-radius:10px;padding:.45rem 1.1rem;font-weight:600;font-size:.9rem;border:none;background:transparent;color:#555;transition:all .15s;}
-    .day-tab.active{background:var(--navy);color:#fff;}
-    .day-tab:hover:not(.active){background:#F0F4FF;color:var(--navy);}
-    .day-nav-btn{background:#fff;border:1px solid #e0e0e0;border-radius:8px;width:32px;height:32px;display:grid;place-items:center;cursor:pointer;}
+    .day-tab{border-radius:8px;padding:.5rem 1rem;font-weight:600;font-size:.875rem;border:1px solid transparent;background:transparent;color:var(--muted);transition:all .2s ease;}
+    .day-tab.active{background:#fff;color:var(--ink);border-color:var(--line);box-shadow:0 1px 2px rgba(0,0,0,.05);}
+    .day-tab:hover:not(.active){background:#f9fafb;color:var(--ink);}
+    .day-nav-btn{background:#fff;border:1px solid var(--line);border-radius:8px;width:32px;height:32px;display:grid;place-items:center;cursor:pointer;color:var(--muted);transition:background .2s ease;}
+    .day-nav-btn:hover{background:#f9fafb;}
 
     /* Class cards */
-    .class-card{border-radius:14px;border:1px solid #e8eaf0;background:#fff;overflow:hidden;position:relative;}
-    .class-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--accent);}
-    .class-card.accent-1 { --accent: #4F46E5; }
-    .class-card.accent-2 { --accent: #7C3AED; }
-    .class-card.accent-3 { --accent: #EC4899; }
-    .class-card.accent-4 { --accent: #F59E0B; }
-    .class-card .inner{padding:1.2rem 1.2rem 1.2rem 1.5rem;}
-    .time-col{min-width:52px;font-size:.78rem;font-weight:600;color:#888;line-height:1.8;}
-    .time-badge{font-size:.75rem;font-weight:600;padding:.3rem .7rem;border-radius:20px;background:#EEF2FF;color:var(--indigo);}
-    .subject-code{background:#F0F4FF;color:#555;border-radius:6px;font-size:.7rem;padding:2px 8px;font-weight:600;}
-    .meta-item{font-size:.78rem;color:#888;}
-    .btn-view{background:var(--navy);color:#fff;border-radius:8px;border:none;font-size:.82rem;padding:.4rem 1rem;}
-    .btn-dir{background:#fff;color:var(--navy);border:1px solid #e0e0e0;border-radius:8px;font-size:.82rem;padding:.4rem 1rem;}
+    .class-card{border-radius:12px;border:1px solid var(--line);background:#fff;overflow:hidden;position:relative;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+    .class-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--accent);}
+    .class-card.accent-1 { -accent: var(--navy); }
+    .class-card.accent-2 { -accent: #4F46E5; }
+    .class-card.accent-3 { -accent: #059669; }
+    .class-card.accent-4 { -accent: var(--gold); }
+    .class-card .inner{padding:16px 24px;}
+    .time-col{min-width:60px;font-size:.875rem;font-weight:600;color:var(--muted);line-height:1.6;}
+    .time-badge{font-size:.75rem;font-weight:600;padding:4px 8px;border-radius:6px;background:#f9fafb;border:1px solid var(--line);color:var(--ink);}
+    .subject-code{background:#f9fafb;border:1px solid var(--line);color:var(--muted);border-radius:6px;font-size:.75rem;padding:2px 8px;font-weight:600;}
+    .meta-item{font-size:.875rem;color:var(--muted);}
+    .meta-item i { color: #9ca3af; }
+    
+    .btn-view, .btn-dir { background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:8px;font-size:.875rem;font-weight:500;padding:.4rem 1rem;transition:background .2s ease;text-decoration:none;display:inline-block; }
+    .btn-view:hover, .btn-dir:hover { background:#f9fafb; }
+    
+    /* Buttons in header */
+    .btn-outline-secondary { background: #fff; border: 1px solid var(--line); color: var(--ink); border-radius: 8px; font-weight: 500; box-shadow: 0 1px 2px rgba(0,0,0,.02); }
+    .btn-outline-secondary:hover { background: #f9fafb; color: var(--ink); border-color: var(--line); }
+    .btn-sm.text-white { border-radius: 8px; font-weight: 500; box-shadow: 0 1px 2px rgba(0,0,0,.05); border: 1px solid transparent; }
 
     /* Weekly Overview */
-    .weekly-card{border-radius:14px;border:1px solid #e8eaf0;background:#fff;}
-    .week-dot{width:10px;height:10px;border-radius:50%;background:var(--indigo);flex-shrink:0;}
-    .week-row{border-bottom:1px solid #f0f0f0;padding:.75rem 0;}
-    .week-row:last-child{border-bottom:none;}
+    .weekly-card{border-radius:12px;border:1px solid var(--line);background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.04);padding:24px;}
+    .week-dot{width:8px;height:8px;border-radius:50%;background:var(--navy);flex-shrink:0;}
+    .week-row{border-bottom:1px solid var(--line);padding:12px 0;}
+    .week-row:last-child{border-bottom:none;padding-bottom:0;}
+    .week-row:first-child{padding-top:0;}
+    
+    h3, h5, h6 { font-weight: 700; letter-spacing: -0.01em; color: var(--ink); }
   </style>
   @include('frontend.student._theme')
 </head>
@@ -122,16 +134,16 @@ foreach (\range(0, 4) as $offset) {
 
   @include('frontend.student._sidebar')
 
-  <!-- Main -->
+  <!- Main ->
   <main class="flex-grow-1 p-4">
 
-    <!-- Topbar -->
+    <!- Topbar ->
     <div class="d-flex justify-content-between align-items-center mb-4">
       <div><h5 class="fw-bold mb-0">Schedule</h5><small class="text-muted">{{ now()->format('l, F j, Y') }}</small></div>
       <a href="{{ route('student.home') }}" class="btn btn-warning fw-semibold"><i class="bi bi-house me-1"></i>Back to Home</a>
     </div>
 
-    <!-- Title + Actions -->
+    <!- Title + Actions ->
     <div class="d-flex justify-content-between align-items-start mb-4">
       <div>
         <h3 class="fw-bold mb-1">My Schedule</h3>
@@ -143,7 +155,7 @@ foreach (\range(0, 4) as $offset) {
       </div>
     </div>
 
-    <!-- Stat Cards -->
+    <!- Stat Cards ->
     <div class="row g-3 mb-4">
       @foreach($stats as $s)
         <div class="col-md-4">
@@ -158,7 +170,7 @@ foreach (\range(0, 4) as $offset) {
       @endforeach
     </div>
 
-    <!-- Day Tabs -->
+    <!- Day Tabs ->
     <div class="d-flex align-items-center gap-2 mb-4">
       <button id="previousScheduleDay" type="button" class="day-nav-btn" aria-label="Previous day"><i class="bi bi-chevron-left" style="font-size:.75rem"></i></button>
       @foreach($days as $d)
@@ -167,7 +179,7 @@ foreach (\range(0, 4) as $offset) {
       <button id="nextScheduleDay" type="button" class="day-nav-btn ms-auto" aria-label="Next day"><i class="bi bi-chevron-right" style="font-size:.75rem"></i></button>
     </div>
 
-    <!-- Class List -->
+    <!- Class List ->
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h6 id="scheduleDayHeading" class="fw-bold mb-0">{{ now()->format('l') }}'s Classes</h6>
       <span id="scheduleDayCount" class="text-muted small">{{ count($activeSchedules) }} {{ count($activeSchedules) === 1 ? 'class' : 'classes' }}</span>
@@ -189,12 +201,12 @@ foreach (\range(0, 4) as $offset) {
         <div class="class-card {{ $borderClass }}">
           <div class="inner">
             <div class="d-flex gap-3">
-              <!-- Time Column -->
+              <!- Time Column ->
               <div class="time-col text-end">
                 <div>{{ $startTime->format('H:i') }}</div>
                 <div>{{ $endTime->format('H:i') }}</div>
               </div>
-              <!-- Content -->
+              <!- Content ->
               <div class="flex-grow-1">
                 <div class="d-flex justify-content-between align-items-center mb-2">
                   <div class="d-flex align-items-center gap-2">
@@ -228,7 +240,7 @@ foreach (\range(0, 4) as $offset) {
       @endforelse
     </div>
 
-    <!-- Weekly Overview -->
+    <!- Weekly Overview ->
     <div class="weekly-card p-4">
       <h6 class="fw-bold mb-3">Weekly Overview</h6>
       @forelse ($weekly ?? [] as $day => $count)
@@ -246,7 +258,7 @@ foreach (\range(0, 4) as $offset) {
 
   </main>
 </div>
-<script type="application/json" id="studentScheduleData">{!! $schedulePayload->toJson() !!}</script>
+<script type="application/json" id="studentScheduleData">@json($schedulePayload)</script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
   const scheduleData = JSON.parse(document.getElementById('studentScheduleData').textContent || '[]');

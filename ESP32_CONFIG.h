@@ -13,9 +13,10 @@
 const char* WIFI_SSID = "FILL_WIFI_SSID";
 const char* WIFI_PASSWORD = "FILL_WIFI_PASSWORD";
 
-// Use the computer IPv4 address on the same Wi-Fi network.
+// Use HTTPS with a trusted certificate in production. HTTP is only suitable for a protected local network.
 const char* API_BASE = "http://192.168.1.8:8000/api/v1";
 const char* API_TOKEN = "FILL_ESP32_API_TOKEN";
 
-// Room 15 is classroom ID 2 in the current database.
-const int CLASSROOM_ID = 2;
+// Set this to the classrooms.id value for the room where this ESP32 is installed.
+// Room 15 is classroom ID 40 in the current database.
+const int CLASSROOM_ID = 40;

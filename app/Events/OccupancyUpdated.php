@@ -13,7 +13,9 @@ class OccupancyUpdated implements ShouldBroadcast
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public int $classroom_id;
+
     public int $current_occupancy;
+
     public int $capacity;
 
     public function __construct(int $classroom_id, int $current_occupancy, int $capacity)

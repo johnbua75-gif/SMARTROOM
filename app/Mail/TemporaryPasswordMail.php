@@ -2,7 +2,6 @@
 
 namespace App\Mail;
 
-use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
@@ -17,8 +16,7 @@ class TemporaryPasswordMail extends Mailable
         public string $name,
         public string $email,
         public string $tempPassword,
-    ) {
-    }
+    ) {}
 
     public function envelope(): Envelope
     {

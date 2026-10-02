@@ -16,12 +16,13 @@ final class DepartmentScope
             return false;
         }
 
-        foreach (self::IT_KEYWORDS as $keyword) {
-            if (str_contains($normalized, $keyword)) {
-                return true;
-            }
+        $tokens = preg_split('/[^a-z0-9]+/', $normalized, -1, PREG_SPLIT_NO_EMPTY);
+
+        if (array_intersect($tokens, ['it', 'cit', 'cite', 'ict', 'bsit']) !== []) {
+            return true;
         }
 
-        return false;
+        return str_contains($normalized, 'information technology')
+            || str_contains($normalized, 'computer science');
     }
 }

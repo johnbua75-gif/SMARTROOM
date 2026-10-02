@@ -10,6 +10,8 @@ use App\Models\AccessCard;
 use App\Models\AccessLog;
 use App\Models\Notification;
 use App\Models\Reservation;
+use App\Models\Schedule;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -45,6 +47,11 @@ class AccessLogController extends Controller
         $validated = $request->validated();
         $userId = $validated['user_id'] ?? null;
         $classroomId = $validated['classroom_id'];
+        $device = $request->attributes->get('device');
+
+        if ($device && (int) $device->classroom_id !== (int) $classroomId) {
+            abort(403, 'Device is not registered for this classroom.');
+        }
         $now = now();
 
         // If a card id or rfid uid is present in the payload, ensure the card belongs to the claimed user.
@@ -87,19 +94,37 @@ class AccessLogController extends Controller
             $validated['reason'] = $validated['reason'] ?? 'Scanned card does not belong to the claimed user';
         }
 
-        // If user_id is provided, verify they have an approved reservation
+        if ($card && ((string) $card->status !== 'active' || ($card->expires_at && $card->expires_at->isPast()))) {
+            $validated['result'] = 'denied';
+            $validated['reason'] = $validated['reason'] ?? 'Access card is inactive or expired';
+        }
+
+        $accessedAt = Carbon::parse($validated['accessed_at'])->setTimezone(config('app.timezone'));
+
+        // A granted event must correspond to either an active reservation or an official class.
         if ($userId && $classroomId) {
             $reservation = Reservation::where('user_id', $userId)
                 ->where('classroom_id', $classroomId)
                 ->where('status', 'approved')
-                ->where('start_at', '<=', $now->copy()->addMinutes(10))
-                ->where('end_at', '>=', $now)
+                ->where('start_at', '<=', $accessedAt->copy()->addMinutes(10))
+                ->where('end_at', '>=', $accessedAt)
                 ->first();
 
+            $officialSchedule = Schedule::query()
+                ->where('classroom_id', $classroomId)
+                ->whereIn('status', ['scheduled', 'ongoing'])
+                ->where('day_of_week', $accessedAt->dayOfWeek)
+                ->whereTime('start_at', '<=', $accessedAt->format('H:i:s'))
+                ->whereTime('end_at', '>=', $accessedAt->format('H:i:s'))
+                ->whereHas('course', function ($courseQuery) use ($userId): void {
+                    $courseQuery->where('instructor_user_id', $userId);
+                })
+                ->exists();
+
             // Update result based on reservation validity
-            if (! $reservation && $validated['result'] !== 'denied') {
+            if (! $reservation && ! $officialSchedule && $validated['result'] !== 'denied') {
                 $validated['result'] = 'denied';
-                $validated['reason'] = $validated['reason'] ?? 'No valid reservation during access time';
+                $validated['reason'] = $validated['reason'] ?? 'No valid reservation or official class during access time';
             }
         }
 

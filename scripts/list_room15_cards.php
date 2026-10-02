@@ -1,10 +1,12 @@
 <?php
-require __DIR__ . '/../vendor/autoload.php';
-$app = require_once __DIR__ . '/../bootstrap/app.php';
-$kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
+
+require __DIR__.'/../vendor/autoload.php';
+$app = require_once __DIR__.'/../bootstrap/app.php';
+$kernel = $app->make(Kernel::class);
 $kernel->bootstrap();
 
 use App\Models\AccessCard;
+use Illuminate\Contracts\Console\Kernel;
 
 $cards = AccessCard::with('user')->where('classroom_id', 1)->get();
 if ($cards->isEmpty()) {

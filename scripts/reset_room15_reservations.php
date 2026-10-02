@@ -1,11 +1,13 @@
 <?php
-require __DIR__ . '/../vendor/autoload.php';
-$app = require_once __DIR__ . '/../bootstrap/app.php';
-$kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
+
+require __DIR__.'/../vendor/autoload.php';
+$app = require_once __DIR__.'/../bootstrap/app.php';
+$kernel = $app->make(Kernel::class);
 $kernel->bootstrap();
 
 use App\Models\Reservation;
 use Carbon\Carbon;
+use Illuminate\Contracts\Console\Kernel;
 
 $deleted = Reservation::where('classroom_id', 1)->count();
 Reservation::where('classroom_id', 1)->delete();

@@ -1,0 +1,48 @@
+services:
+  - type: web
+    name: smartroom
+    env: php
+    plan: free
+    region: oregon
+    buildCommand: |
+      composer install --no-interaction --prefer-dist --no-dev
+      php artisan config:cache
+      php artisan route:cache
+      php artisan view:cache
+      php artisan storage:link
+      npm install
+      npm run build
+    startCommand: |
+      php artisan migrate --force
+      php artisan serve --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: APP_KEY
+        generateValue: true
+      - key: SESSION_DRIVER
+        value: database
+      - key: QUEUE_CONNECTION
+        value: database
+      - key: CACHE_STORE
+        value: file
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        value: your-render-postgres-host
+      - key: DB_PORT
+        value: 5432
+      - key: DB_DATABASE
+        value: smartroom
+      - key: DB_USERNAME
+        value: postgres
+      - key: DB_PASSWORD
+        value: your_db_password
+      - key: SESSION_SECURE_COOKIE
+        value: true
+      - key: SESSION_SAME_SITE
+        value: lax
+      - key: SESSION_HTTP_ONLY
+        value: true

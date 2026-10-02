@@ -304,6 +304,68 @@
     min-width: 0;
     margin-left: 230px;
     padding: 0 32px 28px !important;
+    min-height: 100vh;
+    background: #f4f6fb;
+    color: var(--student-text);
+  }
+
+  main.flex-grow-1 > * {
+    max-width: 1320px;
+    margin-right: auto;
+    margin-left: auto;
+  }
+
+  main.flex-grow-1 h1,
+  main.flex-grow-1 h2,
+  main.flex-grow-1 h3,
+  main.flex-grow-1 h4,
+  main.flex-grow-1 h5,
+  main.flex-grow-1 h6 {
+    color: var(--student-text);
+    letter-spacing: -0.02em;
+  }
+
+  main.flex-grow-1 .bg-white,
+  main.flex-grow-1 .stat-card,
+  main.flex-grow-1 .schedule-card,
+  main.flex-grow-1 .room-card,
+  main.flex-grow-1 .weekly-card,
+  main.flex-grow-1 .notice-card,
+  main.flex-grow-1 .profile-card,
+  main.flex-grow-1 .qa-card,
+  main.flex-grow-1 .course-card,
+  main.flex-grow-1 .map-card,
+  main.flex-grow-1 .summary-panel,
+  main.flex-grow-1 .subject-list,
+  main.flex-grow-1 .profile-header,
+  main.flex-grow-1 .campus-banner {
+    border-color: rgba(15, 26, 60, .1) !important;
+    border-radius: 14px !important;
+    box-shadow: 0 8px 24px rgba(15, 26, 60, .06) !important;
+  }
+
+  main.flex-grow-1 .form-control,
+  main.flex-grow-1 .input-group-text,
+  main.flex-grow-1 select {
+    border-color: rgba(15, 26, 60, .14) !important;
+    background: #fff;
+    color: var(--student-text);
+  }
+
+  main.flex-grow-1 .form-control:focus,
+  main.flex-grow-1 select:focus {
+    border-color: var(--student-blue) !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, .12) !important;
+  }
+
+  main.flex-grow-1 .btn {
+    min-height: 38px;
+    border-radius: 9px;
+    font-weight: 600;
+  }
+
+  main.flex-grow-1 .text-muted {
+    color: var(--student-muted) !important;
   }
 
   main.flex-grow-1 > .d-flex.justify-content-between.align-items-center.mb-4:not(.page-top) {
@@ -384,6 +446,10 @@
     main.flex-grow-1 {
       margin-left: 0;
       padding: 0 16px 20px !important;
+    }
+
+    main.flex-grow-1 > * {
+      max-width: none;
     }
   }
 </style>

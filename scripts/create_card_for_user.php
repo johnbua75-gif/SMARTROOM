@@ -1,11 +1,13 @@
 <?php
-require __DIR__ . '/../vendor/autoload.php';
-$app = require_once __DIR__ . '/../bootstrap/app.php';
-$kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
+
+require __DIR__.'/../vendor/autoload.php';
+$app = require_once __DIR__.'/../bootstrap/app.php';
+$kernel = $app->make(Kernel::class);
 $kernel->bootstrap();
 
-use Illuminate\Support\Facades\DB;
 use App\Models\User;
+use Illuminate\Contracts\Console\Kernel;
+use Illuminate\Support\Facades\DB;
 
 $userId = $argv[1] ?? null;
 $rfid = $argv[2] ?? null;
@@ -30,4 +32,5 @@ $id = DB::table('access_cards')->insertGetId([
 ]);
 
 echo "Created card id={$id} rfid={$rfid} for user={$user->id}\n";
+
 return 0;

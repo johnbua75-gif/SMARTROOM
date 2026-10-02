@@ -6,8 +6,8 @@ use App\Models\AccessCard;
 use App\Models\AccessLog;
 use App\Models\Classroom;
 use App\Models\User;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -242,7 +242,7 @@ class AdminController extends Controller
                 'room' => $log->classroom?->name ?? 'Unknown Room',
                 'rfid' => $log->accessCard?->rfid_uid ?? ($log->metadata['rfid_uid'] ?? 'N/A'),
                 'timeIn' => $log->direction === 'entry' ? $log->accessed_at?->format('H:i') : '--',
-                'timeOut' => $log->direction === 'exit' ? $log->accessed_at?->format('H:i') : '—',
+                'timeOut' => $log->direction === 'exit' ? $log->accessed_at?->format('H:i') : '-',
                 'dur' => is_numeric($duration) ? (int) $duration : null,
                 'method' => in_array($method, ['RFID', 'PIN'], true) ? $method : 'RFID',
                 'status' => $status,
@@ -269,8 +269,8 @@ class AdminController extends Controller
         })->all();
 
         $hourly = $todayLogs->groupBy(function (AccessLog $log): string {
-                return $log->accessed_at ? $log->accessed_at->format('H') : '00';
-            });
+            return $log->accessed_at ? $log->accessed_at->format('H') : '00';
+        });
 
         $grantedSeries = [];
         $deniedSeries = [];
@@ -427,12 +427,12 @@ class AdminController extends Controller
     }
 
     /**
-     * @param array<int, string> $lines
+     * @param  array<int, string>  $lines
      */
     private function buildSimplePdfFromLines(array $lines): string
     {
         $safeLines = array_map(function (string $line): string {
-            $text = str_replace(["\\", '(', ')'], ["\\\\", '\\(', '\\)'], $line);
+            $text = str_replace(['\\', '(', ')'], ['\\\\', '\\(', '\\)'], $line);
 
             return preg_replace('/[^\x20-\x7E]/', '?', $text) ?? '';
         }, $lines);
@@ -473,7 +473,7 @@ class AdminController extends Controller
             $pdf .= str_pad((string) $offsets[$i], 10, '0', STR_PAD_LEFT)." 00000 n \n";
         }
 
-        $pdf .= "trailer << /Size ".(count($objects) + 1)." /Root 1 0 R >>\n";
+        $pdf .= 'trailer << /Size '.(count($objects) + 1)." /Root 1 0 R >>\n";
         $pdf .= "startxref\n{$xrefOffset}\n%%EOF";
 
         return $pdf;

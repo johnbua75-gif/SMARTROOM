@@ -15,43 +15,52 @@ $nav = [
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Attendance – Student Portal</title>
+  <title>Attendance  -  Student Portal</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   <style>
-    :root { --gold: #F5A800; --navy: #1B2A5E; }
-    body { background: #F4F6FA; font-family: 'Segoe UI', sans-serif; }
-
-    #sidebar { width: 230px; min-height: 100vh; background: #fff; border-right: 1px solid #e8eaf0; }
+    :root { -gold: #f5c518; -navy: #0b1640; -ink: #111827; -muted: #6b7280; -line: #e5e7eb; }
+#sidebar { width: 230px; min-height: 100vh; background: #fff; border-right: 1px solid #e8eaf0; }
     .brand-icon { background: var(--gold); border-radius: 10px; width: 42px; height: 42px; display:grid; place-items:center; }
-    .nav-link { color: #555; border-radius: 8px; padding: .55rem 1rem; font-weight: 500; }
+    .nav-link { color: #555; border-radius: 10px; padding: .55rem 1rem; font-weight: 500; }
     .nav-link:hover, .nav-link.active { background: #F0F4FF; color: var(--navy); }
     .nav-link.active::after { content:''; display:inline-block; width:7px; height:7px; background:var(--navy); border-radius:50%; margin-left:auto; }
     .avatar { width:38px; height:38px; background:var(--navy); border-radius:50%; display:grid; place-items:center; color:#fff; font-weight:700; font-size:.85rem; }
     
-    .stat-card { border-radius: 14px; border: 1px solid #e8eaf0; background: #fff; }
-    .attendance-table { border-radius: 10px; overflow: hidden; border: 1px solid #e8eaf0; }
-    .attendance-table th { background: #f8f9fa; border-bottom: 2px solid #e8eaf0; }
+    .stat-card { border-radius: 14px; border: 1px solid var(--line); background: #fff; box-shadow: var(--shadow-sm, 0 2px 6px rgba(15,23,41,.06)); }
+    .stat-card .fs-2 { font-weight: 700; color: var(--ink); letter-spacing: -0.01em; }
+    .stat-card .text-muted { color: var(--muted) !important; font-size: 0.875rem; }
+    
+    .attendance-table { border-radius: 14px; overflow: hidden; border: 1px solid var(--line); box-shadow: var(--shadow-sm, 0 2px 6px rgba(15,23,41,.06)); }
+    .attendance-table th { background: #f8f9fb; border-bottom: 1px solid var(--line); font-weight: 600; color: var(--muted); }
+    .attendance-table td { border-bottom: 1px solid var(--line); vertical-align: middle; }
+    .attendance-table tr:last-child td { border-bottom: none; }
     .attendance-present { color: #059669; }
     .attendance-absent { color: #dc2626; }
-    .attendance-hero { display:flex; align-items:center; justify-content:space-between; gap:18px; padding:22px 24px; margin-bottom:18px; border-radius:14px; background:linear-gradient(135deg,var(--navy),#263d85); color:#fff; }
-    .attendance-hero-icon { width:48px; height:48px; display:grid; place-items:center; border-radius:13px; background:rgba(245,197,24,.16); color:var(--gold); font-size:1.35rem; flex-shrink:0; }
-    .attendance-hero-copy { display:flex; align-items:center; gap:14px; }
-    .attendance-hero-title { font-size:1.05rem; font-weight:800; }
-    .attendance-hero-subtitle { margin-top:3px; color:rgba(255,255,255,.68); font-size:.8rem; }
-    .scan-qr-btn { display:inline-flex; align-items:center; gap:8px; border:0; border-radius:9px; padding:10px 15px; background:var(--gold); color:var(--navy); font-weight:800; white-space:nowrap; }
-    .scan-qr-btn:hover { background:#eab308; }
-    .scanner-modal { position:fixed; inset:0; z-index:3000; display:none; align-items:center; justify-content:center; padding:20px; background:rgba(11,22,64,.6); backdrop-filter:blur(5px); }
+    
+    .attendance-hero { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:24px; margin-bottom:24px; border-radius:12px; background:#fff; border: 1px solid var(--line); box-shadow: var(--shadow-sm, 0 2px 6px rgba(15,23,41,.06)); }
+    .attendance-hero-icon { width:48px; height:48px; display:grid; place-items:center; border-radius:8px; background:#f9fafb; border: 1px solid var(--line); color:var(--navy); font-size:1.25rem; flex-shrink:0; }
+    .attendance-hero-copy { display:flex; align-items:center; gap:16px; }
+    .attendance-hero-title { font-size:1.1rem; font-weight:700; letter-spacing: -0.01em; color: var(--ink); }
+    .attendance-hero-subtitle { margin-top:4px; color:var(--muted); font-size:0.875rem; }
+    .scan-qr-btn { display:inline-flex; align-items:center; gap:8px; border:1px solid var(--line); border-radius:8px; padding:10px 16px; background:#fff; color:var(--ink); font-weight:600; font-size:0.875rem; white-space:nowrap; transition: background 0.2s ease; }
+    .scan-qr-btn:hover { background:#f9fafb; }
+    
+    .scanner-modal { position:fixed; inset:0; z-index:3000; display:none; align-items:center; justify-content:center; padding:20px; background:rgba(17,24,39,.4); backdrop-filter:blur(4px); }
     .scanner-modal.is-open { display:flex; }
-    .scanner-card { width:min(100%,460px); overflow:hidden; border:1px solid var(--student-border); border-radius:16px; background:#fff; box-shadow:0 20px 55px rgba(15,23,42,.2); }
-    .scanner-head { display:flex; align-items:center; justify-content:space-between; padding:17px 20px; border-bottom:1px solid var(--student-border); }
-    .scanner-title { color:var(--student-text); font-weight:800; }
-    .scanner-close { width:32px; height:32px; border:1px solid var(--student-border); border-radius:8px; background:#f8fafc; color:var(--student-muted); }
-    .scanner-body { padding:20px; text-align:center; }
-    #qr-reader { width:100%; max-width:360px; margin:0 auto; overflow:hidden; border:1px solid var(--student-border); border-radius:12px; }
-    .scanner-help { margin:13px 0 0; color:var(--student-muted); font-size:.8rem; }
-    .scanner-status { min-height:24px; margin-top:12px; color:var(--student-blue); font-size:.82rem; font-weight:700; }
-    @media (max-width:640px) { .attendance-hero { align-items:flex-start; flex-direction:column; } .scan-qr-btn { width:100%; justify-content:center; } }
+    .scanner-card { width:min(100%,460px); overflow:hidden; border:1px solid var(--line); border-radius:12px; background:#fff; box-shadow:0 4px 6px -1px rgba(0,0,0,.1), 0 2px 4px -1px rgba(0,0,0,.06); }
+    .scanner-head { display:flex; align-items:center; justify-content:space-between; padding:16px 24px; border-bottom:1px solid var(--line); }
+    .scanner-title { color:var(--ink); font-weight:700; }
+    .scanner-close { width:32px; height:32px; border:1px solid var(--line); border-radius:8px; background:#fff; color:var(--muted); transition: background 0.2s ease; display:grid; place-items:center; }
+    .scanner-close:hover { background: #f8f9fb; }
+    .scanner-body { padding:24px; text-align:center; }
+    #qr-reader { width:100%; max-width:360px; margin:0 auto; overflow:hidden; border:1px solid var(--line); border-radius:12px; }
+    .scanner-help { margin:16px 0 0; color:var(--muted); font-size:0.875rem; }
+    .scanner-status { min-height:24px; margin-top:12px; color:var(--navy); font-size:0.875rem; font-weight:600; }
+    
+    .badge { border-radius: 6px; font-weight: 500; }
+    
+    @media (max-width:640px) { .attendance-hero { align-items:flex-start; flex-direction:column; padding: 16px; } .scan-qr-btn { width:100%; justify-content:center; } }
   </style>
   <style>
     .is-summary-loading { color: transparent !important; min-width: 2.5rem; min-height: 2rem; border-radius: 6px; background: linear-gradient(90deg,#eef1f5 25%,#fff 50%,#eef1f5 75%); background-size: 200% 100%; animation: summarySkeleton 1.35s ease-in-out infinite; }
@@ -65,10 +74,10 @@ $nav = [
 
   @include('frontend.student._sidebar')
 
-  <!-- Main -->
+  <!- Main ->
   <main class="flex-grow-1 p-4">
 
-    <!-- Topbar -->
+    <!- Topbar ->
     <div class="d-flex justify-content-between align-items-center mb-4">
       <div><h5 class="fw-bold mb-0">My Attendance</h5><small class="text-muted">{{ now()->format('l, F j, Y') }}</small></div>
       <a href="{{ route('student.home') }}" class="btn btn-warning fw-semibold"><i class="bi bi-house me-1"></i> Back to Home</a>
@@ -85,7 +94,7 @@ $nav = [
       <button type="button" class="scan-qr-btn" id="openQrScanner"><i class="bi bi-camera"></i> Scan Attendance QR</button>
     </div>
 
-    <!-- Attendance Stats -->
+    <!- Attendance Stats ->
     <div class="row g-3 mb-4">
       <div class="col-md-4">
         <div class="stat-card p-4">
@@ -110,7 +119,7 @@ $nav = [
       </div>
     </div>
 
-    <!-- Attendance Table -->
+    <!- Attendance Table ->
     <div class="bg-white rounded-3 overflow-hidden border">
       <table class="table mb-0">
         <thead class="table-light">
@@ -258,7 +267,7 @@ $nav = [
   }
 
   refreshStudentAttendanceSummary();
-  window.setInterval(refreshStudentAttendanceSummary, 5000);
+  window.setInterval(refreshStudentAttendanceSummary, 15000);
 </script>
 </body>
 </html>

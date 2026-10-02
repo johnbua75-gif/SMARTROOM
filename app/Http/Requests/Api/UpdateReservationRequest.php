@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Api;
 
 use App\Services\RoomAvailabilityService;
+use App\Support\RoomAvailabilityStatus;
 use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -10,13 +11,7 @@ class UpdateReservationRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        $user = $this->user();
-
-        if (! $user) {
-            return false;
-        }
-
-        return app(RoomAvailabilityService::class)->isItUserDepartment($user->department);
+        return $this->user() !== null;
     }
 
     /**
@@ -75,7 +70,7 @@ class UpdateReservationRequest extends FormRequest
             $end = Carbon::parse((string) $endAt);
 
             $availability = $service->checkAvailability((int) $reservation->classroom_id, $start, $end, (int) $reservation->id);
-            if ($availability['status'] === 'closed') {
+            if ($availability['status'] === RoomAvailabilityStatus::MAINTENANCE) {
                 $validator->errors()->add('classroom_id', $availability['reason']);
 
                 return;

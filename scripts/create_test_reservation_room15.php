@@ -1,21 +1,23 @@
 <?php
-// Create a one-hour reservation for Room 15 using Manila local time and convert to UTC for storage.
-require __DIR__ . '/../vendor/autoload.php';
 
-use Carbon\Carbon;
+// Create a one-hour reservation for Room 15 using Manila local time and convert to UTC for storage.
+require __DIR__.'/../vendor/autoload.php';
+
 use App\Models\Classroom;
 use App\Models\Reservation;
 use App\Models\User;
+use Carbon\Carbon;
+use Illuminate\Contracts\Console\Kernel;
 
-$app = require_once __DIR__ . '/../bootstrap/app.php';
-$kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
+$app = require_once __DIR__.'/../bootstrap/app.php';
+$kernel = $app->make(Kernel::class);
 $kernel->bootstrap();
 
 // Prefer classroom id 15; fall back to first classroom available
 $classroom = Classroom::find(15);
-if (!$classroom) {
+if (! $classroom) {
     $classroom = Classroom::first();
-    if (!$classroom) {
+    if (! $classroom) {
         echo "No classrooms found in the database.\n";
         exit(1);
     }
@@ -26,7 +28,7 @@ if (!$classroom) {
 
 // Select a user to own the reservation (use user id 4 if exists)
 $user = User::find(4) ?? User::first();
-if (!$user) {
+if (! $user) {
     echo "No user found to assign reservation.\n";
     exit(1);
 }

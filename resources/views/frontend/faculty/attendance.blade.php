@@ -369,7 +369,7 @@ $attendanceCards = collect($courses ?? [])->map(function ($course) {
     <!-- AI Recommendations removed from sidebar -->
     <li>
       <a href="{{ route('faculty.rfid.verification') }}" class="{{ Request::is('rfid-verification') ? 'active' : '' }}">
-        <span class="nav-icon"><i class="fas fa-id-card"></i></span>RFID Verification
+        <span class="nav-icon"><i class="fas fa-id-card"></i></span>RFID
       </a>
     </li>
     <li><a href="{{ route('faculty.notifications') }}" class="{{ Request::routeIs('faculty.notifications') ? 'active' : '' }}"><span class="nav-icon"><i class="fas fa-bell"></i></span>Notifications</a></li>

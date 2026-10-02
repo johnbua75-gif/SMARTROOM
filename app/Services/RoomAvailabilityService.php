@@ -6,8 +6,10 @@ use App\Models\Classroom;
 use App\Models\Reservation;
 use App\Models\Schedule;
 use App\Support\DepartmentScope;
+use App\Support\RoomAvailabilityStatus;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Collection;
 
 class RoomAvailabilityService
@@ -22,10 +24,10 @@ class RoomAvailabilityService
     public function checkAvailability(int $classroomId, CarbonInterface $startAt, CarbonInterface $endAt, ?int $ignoreReservationId = null): array
     {
         $classroom = Classroom::query()->find($classroomId);
-        if ($classroom && in_array((string) $classroom->status, ['maintenance', 'unavailable'], true)) {
+        if ($classroom && in_array((string) $classroom->status, RoomAvailabilityStatus::BLOCKED_CLASSROOM_STATUSES, true)) {
             return [
                 'available' => false,
-                'status' => 'maintenance',
+                'status' => RoomAvailabilityStatus::MAINTENANCE,
                 'reason' => $classroom->unavailable_reason ?: 'Room is temporarily unavailable due to an issue.',
                 'conflicts' => [],
             ];
@@ -59,7 +61,7 @@ class RoomAvailabilityService
         if ($scheduleConflicts->isNotEmpty()) {
             return [
                 'available' => false,
-                'status' => 'occupied',
+                'status' => RoomAvailabilityStatus::OCCUPIED,
                 'reason' => 'Room is occupied by official schedule at selected time.',
                 'conflicts' => $conflicts,
             ];
@@ -68,7 +70,7 @@ class RoomAvailabilityService
         if ($reservationConflicts->isNotEmpty()) {
             return [
                 'available' => false,
-                'status' => 'reserved',
+                'status' => RoomAvailabilityStatus::RESERVED,
                 'reason' => 'Room is already reserved at selected time.',
                 'conflicts' => $conflicts,
             ];
@@ -77,7 +79,7 @@ class RoomAvailabilityService
         if ($classroom && (int) $classroom->current_occupancy > 0 && $startAt->lte(now()) && $endAt->gt(now())) {
             return [
                 'available' => false,
-                'status' => 'occupied',
+                'status' => RoomAvailabilityStatus::OCCUPIED,
                 'reason' => 'Room is currently occupied.',
                 'conflicts' => [],
             ];
@@ -85,14 +87,45 @@ class RoomAvailabilityService
 
         return [
             'available' => true,
-            'status' => 'available',
+            'status' => RoomAvailabilityStatus::AVAILABLE,
             'reason' => null,
             'conflicts' => [],
         ];
     }
 
+    public function lockClassroomForUpdate(int $classroomId): Classroom
+    {
+        $classroom = Classroom::query()
+            ->whereKey($classroomId)
+            ->lockForUpdate()
+            ->first();
+
+        if (! $classroom) {
+            throw (new ModelNotFoundException)->setModel(Classroom::class, [$classroomId]);
+        }
+
+        return $classroom;
+    }
+
     /**
-     * @param Collection<int, Classroom> $classrooms
+     * @return array{available: false, status: string, reason: string, conflicts: array<int, array<string, mixed>>}|null
+     */
+    public function classroomUnavailability(Classroom $classroom): ?array
+    {
+        if (! in_array((string) $classroom->status, RoomAvailabilityStatus::BLOCKED_CLASSROOM_STATUSES, true)) {
+            return null;
+        }
+
+        return [
+            'available' => false,
+            'status' => RoomAvailabilityStatus::MAINTENANCE,
+            'reason' => $classroom->unavailable_reason ?: 'Room is temporarily unavailable due to an issue.',
+            'conflicts' => [],
+        ];
+    }
+
+    /**
+     * @param  Collection<int, Classroom>  $classrooms
      * @return Collection<int, array<string, mixed>>
      */
     public function buildRoomStatuses(Collection $classrooms, CarbonInterface $startAt, CarbonInterface $endAt, ?CarbonInterface $now = null): Collection
@@ -104,21 +137,16 @@ class RoomAvailabilityService
             return collect();
         }
 
-        $schedules = Schedule::query()
+        $schedules = $this->itScopedSchedules()
             ->whereIn('classroom_id', $classroomIds)
-            ->whereIn('status', self::ACTIVE_SCHEDULE_STATUSES)
-            ->whereHas('course.instructor', function ($query): void {
-                $this->applyItDepartmentScope($query);
-            })
             ->where('start_at', '<', $endAt)
             ->where('end_at', '>', $startAt)
             ->orderBy('start_at')
             ->get()
             ->groupBy('classroom_id');
 
-        $reservations = Reservation::query()
+        $reservations = $this->itScopedReservations()
             ->whereIn('classroom_id', $classroomIds)
-            ->whereIn('status', self::ACTIVE_RESERVATION_STATUSES)
             ->where('start_at', '<', $endAt)
             ->where('end_at', '>', $startAt)
             ->orderBy('start_at')
@@ -126,10 +154,10 @@ class RoomAvailabilityService
             ->groupBy('classroom_id');
 
         return $classrooms->map(function (Classroom $classroom) use ($schedules, $reservations, $now): array {
-            if (in_array((string) $classroom->status, ['maintenance', 'unavailable'], true)) {
+            if (in_array((string) $classroom->status, RoomAvailabilityStatus::BLOCKED_CLASSROOM_STATUSES, true)) {
                 return [
                     'classroom_id' => $classroom->id,
-                    'status' => 'maintenance',
+                    'status' => RoomAvailabilityStatus::MAINTENANCE,
                     'status_label' => 'Unavailable',
                     'time_info' => 'Blocked for issues',
                     'reason' => $classroom->unavailable_reason ?: 'Room is temporarily unavailable due to an issue.',
@@ -164,13 +192,13 @@ class RoomAvailabilityService
                 ->sortBy('start_at')
                 ->first();
 
-            $status = 'available';
+            $status = RoomAvailabilityStatus::AVAILABLE;
             $statusLabel = 'Available';
             $reason = null;
             $timeInfo = 'Available all day';
 
             if ($currentSchedule) {
-                $status = 'occupied';
+                $status = RoomAvailabilityStatus::OCCUPIED;
                 $statusLabel = 'Occupied';
                 $reason = 'Room is occupied by official schedule at selected time.';
 
@@ -178,7 +206,7 @@ class RoomAvailabilityService
                     $timeInfo = 'Free at '.$currentSchedule->end_at->format('g:i A');
                 }
             } elseif ($currentReservation) {
-                $status = 'reserved';
+                $status = RoomAvailabilityStatus::RESERVED;
                 $statusLabel = 'Reserved';
                 $reason = 'Room is already reserved at selected time.';
 
@@ -186,7 +214,7 @@ class RoomAvailabilityService
                     $timeInfo = 'Free at '.$currentReservation->end_at->format('g:i A');
                 }
             } elseif ((int) $classroom->current_occupancy > 0) {
-                $status = 'occupied';
+                $status = RoomAvailabilityStatus::OCCUPIED;
                 $statusLabel = 'Occupied';
                 $reason = 'Room is currently occupied.';
                 $timeInfo = 'In use now';
@@ -243,6 +271,19 @@ class RoomAvailabilityService
         ?int $ignoreScheduleId = null,
         bool $forUpdateLock = false
     ): array {
+        $classroom = Classroom::query()->find($classroomId);
+        if ($classroom && $this->classroomUnavailability($classroom)) {
+            return [
+                'has_conflict' => true,
+                'message' => 'Room is temporarily unavailable due to an issue.',
+                'conflicts' => [],
+            ];
+        }
+
+        if ($forUpdateLock) {
+            $this->lockClassroomForUpdate($classroomId);
+        }
+
         $query = $this->scheduleConflicts($classroomId, $startAt, $endAt, $ignoreScheduleId);
 
         if ($forUpdateLock) {
@@ -277,6 +318,10 @@ class RoomAvailabilityService
         ?int $ignoreReservationId = null,
         bool $forUpdateLock = false
     ): array {
+        if ($forUpdateLock) {
+            $this->lockClassroomForUpdate($classroomId);
+        }
+
         $query = $this->reservationConflicts($classroomId, $startAt, $endAt, $ignoreReservationId);
 
         if ($forUpdateLock) {
@@ -311,9 +356,6 @@ class RoomAvailabilityService
             ->when($ignoreScheduleId !== null, function ($query) use ($ignoreScheduleId): void {
                 $query->where('id', '!=', $ignoreScheduleId);
             })
-            ->whereHas('course.instructor', function ($query): void {
-                $this->applyItDepartmentScope($query);
-            })
             ->where('start_at', '<', $endAt)
             ->where('end_at', '>', $startAt)
             ->orderBy('start_at');
@@ -339,10 +381,11 @@ class RoomAvailabilityService
     private function applyItDepartmentScope($query): void
     {
         $query->where(function ($scope): void {
-            $scope->whereRaw('LOWER(COALESCE(department, \'\')) LIKE ?', ['%it%'])
-                ->orWhereRaw('LOWER(COALESCE(department, \'\')) LIKE ?', ['%cit%'])
-                ->orWhereRaw('LOWER(COALESCE(department, \'\')) LIKE ?', ['%cite%'])
-                ->orWhereRaw('LOWER(COALESCE(department, \'\')) LIKE ?', ['%information technology%']);
+            $scope->whereRaw(
+                "LOWER(TRIM(COALESCE(department, ''))) IN (?, ?, ?, ?, ?)",
+                ['it', 'cit', 'cite', 'ict', 'bsit']
+            )->orWhereRaw("LOWER(COALESCE(department, '')) LIKE ?", ['%information technology%'])
+                ->orWhereRaw("LOWER(COALESCE(department, '')) LIKE ?", ['%computer science%']);
         });
     }
 
@@ -351,241 +394,44 @@ class RoomAvailabilityService
         return DepartmentScope::isItDepartment($department);
     }
 
-    /**
-     * @return Collection<int, array<string, mixed>>
-     */
-    public function mapBuildingsWithCoordinates(Collection $classrooms, CarbonInterface $startAt, CarbonInterface $endAt, ?CarbonInterface $now = null): Collection
-    {
-        $statuses = $this->buildRoomStatuses($classrooms, $startAt, $endAt, $now)->keyBy('classroom_id');
-
-        return $classrooms
-            ->groupBy(fn (Classroom $classroom): string => (string) $classroom->building)
-            ->values()
-            ->map(function (Collection $items, int $index) use ($statuses): array {
-                $availableCount = $items->filter(function (Classroom $classroom) use ($statuses): bool {
-                    return (string) ($statuses->get($classroom->id)['status'] ?? 'available') === 'available';
-                })->count();
-
-                $coordinates = $this->buildingCoordinates((string) $items->first()?->building, $index);
-
-                return [
-                    'building' => (string) $items->first()?->building,
-                    'available' => $availableCount,
-                    'is_full' => $availableCount === 0,
-                    'coordinates' => $coordinates,
-                ];
-            })
-            ->values();
-    }
-
-    /**
-     * @return Collection<int, array<string, mixed>>
-     */
-    public function roomsByBuilding(Collection $classrooms, string $building, CarbonInterface $startAt, CarbonInterface $endAt, ?CarbonInterface $now = null): Collection
-    {
-        $normalizedBuilding = trim($building);
-
-        $rooms = $classrooms->filter(function (Classroom $classroom) use ($normalizedBuilding): bool {
-            return strcasecmp((string) $classroom->building, $normalizedBuilding) === 0;
-        })->values();
-
-        $statusMap = $this->buildRoomStatuses($rooms, $startAt, $endAt, $now)->keyBy('classroom_id');
-
-        return $rooms->map(function (Classroom $classroom) use ($statusMap): array {
-            $status = $statusMap->get($classroom->id, [
-                'status' => 'available',
-                'status_label' => 'Available',
-                'time_info' => 'Available all day',
-            ]);
-
-            return [
-                'id' => $classroom->id,
-                'name' => (string) $classroom->name,
-                'building' => (string) $classroom->building,
-                'floor' => (string) ($classroom->floor ?? ''),
-                'capacity' => (int) ($classroom->capacity ?? 0),
-                'status' => (string) ($status['status'] ?? 'available'),
-                'status_label' => (string) ($status['status_label'] ?? 'Available'),
-                'time_info' => (string) ($status['time_info'] ?? 'Available all day'),
-            ];
-        })->values();
-    }
-
-    /**
-     * @return Collection<int, array<string, mixed>>
-     */
-    public function fixedSchedulesByRoom(int $classroomId, CarbonInterface $rangeStart, CarbonInterface $rangeEnd): Collection
-    {
-        return $this->itScopedSchedules()
-            ->with(['course.instructor'])
-            ->where('classroom_id', $classroomId)
-            ->where('start_at', '<', $rangeEnd)
-            ->where('end_at', '>', $rangeStart)
-            ->orderBy('start_at')
-            ->get()
-            ->map(function (Schedule $schedule): array {
-                return [
-                    'id' => $schedule->id,
-                    'course' => (string) ($schedule->course?->title ?? 'Untitled Subject'),
-                    'course_code' => (string) ($schedule->course?->code ?? ''),
-                    'instructor' => (string) ($schedule->course?->instructor?->name ?? 'Unassigned Instructor'),
-                    'start_at' => optional($schedule->start_at)->toIso8601String(),
-                    'end_at' => optional($schedule->end_at)->toIso8601String(),
-                    'status' => (string) ($schedule->status ?? 'scheduled'),
-                ];
-            })
-            ->values();
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    public function roomCurrentStatus(int $classroomId, ?CarbonInterface $at = null): array
-    {
-        $at ??= now();
-
-        $classroom = Classroom::query()->find($classroomId);
-        $currentSchedule = $this->itScopedSchedules()
-            ->with(['course.instructor'])
-            ->where('classroom_id', $classroomId)
-            ->where('start_at', '<=', $at)
-            ->where('end_at', '>', $at)
-            ->orderBy('start_at')
-            ->first();
-
-        $currentReservation = $this->itScopedReservations()
-            ->with(['user'])
-            ->where('classroom_id', $classroomId)
-            ->where('start_at', '<=', $at)
-            ->where('end_at', '>', $at)
-            ->orderBy('start_at')
-            ->first();
-
-        $nextSchedule = $this->itScopedSchedules()
-            ->with(['course.instructor'])
-            ->where('classroom_id', $classroomId)
-            ->where('start_at', '>', $at)
-            ->orderBy('start_at')
-            ->first();
-
-        if ($currentSchedule) {
-            return [
-                'status' => 'occupied',
-                'status_label' => 'Occupied',
-                'source' => 'official_schedule',
-                'current' => [
-                    'type' => 'official_schedule',
-                    'id' => $currentSchedule->id,
-                    'course' => (string) ($currentSchedule->course?->title ?? 'Untitled Subject'),
-                    'instructor' => (string) ($currentSchedule->course?->instructor?->name ?? 'Unassigned Instructor'),
-                    'start_at' => optional($currentSchedule->start_at)->toIso8601String(),
-                    'end_at' => optional($currentSchedule->end_at)->toIso8601String(),
-                ],
-                'next_schedule' => $this->formatNextSchedule($nextSchedule),
-            ];
-        }
-
-        if ($currentReservation) {
-            return [
-                'status' => 'reserved',
-                'status_label' => 'Reserved',
-                'source' => 'reservation',
-                'current' => [
-                    'type' => 'reservation',
-                    'id' => $currentReservation->id,
-                    'reserved_by' => (string) ($currentReservation->user?->name ?? 'Faculty'),
-                    'start_at' => optional($currentReservation->start_at)->toIso8601String(),
-                    'end_at' => optional($currentReservation->end_at)->toIso8601String(),
-                ],
-                'next_schedule' => $this->formatNextSchedule($nextSchedule),
-            ];
-        }
-
-        if ($classroom && (int) $classroom->current_occupancy > 0) {
-            return [
-                'status' => 'occupied',
-                'status_label' => 'Occupied',
-                'source' => 'live_occupancy',
-                'reason' => 'Room is currently occupied.',
-                'current' => [
-                    'type' => 'live_occupancy',
-                    'current_occupancy' => (int) $classroom->current_occupancy,
-                    'capacity' => (int) $classroom->capacity,
-                ],
-                'next_schedule' => $this->formatNextSchedule($nextSchedule),
-            ];
-        }
-
-        return [
-            'status' => 'available',
-            'status_label' => 'Available',
-            'source' => null,
-            'current' => null,
-            'next_schedule' => $this->formatNextSchedule($nextSchedule),
-        ];
-    }
-
-    private function itScopedSchedules(): Builder
+    public function itScopedSchedules(): Builder
     {
         return Schedule::query()
             ->whereIn('status', self::ACTIVE_SCHEDULE_STATUSES)
-            ->whereHas('course.instructor', function ($query): void {
+            ->whereHas('course.instructor', function (Builder $query): void {
                 $this->applyItDepartmentScope($query);
             });
     }
 
-    private function itScopedReservations(): Builder
+    public function itScopedCancelledSchedules(): Builder
+    {
+        return Schedule::query()
+            ->where('status', 'cancelled')
+            ->whereHas('course.instructor', function (Builder $query): void {
+                $this->applyItDepartmentScope($query);
+            });
+    }
+
+    public function itScopedReservations(): Builder
     {
         return Reservation::query()
-           ->whereIn('status', self::ACTIVE_RESERVATION_STATUSES);
+            ->whereIn('status', self::ACTIVE_RESERVATION_STATUSES)
+            ->whereHas('user', function (Builder $query): void {
+                $this->applyItDepartmentScope($query);
+            });
     }
 
-
-    /**
-     * @return array{lat: float, lng: float}
-     */
-    private function buildingCoordinates(string $building, int $index): array
+    public function itScopedClassrooms(): Builder
     {
-        $lower = strtolower($building);
-
-        if (str_contains($lower, 'main')) {
-            return ['lat' => 16.0, 'lng' => 120.0];
-        }
-
-        if (str_contains($lower, 'tech')) {
-            return ['lat' => 16.0008, 'lng' => 120.0006];
-        }
-
-        if (str_contains($lower, 'science')) {
-            return ['lat' => 16.0004, 'lng' => 120.0012];
-        }
-
-        $fallback = [
-            ['lat' => 16.0, 'lng' => 120.0],
-            ['lat' => 16.0008, 'lng' => 120.0006],
-            ['lat' => 16.0004, 'lng' => 120.0012],
-            ['lat' => 15.9995, 'lng' => 120.0002],
-        ];
-
-        return $fallback[$index % count($fallback)];
-    }
-
-    /**
-     * @return array<string, mixed>|null
-     */
-    private function formatNextSchedule(?Schedule $schedule): ?array
-    {
-        if (! $schedule) {
-            return null;
-        }
-
-        return [
-            'id' => $schedule->id,
-            'course' => (string) ($schedule->course?->title ?? 'Untitled Subject'),
-            'instructor' => (string) ($schedule->course?->instructor?->name ?? 'Unassigned Instructor'),
-            'start_at' => optional($schedule->start_at)->toIso8601String(),
-            'end_at' => optional($schedule->end_at)->toIso8601String(),
-            'status' => (string) ($schedule->status ?? 'scheduled'),
-        ];
+        return Classroom::query()
+            ->where(function (Builder $query): void {
+                $query
+                    ->whereHas('schedules.course.instructor', function (Builder $instructorQuery): void {
+                        $this->applyItDepartmentScope($instructorQuery);
+                    })
+                    ->orWhereHas('reservations.user', function (Builder $userQuery): void {
+                        $this->applyItDepartmentScope($userQuery);
+                    });
+            });
     }
 }

@@ -1,11 +1,13 @@
 <?php
-require __DIR__ . '/../vendor/autoload.php';
-$app = require_once __DIR__ . '/../bootstrap/app.php';
-$kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
+
+require __DIR__.'/../vendor/autoload.php';
+$app = require_once __DIR__.'/../bootstrap/app.php';
+$kernel = $app->make(Kernel::class);
 $kernel->bootstrap();
 
-use Illuminate\Http\Request;
 use App\Http\Controllers\Api\ReservationController;
+use Illuminate\Contracts\Console\Kernel;
+use Illuminate\Http\Request;
 
 // Modify these to test
 $testUserId = $argv[1] ?? 5; // default to user id 5
@@ -22,7 +24,7 @@ if ($rfidUid) {
 }
 
 $request = Request::create('/api/v1/reservations/check', 'GET', $params);
-$controller = new ReservationController();
+$controller = new ReservationController;
 $response = $controller->checkAccess($request);
 
-echo $response->getContent() . PHP_EOL;
+echo $response->getContent().PHP_EOL;

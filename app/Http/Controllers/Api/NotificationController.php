@@ -13,8 +13,8 @@ class NotificationController extends Controller
         $userId = $request->user()->id;
 
         $items = Notification::where(function ($q) use ($userId) {
-                $q->whereNull('user_id')->orWhere('user_id', $userId);
-            })
+            $q->whereNull('user_id')->orWhere('user_id', $userId);
+        })
             ->orderBy('created_at', 'desc')
             ->limit(50)
             ->get()

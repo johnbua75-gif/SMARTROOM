@@ -77,11 +77,11 @@ String getTimestamp() {
   // Prefer gmtime_r when available, otherwise use gmtime() safely
   #if defined(__GNUC__)
     if (gmtime_r(&now, &timeinfo) == NULL) {
-      return "2026-05-14T00:00:00+00:00";
+      return "";
     }
   #else
     struct tm *tmp = gmtime(&now);
-    if (!tmp) return "2026-05-14T00:00:00+00:00";
+    if (!tmp) return "";
     timeinfo = *tmp;
   #endif
 
@@ -118,24 +118,18 @@ String normalizeRfidUid(String value) {
 }
 
 // ─── Log to API (ArduinoJson version) ──────────────────────
-void logAccess(String method, String result, int userId = 0, int cardId = 0, String reason = "", String rfidUid = "") {
+bool logAccess(String method, String result, int userId = 0, int cardId = 0, String reason = "", String rfidUid = "") {
   ensureWiFi();
-  if (WiFi.status() != WL_CONNECTED) return;
-
-  HTTPClient http;
-  String url = String(API_BASE) + "/access-logs";
-  http.begin(url);
-  http.setTimeout(10000);
-  http.addHeader("Content-Type", "application/json");
-  http.addHeader("Authorization", String("Bearer ") + API_TOKEN);
-  http.addHeader("Accept", "application/json");
+  if (WiFi.status() != WL_CONNECTED) { Serial.println("No WiFi - access log failed"); return false; }
+  String timestamp = getTimestamp();
+  if (timestamp.length() == 0) { Serial.println("Clock not synchronized - access log failed"); return false; }
 
   // ✅ FIXED: Use ArduinoJson for safer JSON construction
   DynamicJsonDocument doc(1024);
   doc["classroom_id"] = CLASSROOM_ID;
   doc["result"] = result;
   doc["direction"] = "entry";
-  doc["accessed_at"] = getTimestamp();
+  doc["accessed_at"] = timestamp;
   doc["metadata"]["method"] = method;
   if (reason.length() > 0) doc["reason"] = reason;
   if (rfidUid.length() > 0) doc["metadata"]["rfid_uid"] = rfidUid;
@@ -146,15 +140,23 @@ void logAccess(String method, String result, int userId = 0, int cardId = 0, Str
   serializeJson(doc, body);
 
   Serial.println("Log body: " + body);
-  int code = http.POST(body);
-  Serial.printf("Log API response: %d\n", code);
-  if (code > 0) {
-    String resp = http.getString();
-    Serial.println(resp);
-  } else {
-    Serial.printf("HTTP error: %s\n", http.errorToString(code).c_str());
+  for (int attempt = 1; attempt <= 3; attempt++) {
+    HTTPClient http;
+    http.begin(String(API_BASE) + "/access-logs");
+    http.setTimeout(10000);
+    http.addHeader("Content-Type", "application/json");
+    http.addHeader("Authorization", String("Bearer ") + API_TOKEN);
+    http.addHeader("Accept", "application/json");
+    int code = http.POST(body);
+    Serial.printf("Log API response (attempt %d): %d\n", attempt, code);
+    if (code > 0) Serial.println(http.getString());
+    if (code >= 200 && code < 300) { http.end(); return true; }
+    if (code >= 400 && code < 500) { http.end(); return false; }
+    http.end();
+    delay(300 * attempt);
   }
-  http.end();
+
+  return false;
 }
 
 // ─── Check RFID against API ───────────────────────────────
@@ -213,7 +215,7 @@ bool checkRFIDApi(String uid, int &userId, int &cardId) {
 }
 
 // ─── Check Schedule against API ───────────────────────────
-bool checkSchedule(int userId) {
+bool checkSchedule(int userId, String rfidUid) {
   ensureWiFi();
   if (WiFi.status() != WL_CONNECTED) {
     Serial.println("No WiFi - cannot verify schedule");
@@ -224,6 +226,7 @@ bool checkSchedule(int userId) {
   String url = String(API_BASE) + "/reservations/check"
                + "?user_id=" + String(userId)
                + "&classroom_id=" + String(CLASSROOM_ID);
+  url += "&rfid_uid=" + urlEncode(rfidUid);
   Serial.println("Checking schedule: " + url);
   http.begin(url);
   http.setTimeout(10000);
@@ -258,23 +261,18 @@ bool checkSchedule(int userId) {
   return allowed;
 }
 
-// ─── Query fingerprint ID to get user ID ───────────────────
-int getFingerprintUserID(uint8_t fingerprintID) {
-  if (WiFi.status() != WL_CONNECTED) return 0;
-  
-  // For now, use fingerprint ID as user ID (assumes 1:1 mapping)
-  // TODO: Implement proper lookup if needed
-  
-  Serial.printf("Fingerprint ID %d treated as User ID %d\n", fingerprintID, fingerprintID);
-  return fingerprintID;
-}
-
 // ─── Access results ───────────────────────────────────────
 void grantAccess(const char* method, int userId = 0, int cardId = 0) {
   Serial.printf("ACCESS GRANTED via %s\n", method);
+  if (!logAccess(String(method), "granted", userId, cardId)) {
+    lcdMsg("Access Blocked", "Log unavailable");
+    buzzDenied();
+    delay(2000);
+    lcdMsg("Scan Card or", "Finger...");
+    return;
+  }
   lcdMsg("Access Granted!", ":) Welcome");
   buzzOnce();
-  logAccess(String(method), "granted", userId, cardId);
   unlockDoor();
   lcdMsg("Scan Card or", "Finger...");
 }
@@ -330,7 +328,7 @@ void checkRFID() {
 
   // Step 2: Does this user have a schedule RIGHT NOW?
   lcdMsg("Checking", "Schedule...");
-  if (!checkSchedule(userId)) {
+  if (!checkSchedule(userId, uid)) {
     denyAccess("No Schedule", "RFID", userId, cardId, uid);
     return;
   }
@@ -361,17 +359,8 @@ void checkFingerprint() {
 
   p = finger.fingerSearch();
   if (p == FINGERPRINT_OK) {
-    int userId = finger.fingerID;
-    Serial.printf("FP match! ID #%d\n", userId);
-
-    // Check schedule for fingerprint user too
-    lcdMsg("Checking", "Schedule...");
-    if (!checkSchedule(userId)) {
-      denyAccess("No Schedule", "Fingerprint", userId, 0);
-      return;
-    }
-
-    grantAccess("Fingerprint", userId, 0);
+    Serial.printf("FP match! Template ID #%d has no server identity mapping\n", finger.fingerID);
+    denyAccess("FP Not Linked", "Fingerprint");
 
   } else if (p == FINGERPRINT_NOTFOUND) {
     denyAccess("Unknown Finger", "Fingerprint");

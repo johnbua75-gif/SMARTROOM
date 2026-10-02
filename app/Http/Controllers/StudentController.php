@@ -2,15 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Student;
+use App\Models\AttendanceRecord;
 use App\Models\Classroom;
 use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\Schedule;
-use App\Models\AttendanceRecord;
+use App\Models\Student;
 use App\Services\RoomAvailabilityService;
-use Illuminate\Http\RedirectResponse;
+use Carbon\Carbon;
+use Carbon\CarbonInterface;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
@@ -23,7 +25,7 @@ class StudentController extends Controller
     {
         $user = Auth::user();
 
-        if (!$user) {
+        if (! $user) {
             return redirect()->route('auth.login');
         }
 
@@ -33,7 +35,7 @@ class StudentController extends Controller
             [
                 'name' => $user->name,
                 'email' => $user->email,
-                'student_id' => 'STU-' . rand(10000, 99999),
+                'student_id' => 'STU-'.rand(10000, 99999),
                 'status' => 'active',
             ]
         );
@@ -52,12 +54,12 @@ class StudentController extends Controller
         $todayClassesCount = $todaySchedules->count();
 
         $nextClass = $todaySchedules->first(
-            fn ($schedule) => $schedule->start_at instanceof \Carbon\CarbonInterface
+            fn ($schedule) => $schedule->start_at instanceof CarbonInterface
                 && $schedule->start_at->greaterThan(now())
         );
 
         $nextClassTime = $nextClass
-            ? \Carbon\Carbon::parse($nextClass->start_at)->format('g:i A')
+            ? Carbon::parse($nextClass->start_at)->format('g:i A')
             : 'N/A';
 
         $classrooms = Classroom::query()->get();
@@ -117,7 +119,7 @@ class StudentController extends Controller
     {
         $user = Auth::user();
 
-        if (!$user) {
+        if (! $user) {
             return redirect()->route('auth.login');
         }
 
@@ -232,7 +234,7 @@ class StudentController extends Controller
     {
         $user = Auth::user();
 
-        if (!$user) {
+        if (! $user) {
             return redirect()->route('auth.login');
         }
 
@@ -288,24 +290,23 @@ class StudentController extends Controller
     {
         $user = Auth::user();
 
-        if (!$user) {
+        if (! $user) {
             return redirect()->route('auth.login');
         }
 
         $student = Student::where('user_id', $user->id)->first();
 
-                // Fetch attendance records (match by student PK or student id number)
-                $attendanceRecords = \App\Models\AttendanceRecord::with('session.course')->where(function($q) use ($student) {
-                        $q->where('student_id', optional($student)->id)
-                            ->orWhere('student_id_number', optional($student)->student_id);
-                        })->whereHas('session', fn ($query) => $query->where('status', 'closed'))
-                            ->orderBy('created_at', 'desc')->get();
-        
+        // Fetch attendance records (match by student PK or student id number)
+        $attendanceRecords = AttendanceRecord::with('session.course')->where(function ($q) use ($student) {
+            $q->where('student_id', optional($student)->id)
+                ->orWhere('student_id_number', optional($student)->student_id);
+        })->whereHas('session', fn ($query) => $query->where('status', 'closed'))
+            ->orderBy('created_at', 'desc')->get();
+
         // Calculate stats
-            $totalAttended = $attendanceRecords->whereNotNull('time_in')->count();
-            $totalAbsent = $attendanceRecords->filter(fn ($record): bool =>
-                is_null($record->time_in) && strtolower((string) $record->status) === 'absent'
-            )->count();
+        $totalAttended = $attendanceRecords->whereNotNull('time_in')->count();
+        $totalAbsent = $attendanceRecords->filter(fn ($record): bool => is_null($record->time_in) && strtolower((string) $record->status) === 'absent'
+        )->count();
         $totalRecords = $attendanceRecords->count();
         $attendanceRate = $totalRecords > 0 ? round(($totalAttended / $totalRecords) * 100, 1) : 0;
 
@@ -324,8 +325,7 @@ class StudentController extends Controller
             ->get(['status', 'present', 'time_in']);
 
         $totalAttended = $records->whereNotNull('time_in')->count();
-        $totalAbsent = $records->filter(fn ($record): bool =>
-            is_null($record->time_in) && $record->status === 'absent'
+        $totalAbsent = $records->filter(fn ($record): bool => is_null($record->time_in) && $record->status === 'absent'
         )->count();
         $totalRecords = $records->count();
 
@@ -344,7 +344,7 @@ class StudentController extends Controller
     {
         $user = Auth::user();
 
-        if (!$user) {
+        if (! $user) {
             return redirect()->route('auth.login');
         }
 

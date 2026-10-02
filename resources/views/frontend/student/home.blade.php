@@ -20,58 +20,168 @@ $nav = [
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>SmartDoor – Student Portal</title>
+  <title>SmartDoor - Student Portal</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
-    :root { --gold: #F5A800; --navy: #1B2A5E; }
-    body { background: #F4F6FA; font-family: 'Segoe UI', sans-serif; }
-
-    /* Sidebar */
+/* Sidebar */
     #sidebar { width: 230px; min-height: 100vh; background: #fff; border-right: 1px solid #e8eaf0; }
     .brand-icon { background: var(--gold); border-radius: 10px; width: 42px; height: 42px; display:grid; place-items:center; }
-    .nav-link { color: #555; border-radius: 8px; padding: .55rem 1rem; font-weight: 500; }
+    .nav-link { color: #555; border-radius: 10px; padding: .55rem 1rem; font-weight: 500; }
     .nav-link:hover, .nav-link.active { background: #F0F4FF; color: var(--navy); }
     .nav-link.active::after { content:''; display:inline-block; width:7px; height:7px; background:var(--navy); border-radius:50%; margin-left:auto; }
     .avatar { width:38px; height:38px; background:var(--navy); border-radius:50%; display:grid; place-items:center; color:#fff; font-weight:700; font-size:.85rem; }
 
-    /* Stat cards */
-    .stat-card { border-radius: 14px; border: 1px solid #e8eaf0; background: #fff; }
+    /* ═══════════════════════════════════════════════
+       MAIN CONTENT - scoped so the sidebar is untouched
+    ═══════════════════════════════════════════════ */
+    main {
+      --panel-border: #e7e9f0;
+      --panel-shadow: 0 1px 3px rgba(15,23,41,.05);
+      --panel-shadow-hover: 0 10px 24px rgba(15,23,41,.08);
+      --muted: #8891a3;
+      --muted-2: #b0b8c7;
+      font-family: 'DM Sans', 'Segoe UI', sans-serif;
+    }
+    main h1, main h2, main h3, main h4, main h5, main h6 {
+      font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+      font-weight: 700; letter-spacing: -0.015em; color: #0f1729;
+    }
+    main .text-muted { color: var(--muted) !important; }
+    main .badge { border-radius: 999px; font-weight: 600; letter-spacing: .01em; }
+    main .btn { border-radius: 10px; transition: all .2s cubic-bezier(.4,0,.2,1); border: 1px solid transparent; font-weight: 600; }
+    main .bg-white { background-color: #fff !important; }
+    main .rounded-4 { border-radius: 16px !important; }
+    main .border { border: 1px solid var(--panel-border) !important; }
+    main .shadow-sm { box-shadow: var(--panel-shadow) !important; }
 
-    /* Next class banner */
-    .next-banner { background: var(--gold); border-radius: 16px; }
+    /* Topbar */
+    .home-topbar-title { font-family:'Plus Jakarta Sans',sans-serif; font-weight:800; font-size:1.05rem; color:#0f1729; }
+    .home-topbar-pill {
+      display:inline-flex; align-items:center; gap:6px;
+      font-size:.76rem; font-weight:600; color: var(--navy);
+      background: #f0f2fb; border: 1px solid #e2e6f7;
+      padding: 6px 14px; border-radius: 999px;
+    }
+    .home-topbar-pill i { color: var(--gold-dark, #b7860b); }
+
+    /* ── Hero ─────────────────────────────────────── */
+    .student-home-hero {
+      position:relative; overflow:hidden;
+      margin: 0 -24px 24px; padding: 30px 24px 26px;
+      color:#111827;
+      background:
+        radial-gradient(circle at 88% -10%, rgba(245,197,24,0.14) 0%, transparent 42%),
+        radial-gradient(circle at 4% 120%, rgba(11,22,64,0.05) 0%, transparent 45%),
+        #fff;
+      border-bottom: 1px solid var(--panel-border);
+      box-shadow: 0 1px 0 rgba(15,23,41,.02);
+    }
+    .student-home-hero-copy { position:relative; z-index:1; margin-bottom:24px; display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+    .student-home-hero h3 { color:#0f1729; font-size:1.6rem; margin-bottom:4px; }
+    .student-home-hero h3 span { color: var(--navy); }
+    .student-home-hero .hero-subtitle { color: var(--muted); font-size:.9rem; }
+    .hero-id-chip {
+      display:inline-flex; align-items:center; gap:8px;
+      font-size:.78rem; font-weight:600; color:#374151;
+      background:#fff; border:1px solid var(--panel-border);
+      padding:8px 14px; border-radius:999px; box-shadow: var(--panel-shadow);
+    }
+    .hero-id-chip i { color: var(--navy); }
+
+    .student-home-stats { position:relative; z-index:1; padding:0; background:transparent; border:none; box-shadow:none; }
+
+    /* ── Stat cards ───────────────────────────────── */
+    .stat-card {
+      border-radius: 16px; border: 1px solid var(--panel-border); background: #fff;
+      box-shadow: var(--panel-shadow); padding: 18px 20px; position:relative; overflow:hidden;
+      transition: all .22s cubic-bezier(.4,0,.2,1);
+    }
+    .stat-card:hover { border-color: #d7dcea; box-shadow: var(--panel-shadow-hover); transform: translateY(-2px); }
+    .stat-card::after {
+      content:''; position:absolute; top:-26px; right:-22px; width:96px; height:96px; border-radius:50%;
+      background: var(--tint, rgba(11,22,64,.05)); pointer-events:none;
+    }
+    .stat-card[data-tone="amber"]  { -tint: rgba(245,197,24,.18); }
+    .stat-card[data-tone="navy"]   { -tint: rgba(11,22,64,.07); }
+    .stat-card[data-tone="green"]  { -tint: rgba(15,157,88,.14); }
+
+    .stat-icon-chip {
+      width: 40px; height: 40px; border-radius: 11px;
+      display:flex; align-items:center; justify-content:center;
+      font-size: 1.05rem; position:relative; z-index:1; margin-bottom: 14px;
+    }
+    .stat-card[data-tone="amber"] .stat-icon-chip { background:#fdf3d6; color:#a9760c; }
+    .stat-card[data-tone="navy"]  .stat-icon-chip { background:#e9ecfa; color: var(--navy); }
+    .stat-card[data-tone="green"] .stat-icon-chip { background:#e2f7ec; color:#0f9d58; }
+
+    .stat-card .stat-value { font-family:'Plus Jakarta Sans',sans-serif; font-size:1.7rem; font-weight:800; color:#0f1729; line-height:1; position:relative; z-index:1; }
+    .stat-card .stat-label { color: var(--muted); font-size:.8rem; font-weight:500; margin-top:6px; position:relative; z-index:1; }
+
+    /* ── Next Class Banner ────────────────────────── */
+    .next-banner {
+      position:relative; overflow:hidden;
+      background: linear-gradient(120deg, var(--gold) 0%, #ffd94d 100%);
+      border-radius: 16px; border: 1px solid #ecd27a;
+      box-shadow: 0 10px 26px rgba(245,197,24,.28);
+    }
+    .next-banner::after {
+      content:''; position:absolute; top:-40px; right:-30px; width:190px; height:190px; border-radius:50%;
+      background: rgba(255,255,255,.22); pointer-events:none;
+    }
+    .next-banner > * { position:relative; z-index:1; }
+    .next-banner .eyebrow { font-size:.72rem; font-weight:800; letter-spacing:.12em; color: var(--navy); opacity:.8; }
     .next-banner .btn-view { background: var(--navy); color: #fff; border-radius: 10px; flex:1; }
-    .next-banner .btn-nav  { background: rgba(255,255,255,.25); color: var(--navy); border-radius: 10px; font-weight:600; }
+    .next-banner .btn-view:hover { background:#141f52; }
+    .next-banner .btn-nav  { background: rgba(255,255,255,.55); color: var(--navy); border-radius: 10px; font-weight:600; border: 1px solid rgba(11,22,64,.14); backdrop-filter: blur(4px); }
+    .next-banner .btn-nav:hover { background: rgba(255,255,255,.8); }
 
-    /* Schedule rows */
-    .schedule-row { border-radius: 10px; transition: background .15s; }
-    .schedule-row:hover { background: #F0F4FF; }
-    .time-badge { background: #F0F4FF; border-radius: 8px; font-size: .7rem; font-weight: 700; color: var(--navy); line-height:1.1; width: 52px; text-align:center; padding: 4px 0; }
-    .time-badge.pm { color: #E07B00; background: #FFF3DC; }
+    /* ── Panels ───────────────────────────────────── */
+    .panel-title { font-family:'Plus Jakarta Sans',sans-serif; font-weight:700; font-size:.95rem; color:#0f1729; }
 
-    /* Quick actions */
-    .qa-card { border-radius: 14px; border: 1px solid #e8eaf0; background: #fff; cursor:pointer; transition: box-shadow .15s; }
-    .qa-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.08); }
-    .qa-icon { width:42px; height:42px; border-radius:10px; display:grid; place-items:center; font-size:1.2rem; }
-    .notice-card { background: #fff; border-radius: 14px; border: 1px solid #e8eaf0; }
-    .home-empty { padding: 2.25rem 1rem; text-align: center; color: #6b7280; }
-    .home-empty-icon { width: 46px; height: 46px; margin: 0 auto 10px; display: grid; place-items: center; border-radius: 14px; background: #F0F4FF; color: var(--navy); font-size: 1.3rem; }
-    .student-home-hero { position:relative; overflow:hidden; margin:0 -32px 24px; padding:34px 32px 30px; color:#fff; background:linear-gradient(90deg,rgba(7,14,43,.94) 0%,rgba(11,22,64,.78) 46%,rgba(29,78,216,.3) 100%),url('/images/map.png') center/cover no-repeat; }
-    .student-home-hero-copy { position:relative; z-index:1; margin-bottom:24px; }
-    .student-home-hero h3 { color:#fff; font-size:1.55rem; }
-    .student-home-hero .hero-subtitle { color:rgba(255,255,255,.68); }
-    .student-home-stats { position:relative; z-index:1; padding:16px; border:1px solid #dce6f5; border-radius:18px; background:rgba(255,255,255,.96); box-shadow:0 10px 28px rgba(7,22,64,.14); }
-    .student-home-stats .stat-card { color:var(--student-text); background:#f8faff; border-color:#dce6f5; }
-    .student-home-stats .stat-card .fs-2 { color:var(--student-text) !important; }
-    .student-home-stats .stat-card .text-muted { color:#7585a0 !important; }
-    .student-home-stats .stat-card:hover { background:#fff; }
-    @media (max-width:768px) { .student-home-hero { margin:0 -16px 20px; padding:26px 20px 24px; } }
+    /* ── Schedule rows ────────────────────────────── */
+    .schedule-row {
+      border-radius: 14px; transition: all .2s cubic-bezier(.4,0,.2,1);
+      border: 1px solid transparent; position:relative;
+    }
+    .schedule-row:hover { background: #f8f9fd; border-color: var(--panel-border); transform: translateX(2px); }
+    .time-badge {
+      background: #f5f6fa; border-radius: 10px; font-size: .7rem; font-weight: 800; color: var(--navy);
+      line-height:1.15; width: 54px; text-align:center; padding: 7px 0; border: 1px solid var(--panel-border);
+    }
+    .time-badge.pm { color: var(--text-3, #7c8a9e); background: var(--bg, #f0f2f8); }
+    .schedule-row .course-badge { background:#f0f2fb; color:#374151; font-weight:600; }
+    .schedule-row .soon-badge { background:#fdf3d6; color:#a9760c; }
+
+    /* ── Quick actions ────────────────────────────── */
+    .qa-card {
+      border-radius: 14px; border: 1px solid var(--panel-border); background: #fff; cursor:pointer;
+      transition: all .2s cubic-bezier(.4,0,.2,1); box-shadow: var(--panel-shadow); padding: 16px;
+    }
+    .qa-card:hover { box-shadow: var(--panel-shadow-hover); border-color: #d7dcea; transform: translateY(-2px); }
+    .qa-icon { width:44px; height:44px; border-radius:11px; display:grid; place-items:center; font-size:1.2rem; background: #e9ecfa; color: var(--navy); flex-shrink:0; }
+    .qa-arrow { margin-left:auto; color: var(--muted-2); transition: transform .2s; }
+    .qa-card:hover .qa-arrow { transform: translateX(3px); color: var(--navy); }
+
+    .notice-card { background: #fff; border-radius: 14px; border: 1px solid var(--panel-border); box-shadow: var(--panel-shadow); padding: 16px; }
+    .notice-card .qa-icon { background:#e6f0fe; color:#1d4ed8; }
+
+    .home-empty { padding: 2.4rem 1rem; text-align: center; color: var(--muted); }
+    .home-empty-icon { width: 48px; height: 48px; margin: 0 auto 12px; display: grid; place-items: center; border-radius: 14px; background: #f5f6fa; color: var(--muted-2); font-size: 1.35rem; border: 1px solid var(--panel-border); }
+
+    @media (max-width:768px) {
+      .student-home-hero { margin:0 -16px 20px; padding:24px 16px; }
+      .student-home-hero-copy { align-items:flex-start; }
+    }
     @media (max-width: 768px) { #sidebar { width: 100%; min-height: auto; } body > .d-flex { display: block !important; } main { padding: 1.25rem !important; } }
   </style>
   <style>
-    .is-summary-loading { color: transparent !important; min-width: 2.5rem; min-height: 2rem; border-radius: 6px; background: linear-gradient(90deg,#eef1f5 25%,#fff 50%,#eef1f5 75%); background-size: 200% 100%; animation: summarySkeleton 1.35s ease-in-out infinite; }
+    .is-summary-loading { color: transparent !important; min-width: 2.5rem; min-height: 2rem; border-radius: 6px; background: linear-gradient(90deg,#f3f4f6 25%,#fff 50%,#f3f4f6 75%); background-size: 200% 100%; animation: summarySkeleton 1.35s ease-in-out infinite; }
     @keyframes summarySkeleton { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-    @media (prefers-reduced-motion: reduce) { .is-summary-loading { animation: none; background: #eef1f5; } }
+    @media (prefers-reduced-motion: reduce) { .is-summary-loading { animation: none; background: #f3f4f6; } }
   </style>
   @include('frontend.student._theme')
 </head>
@@ -80,36 +190,54 @@ $nav = [
 
   @include('frontend.student._sidebar')
 
-  <!-- Main -->
+  <!- Main ->
   <main class="flex-grow-1 p-4">
 
-    <!-- Topbar -->
+    <!- Topbar ->
     <div class="d-flex justify-content-between align-items-center mb-4">
-      <div><h5 class="fw-bold mb-0">Home</h5><small class="text-muted">{{ now()->format('l, F j, Y') }}</small></div>
-      <span class="text-muted small"><i class="bi bi-person-check me-1"></i>Student dashboard</span>
+      <div>
+        <div class="home-topbar-title">Home</div>
+        <small class="text-muted">{{ now()->format('l, F j, Y') }}</small>
+      </div>
+      <span class="home-topbar-pill"><i class="bi bi-person-check"></i>Student dashboard</span>
     </div>
 
     <section class="student-home-hero">
       <div class="student-home-hero-copy">
-        <h3 class="fw-bold mb-0">Good morning, {{ $firstName }}!</h3>
-        <p class="hero-subtitle mb-0">Here's your schedule for today</p>
+        <div>
+          <h3 class="fw-bold mb-0">Good morning, <span>{{ $firstName }}</span>!</h3>
+          <p class="hero-subtitle mb-0">Here's your schedule for today</p>
+        </div>
+        <span class="hero-id-chip"><i class="bi bi-person-vcard"></i>{{ $studentId }}</span>
       </div>
       <div class="student-home-stats">
         <div class="row g-3 mb-0">
-          @foreach ($stats as $s)
-            <div class="col-md-4">
-              <div class="stat-card p-4">
-                <i class="bi {{ $s['icon'] }} fs-4 {{ $s['color'] }}"></i>
-                <div class="fs-2 fw-bold mt-2" @isset($s['id']) id="{{ $s['id'] }}" @endisset @if($s['label'] === "Today's Classes") id="today-classes-count" @elseif($s['label'] === 'Next Class') id="next-class-time" @endif>{{ $s['value'] }}</div>
-                <div class="text-muted small">{{ $s['label'] }}</div>
-              </div>
+          <div class="col-md-4">
+            <div class="stat-card" data-tone="amber">
+              <div class="stat-icon-chip"><i class="bi bi-book"></i></div>
+              <div class="stat-value" id="today-classes-count">{{ $todayClassesCount ?? 0 }}</div>
+              <div class="stat-label">Today's Classes</div>
             </div>
-          @endforeach
+          </div>
+          <div class="col-md-4">
+            <div class="stat-card" data-tone="navy">
+              <div class="stat-icon-chip"><i class="bi bi-clock"></i></div>
+              <div class="stat-value" id="next-class-time">{{ $nextClassTime ?? 'N/A' }}</div>
+              <div class="stat-label">Next Class</div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="stat-card" data-tone="green">
+              <div class="stat-icon-chip"><i class="bi bi-building"></i></div>
+              <div class="stat-value" id="available-rooms-count">{{ $availableRoomsCount ?? 0 }}</div>
+              <div class="stat-label">Available Rooms</div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- Next Class Banner -->
+    <!- Next Class Banner ->
     @if (!empty($todaySchedules) && $todaySchedules->count() > 0)
       @php
         $nextClass = $todaySchedules->first(fn($s) => \Carbon\Carbon::parse($s->start_at)->greaterThan(now()));
@@ -117,13 +245,13 @@ $nav = [
       @if ($nextClass)
         <div class="next-banner p-4 mb-4">
           <div class="d-flex justify-content-between align-items-start mb-2">
-            <span class="fw-bold small" style="color:var(--navy);letter-spacing:.05em">NEXT CLASS</span>
+            <span class="eyebrow">NEXT CLASS</span>
             <span class="badge rounded-pill" style="background:var(--navy);padding:.5rem .9rem">Starts in {{ now()->diffInMinutes(\Carbon\Carbon::parse($nextClass->start_at)) }} min</span>
           </div>
           <h3 class="fw-bold mb-1" style="color:var(--navy)">{{ $nextClass->course_code ?? 'Course' }}</h3>
           <p class="mb-3" style="color:var(--navy);opacity:.75">{{ $nextClass->block_section ?? 'N/A' }} • {{ $nextClass->faculty_name ?? 'Faculty' }}</p>
           <div class="d-flex gap-3 mb-3 small" style="color:var(--navy)">
-            <span><i class="bi bi-clock me-1"></i>{{ \Carbon\Carbon::parse($nextClass->start_at)->format('H:i A') }} – {{ \Carbon\Carbon::parse($nextClass->end_at ?? $nextClass->start_at)->format('H:i A') }}</span>
+            <span><i class="bi bi-clock me-1"></i>{{ \Carbon\Carbon::parse($nextClass->start_at)->format('H:i A') }} - {{ \Carbon\Carbon::parse($nextClass->end_at ?? $nextClass->start_at)->format('H:i A') }}</span>
             <span><i class="bi bi-geo-alt me-1"></i>{{ $nextClass->classroom_name ?? 'Room TBA' }}</span>
           </div>
           <div class="d-flex gap-2">
@@ -134,14 +262,14 @@ $nav = [
       @endif
     @endif
 
-    <!-- Schedule + Quick Actions -->
+    <!- Schedule + Quick Actions ->
     <div class="row g-4">
 
-      <!-- Today's Schedule -->
+      <!- Today's Schedule ->
       <div class="col-lg-7">
         <div class="bg-white rounded-4 p-4 border">
           <div class="d-flex justify-content-between align-items-center mb-3">
-            <h6 class="fw-bold mb-0">Today's Schedule</h6>
+            <h6 class="panel-title mb-0">Today's Schedule</h6>
           </div>
           @php($todayRows = collect($todaySchedules ?? []))
           @forelse ($todayRows as $row)
@@ -152,9 +280,9 @@ $nav = [
               <div class="flex-grow-1">
                 <div class="fw-semibold small">
                   {{ $row->course?->code ?? $row->course_code ?? 'Course' }}
-                  <span class="badge bg-light text-secondary ms-1">{{ $row->block_section ?? 'N/A' }}</span>
+                  <span class="badge course-badge ms-1">{{ $row->block_section ?? 'N/A' }}</span>
                   @if (\Carbon\Carbon::parse($row->start_at)->greaterThan(now()))
-                    <span class="badge bg-warning text-dark ms-1">SOON</span>
+                    <span class="badge soon-badge ms-1">SOON</span>
                   @endif
                 </div>
                 <div class="text-muted" style="font-size:.75rem">
@@ -174,18 +302,19 @@ $nav = [
         </div>
       </div>
 
-      <!-- Quick Actions -->
+      <!- Quick Actions ->
       <div class="col-lg-5">
-        <h6 class="fw-bold mb-3">Quick Actions</h6>
+        <h6 class="panel-title mb-3">Quick Actions</h6>
 
-        <a href="{{ route('student.checkingRoom') }}" class="qa-card p-3 mb-3 d-flex align-items-center gap-3" style="text-decoration: none; color: inherit;">
-          <div class="qa-icon bg-light" style="color:var(--navy)"><i class="bi bi-building"></i></div>
+        <a href="{{ route('student.checkingRoom') }}" class="qa-card mb-3 d-flex align-items-center gap-3" style="text-decoration: none; color: inherit;">
+          <div class="qa-icon"><i class="bi bi-building"></i></div>
           <div><div class="fw-semibold small">Find Available Rooms</div><div class="text-muted" style="font-size:.75rem">Search for vacant classrooms</div></div>
+          <i class="bi bi-arrow-right qa-arrow"></i>
         </a>
 
-        <div class="notice-card p-3">
+        <div class="notice-card">
           <div class="d-flex gap-2 align-items-start">
-            <div class="qa-icon bg-light text-primary flex-shrink-0"><i class="bi bi-info-circle"></i></div>
+            <div class="qa-icon flex-shrink-0"><i class="bi bi-info-circle"></i></div>
             <div>
               <div class="fw-semibold small">Stay up to date</div>
               <p class="text-muted mb-0" style="font-size:.78rem">Room changes and attendance updates will appear here when they are available.</p>
@@ -194,7 +323,7 @@ $nav = [
         </div>
 
       </div>
-    </div><!-- /row -->
+    </div><!- /row ->
   </main>
 </div>
 <script>
@@ -239,9 +368,11 @@ $nav = [
         });
         homeSummaryLoaded = true;
       } catch (error) {
+      } finally {
         [todayClassesCount, nextClassTime, availableRoomsCount].forEach(function (element) {
           element?.classList.remove('is-summary-loading');
         });
+        homeSummaryLoaded = true;
       }
     }
 

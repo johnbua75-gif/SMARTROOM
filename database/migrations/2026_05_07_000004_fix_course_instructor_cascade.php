@@ -15,7 +15,7 @@ return new class extends Migration
         Schema::table('courses', function (Blueprint $table): void {
             // Drop the existing foreign key constraint
             $table->dropForeign(['instructor_user_id']);
-            
+
             // Recreate with nullOnDelete so course deletion doesn't cascade to user
             $table->foreign('instructor_user_id')
                 ->references('id')
@@ -32,7 +32,7 @@ return new class extends Migration
         Schema::table('courses', function (Blueprint $table): void {
             // Drop the new foreign key
             $table->dropForeign(['instructor_user_id']);
-            
+
             // Restore the original cascadeOnDelete
             $table->foreign('instructor_user_id')
                 ->references('id')

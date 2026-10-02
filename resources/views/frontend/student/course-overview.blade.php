@@ -12,12 +12,16 @@ $absentCount = $attendanceRecords->where('status', 'absent')->count();
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   <style>
-    :root { --navy: #1B2A5E; }
-    body { background: #F4F6FA; font-family: 'Segoe UI', sans-serif; }
-    .panel { border: 1px solid #e8eaf0; border-radius: 14px; background: #fff; }
-    .course-code { color: var(--navy); font-size: .8rem; font-weight: 800; letter-spacing: .06em; }
-    .muted { color: #6b7280; font-size: .82rem; }
-    .stat { border: 1px solid #e8eaf0; border-radius: 12px; background: #fff; }
+    :root { -navy: #0b1640; }
+.panel { border: 1px solid var(--border, #e4e8f0); border-radius: 14px; background: #fff; box-shadow: var(--shadow-sm, 0 2px 6px rgba(15,23,41,.06)); padding: 16px 24px !important; }
+    .course-code { color: var(--navy); font-size: .875rem; font-weight: 700; letter-spacing: .02em; }
+    .muted { color: var(--text-3, #7c8a9e); font-size: .875rem; }
+    .stat { border: 1px solid var(--border, #e4e8f0); border-radius: 14px; background: #fff; box-shadow: var(--shadow-sm, 0 2px 6px rgba(15,23,41,.06)); padding: 16px 24px !important; }
+    .text-success { color: #10b981 !important; }
+    .text-danger { color: #ef4444 !important; }
+    .text-bg-success { background-color: #10b981 !important; color: #fff !important; border-radius: 6px; }
+    .text-bg-danger { background-color: #ef4444 !important; color: #fff !important; border-radius: 6px; }
+    .border-bottom { border-bottom: 1px solid #e5e7eb !important; }
   </style>
   @include('frontend.student._theme')
 </head>

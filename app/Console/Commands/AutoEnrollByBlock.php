@@ -2,14 +2,15 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
-use App\Models\Student;
-use App\Models\Schedule;
 use App\Models\Enrollment;
+use App\Models\Schedule;
+use App\Models\Student;
+use Illuminate\Console\Command;
 
 class AutoEnrollByBlock extends Command
 {
     protected $signature = 'enroll:auto-by-block {--dry-run}';
+
     protected $description = 'Auto-enroll students into courses based on schedule block_section matching student.block_section';
 
     public function handle()
@@ -23,16 +24,20 @@ class AutoEnrollByBlock extends Command
 
         foreach ($students as $student) {
             $block = $student->block_section;
-            if (! $block) continue;
+            if (! $block) {
+                continue;
+            }
 
             $schedules = Schedule::where('block_section', $block)->get();
             foreach ($schedules as $sch) {
                 $courseId = $sch->course_id;
-                if (! $courseId) continue;
+                if (! $courseId) {
+                    continue;
+                }
 
                 $exists = Enrollment::where('student_id', $student->id)->where('course_id', $courseId)->exists();
                 if (! $exists) {
-                    $this->line(( $dry ? '[DRY] ' : '' ) . "Enroll: student={$student->id} course={$courseId} (schedule={$sch->id})");
+                    $this->line(($dry ? '[DRY] ' : '')."Enroll: student={$student->id} course={$courseId} (schedule={$sch->id})");
                     if (! $dry) {
                         Enrollment::create([
                             'student_id' => $student->id,
@@ -47,6 +52,7 @@ class AutoEnrollByBlock extends Command
         }
 
         $this->info("Auto-enroll completed. Created: {$created}");
+
         return 0;
     }
 }

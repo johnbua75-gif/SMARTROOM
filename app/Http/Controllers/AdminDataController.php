@@ -15,10 +15,10 @@ use App\Models\Course;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Throwable;
 
@@ -277,6 +277,7 @@ class AdminDataController extends Controller
 
         if (strtolower((string) ($user->role ?? '')) !== 'faculty') {
             $message = 'Only faculty accounts can be removed from the schedule assignment screen.';
+
             return $request->expectsJson()
                 ? response()->json(['message' => $message], 422)
                 : redirect()->back()->withErrors(['user' => $message]);
@@ -286,6 +287,7 @@ class AdminDataController extends Controller
 
         if (! $replacement || $replacement->id === $user->id || strtolower((string) ($replacement->role ?? '')) !== 'faculty') {
             $message = 'Select a valid replacement faculty account.';
+
             return $request->expectsJson()
                 ? response()->json(['message' => $message], 422)
                 : redirect()->back()->withErrors(['replacement_user_id' => $message]);

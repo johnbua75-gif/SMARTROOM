@@ -67,6 +67,7 @@ class StoreScheduleRequest extends FormRequest
                 $courseYearLevel = $course->yearLevel();
                 if ($courseYearLevel !== null && $courseYearLevel !== (int) $this->input('year_level')) {
                     $validator->errors()->add('course_id', 'Selected subject does not match the chosen year level.');
+
                     return;
                 }
             }

@@ -33,14 +33,13 @@
 
 /**
  * ISSUE #2: Fingerprint-to-User Mapping
- * PROBLEM: When fingerprint matches, code passes finger.fingerID as user_id
- *          But finger.fingerID is template ID (1-127), NOT database user_id
- * RISK: Access logs show wrong user (fingerprint ID ≠ user ID)
- * FIX: Need mapping table on ESP32 or query API to link fingerprint ID to user_id
+ * PROBLEM: A fingerprint template ID is not a database user ID.
+ * RISK: Access logs could identify the wrong user.
+ * FIX: The fixed firmware now denies fingerprint access until a server-side
+ *       template-to-user mapping is implemented.
  * 
- * OPTION A (Recommended): Query API with fingerprint ID to get user_id
- *   POST /api/v1/access-logs with fingerprint ID in metadata
- *   Let Laravel match fingerprint to user via database
+ * OPTION A (Recommended): Add a server-side fingerprint mapping table and a
+ *   device-scoped lookup endpoint before enabling fingerprint unlocks.
  * 
  * OPTION B: Store fingerprint-to-user mapping on ESP32 (in SPIFFS or hardcoded)
  * 
@@ -181,7 +180,7 @@ void setup() {
  * BACKEND API NOTES FOR YOUR ESP32:
  * 
  * 1. Your API token is valid ✅
- *    Token: 2|x9vhSh6kahXs4oQMWWmCBiEMdCfvxbFj1vhWyqn298d5968e
+ *    Token: YOUR_DEVICE_TOKEN
  * 
  * 2. Your classroom_id=1 (Room 15) exists ✅
  * 
@@ -226,13 +225,13 @@ void setup() {
 /*
 # Test RFID lookup:
 curl -X GET "http://192.168.1.15:8000/api/v1/access-cards?rfid_uid=47:6C:12:06&classroom_id=1" \
-  -H "Authorization: Bearer 2|x9vhSh6kahXs4oQMWWmCBiEMdCfvxbFj1vhWyqn298d5968e" \
+  -H "Authorization: Bearer YOUR_DEVICE_TOKEN" \
   -H "Accept: application/json"
 
 # Test log POST:
 curl -X POST "http://192.168.1.15:8000/api/v1/access-logs" \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer 2|x9vhSh6kahXs4oQMWWmCBiEMdCfvxbFj1vhWyqn298d5968e" \
+  -H "Authorization: Bearer YOUR_DEVICE_TOKEN" \
   -d '{
     "classroom_id": 1,
     "user_id": 8,

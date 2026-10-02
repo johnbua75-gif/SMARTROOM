@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Classroom;
 use App\Models\Reservation;
 use App\Models\Schedule;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 class AiRecommendationController extends Controller
 {

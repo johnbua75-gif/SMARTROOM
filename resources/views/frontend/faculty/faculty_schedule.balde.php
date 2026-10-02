@@ -1,23 +1,23 @@
 <?php
-$faculty_name = "Prof. Elena Santos";
-$faculty_dept = "Faculty of IT";
-$faculty_initials = "ES";
-$semester = "Spring Semester 2026";
+$faculty_name = 'Prof. Elena Santos';
+$faculty_dept = 'Faculty of IT';
+$faculty_initials = 'ES';
+$semester = 'Spring Semester 2026';
 
 $stats = [
-    ["label"=>"Total Subjects","value"=>"7"],
-    ["label"=>"Total Units","value"=>"21"],
-    ["label"=>"This Week","value"=>"18 hrs"],
+    ['label' => 'Total Subjects', 'value' => '7'],
+    ['label' => 'Total Units', 'value' => '21'],
+    ['label' => 'This Week', 'value' => '18 hrs'],
 ];
 
-$days = ["Mon","Tue","Wed","Thu","Fri"];
-$active_day = "Mon";
+$days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+$active_day = 'Mon';
 
 $schedule_by_day = [
-    "Mon" => [
-        ["start"=>"08:00","end"=>"10:00","subject"=>"Web Development","code"=>"IT-301","section"=>"BSIT 3A","room"=>"Room 101","type"=>"Lab"],
-        ["start"=>"10:30","end"=>"12:30","subject"=>"Database Systems","code"=>"IT-302","section"=>"BSIT 3B","room"=>"Lab 105","type"=>"Lab"],
-    ]
+    'Mon' => [
+        ['start' => '08:00', 'end' => '10:00', 'subject' => 'Web Development', 'code' => 'IT-301', 'section' => 'BSIT 3A', 'room' => 'Room 101', 'type' => 'Lab'],
+        ['start' => '10:30', 'end' => '12:30', 'subject' => 'Database Systems', 'code' => 'IT-302', 'section' => 'BSIT 3B', 'room' => 'Lab 105', 'type' => 'Lab'],
+    ],
 ];
 
 $active_classes = $schedule_by_day[$active_day] ?? [];
@@ -185,23 +185,23 @@ body{
 
     <!-- STATS -->
     <div class="stats">
-        <?php foreach($stats as $s): ?>
+        <?php foreach ($stats as $s) { ?>
         <div class="stat">
             <h3><?= $s['label'] ?></h3>
             <p><?= $s['value'] ?></p>
         </div>
-        <?php endforeach; ?>
+        <?php } ?>
     </div>
 
     <!-- CLASSES -->
-    <?php foreach($active_classes as $c): ?>
+    <?php foreach ($active_classes as $c) { ?>
     <div class="card">
         <div class="class-title"><?= $c['subject'] ?> (<?= $c['code'] ?>)</div>
         <div class="class-meta">
             <?= $c['start'] ?> - <?= $c['end'] ?> • <?= $c['room'] ?> • <?= $c['section'] ?>
         </div>
     </div>
-    <?php endforeach; ?>
+    <?php } ?>
 
 </div>
 

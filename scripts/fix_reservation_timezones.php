@@ -2,15 +2,14 @@
 // Fix reservations that were saved with local (Asia/Manila) times but stored as UTC.
 // Heuristic: if start_at - created_at >= 6 hours, assume it was stored as local time and shift -8 hours.
 
-require __DIR__ . '/../vendor/autoload.php';
+require __DIR__.'/../vendor/autoload.php';
 
-use Illuminate\Foundation\Application;
-use Illuminate\Support\Facades\DB;
 use App\Models\Reservation;
 use Carbon\Carbon;
+use Illuminate\Contracts\Console\Kernel;
 
-$app = require_once __DIR__ . '/../bootstrap/app.php';
-$kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
+$app = require_once __DIR__.'/../bootstrap/app.php';
+$kernel = $app->make(Kernel::class);
 $kernel->bootstrap();
 
 $now = Carbon::now('UTC');

@@ -1,12 +1,14 @@
 <?php
-require __DIR__ . '/../vendor/autoload.php';
-$app = require_once __DIR__ . '/../bootstrap/app.php';
-$kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
+
+require __DIR__.'/../vendor/autoload.php';
+$app = require_once __DIR__.'/../bootstrap/app.php';
+$kernel = $app->make(Kernel::class);
 $kernel->bootstrap();
 
-use Carbon\Carbon;
-use App\Models\User;
 use App\Models\Reservation;
+use App\Models\User;
+use Carbon\Carbon;
+use Illuminate\Contracts\Console\Kernel;
 
 $email = 'john.bagotsay@psu.edu.ph';
 $user = User::where('email', $email)->first();

@@ -2,6 +2,8 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Classroom;
+use App\Models\Device;
 use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
@@ -13,7 +15,7 @@ class CreateDeviceToken extends Command
      *
      * email: user email to attach token to (will create service user if --create-user)
      */
-    protected $signature = 'create:device-token {email} {name} {--abilities=*} {--create-user}';
+    protected $signature = 'create:device-token {email} {name} {--classroom-id=} {--abilities=*} {--create-user}';
 
     protected $description = 'Create a Sanctum API token for a device (service account).';
 
@@ -21,13 +23,27 @@ class CreateDeviceToken extends Command
     {
         $email = $this->argument('email');
         $name = $this->argument('name');
-        $abilities = $this->option('abilities') ?: ['reservations:create'];
+        $abilities = $this->option('abilities') ?: ['device:access'];
+        $classroomId = $this->option('classroom-id');
+
+        if (in_array('device:access', $abilities, true) && ! $classroomId) {
+            $this->error('The --classroom-id option is required for device:access tokens.');
+
+            return 1;
+        }
+
+        if ($classroomId && ! Classroom::query()->whereKey($classroomId)->exists()) {
+            $this->error("Classroom {$classroomId} does not exist.");
+
+            return 1;
+        }
 
         $user = User::where('email', $email)->first();
 
         if (! $user) {
             if (! $this->option('create-user')) {
                 $this->error("User with email {$email} not found. Use --create-user to create a service user.");
+
                 return 1;
             }
 
@@ -41,6 +57,18 @@ class CreateDeviceToken extends Command
         }
 
         $token = $user->createToken($name, $abilities);
+
+        if (in_array('device:access', $abilities, true)) {
+            $device = Device::query()->updateOrCreate(
+                ['name' => $name],
+                [
+                    'classroom_id' => (int) $classroomId,
+                    'status' => 'active',
+                ]
+            );
+
+            $token->accessToken->forceFill(['device_id' => $device->id])->save();
+        }
 
         $this->line('Token created successfully. Store this value securely:');
         $this->warn($token->plainTextToken);

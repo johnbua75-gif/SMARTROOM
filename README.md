@@ -123,9 +123,10 @@ This allows ESP32 devices on the same network to reach the API using your machin
 
 ### ESP32 API endpoints
 
-- **GET `/api/v1/access-cards?rfid_uid=XX:XX:XX:XX&classroom_id=1`** — Look up RFID card by UID
-  - Query params: `rfid_uid` (required), `classroom_id` (required)
+- **GET `/api/v1/access-cards?rfid_uid=XX:XX:XX:XX`** — Look up a faculty RFID card by UID
+  - Query params: `rfid_uid` (required)
   - Returns: Access card details if found; empty result if not found
+- The card identifies the faculty member and is not permanently tied to one room. Room authorization is checked separately using the device classroom and current schedule or reservation.
 
 - **POST `/api/v1/access-logs`** — Log an access attempt (RFID or fingerprint)
   - Required fields: `classroom_id`, `direction`, `result`, `accessed_at`
@@ -141,7 +142,13 @@ All API requests must include a Bearer token in the Authorization header:
 Authorization: Bearer your-sanctum-token
 ```
 
-Generate a token for an ESP32 device by creating a user account with appropriate permissions.
+Generate a device-scoped token with its classroom binding:
+
+```bash
+php artisan create:device-token esp32-room-15@example.com room-15 --create-user --classroom-id=40 --abilities=device:access
+```
+
+Only use the generated token on the matching device, and revoke it if the firmware or device is compromised.
 
 ## About Laravel
 

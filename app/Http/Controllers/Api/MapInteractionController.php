@@ -8,19 +8,19 @@ use App\Http\Requests\Api\MapRoomStatusRequest;
 use App\Models\Classroom;
 use App\Models\Reservation;
 use App\Services\RoomAvailabilityService;
-use Illuminate\Database\Eloquent\Builder;
+use App\Services\RoomMapService;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 class MapInteractionController extends Controller
 {
-    public function buildings(RoomAvailabilityService $availabilityService): JsonResponse
+    public function buildings(RoomMapService $roomMapService): JsonResponse
     {
         $classrooms = $this->itScopedClassrooms()->orderBy('building')->orderBy('name')->get();
         $now = now();
 
-        $buildings = $availabilityService->mapBuildingsWithCoordinates(
+        $buildings = $roomMapService->mapBuildingsWithCoordinates(
             $classrooms,
             $now->copy(),
             $now->copy()->addHour(),
@@ -32,12 +32,12 @@ class MapInteractionController extends Controller
         ]);
     }
 
-    public function roomsByBuilding(string $building, RoomAvailabilityService $availabilityService): JsonResponse
+    public function roomsByBuilding(string $building, RoomMapService $roomMapService): JsonResponse
     {
         $classrooms = $this->itScopedClassrooms()->orderBy('building')->orderBy('name')->get();
         $now = now();
 
-        $rooms = $availabilityService->roomsByBuilding(
+        $rooms = $roomMapService->roomsByBuilding(
             $classrooms,
             urldecode($building),
             $now->copy(),
@@ -57,7 +57,7 @@ class MapInteractionController extends Controller
         MapFixedScheduleRequest $request,
         Classroom $classroom,
         RoomAvailabilityService $availabilityService,
-        Request $webRequest
+        RoomMapService $roomMapService
     ): JsonResponse {
         if (! $this->isItScopedClassroom($classroom->id)) {
             abort(404);
@@ -77,9 +77,13 @@ class MapInteractionController extends Controller
             $mode = 'day';
         }
 
-        $schedules = $availabilityService->fixedSchedulesByRoom($classroom->id, $rangeStart, $rangeEnd);
-        $reservations = Reservation::query()
-            ->with('user')
+        $schedules = $roomMapService->fixedSchedulesByRoom(
+            $classroom->id,
+            $rangeStart,
+            $rangeEnd,
+            $mode === 'week'
+        );
+        $reservations = $availabilityService->itScopedReservations()
             ->where('classroom_id', $classroom->id)
             ->whereIn('status', ['reserved', 'approved'])
             ->where('start_at', '<', $rangeEnd)
@@ -89,11 +93,8 @@ class MapInteractionController extends Controller
             ->map(fn (Reservation $reservation): array => [
                 'id' => $reservation->id,
                 'status' => $reservation->status,
-                'reserved_by' => (string) ($reservation->user?->name ?? 'Faculty'),
-                'is_mine' => (int) $reservation->user_id === (int) $webRequest->user()?->id,
                 'start_at' => optional($reservation->start_at)->toIso8601String(),
                 'end_at' => optional($reservation->end_at)->toIso8601String(),
-                'notes' => $reservation->notes,
             ])
             ->values();
 
@@ -113,7 +114,7 @@ class MapInteractionController extends Controller
     public function roomStatus(
         MapRoomStatusRequest $request,
         Classroom $classroom,
-        RoomAvailabilityService $availabilityService
+        RoomMapService $roomMapService
     ): JsonResponse {
         if (! $this->isItScopedClassroom($classroom->id)) {
             abort(404);
@@ -122,7 +123,7 @@ class MapInteractionController extends Controller
         $validated = $request->validated();
         $at = isset($validated['at']) ? Carbon::parse((string) $validated['at']) : now();
 
-        $status = $availabilityService->roomCurrentStatus($classroom->id, $at);
+        $status = $roomMapService->roomCurrentStatus($classroom->id, $at);
 
         return response()->json([
             'data' => [
@@ -136,29 +137,11 @@ class MapInteractionController extends Controller
 
     private function itScopedClassrooms(): Builder
     {
-        return Classroom::query()->where(function (Builder $query): void {
-            $query->whereHas('schedules.course.instructor', function (Builder $scope): void {
-                $this->applyItDepartmentScope($scope);
-            })->orWhereHas('reservations.user', function (Builder $scope): void {
-                $this->applyItDepartmentScope($scope);
-            });
-        });
-    }
-
-    private function applyItDepartmentScope(Builder $query): void
-    {
-        $query->where(function (Builder $scope): void {
-            $scope->whereRaw("LOWER(COALESCE(department, '')) LIKE ?", ['%it%'])
-                ->orWhereRaw("LOWER(COALESCE(department, '')) LIKE ?", ['%cit%'])
-                ->orWhereRaw("LOWER(COALESCE(department, '')) LIKE ?", ['%cite%'])
-                ->orWhereRaw("LOWER(COALESCE(department, '')) LIKE ?", ['%information technology%']);
-        });
+        return app(RoomAvailabilityService::class)->itScopedClassrooms();
     }
 
     private function isItScopedClassroom(int $classroomId): bool
     {
-        return $this->itScopedClassrooms()
-            ->where('classrooms.id', $classroomId)
-            ->exists();
+        return $this->itScopedClassrooms()->whereKey($classroomId)->exists();
     }
 }

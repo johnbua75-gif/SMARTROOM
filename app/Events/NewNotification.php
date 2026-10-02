@@ -5,9 +5,6 @@ namespace App\Events;
 use App\Models\Notification;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PrivateChannel;
-use Illuminate\Broadcasting\PresenceChannel;
-use Illuminate\Broadcasting\ShouldBroadcast;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
@@ -31,6 +28,7 @@ class NewNotification implements ShouldBroadcastNow
     public function broadcastWith(): array
     {
         $n = $this->notification;
+
         return [
             'id' => $n->id,
             'type' => $n->type,
@@ -51,7 +49,7 @@ class NewNotification implements ShouldBroadcastNow
 
         // user-specific channel
         if ($this->notification->user_id) {
-            $channels[] = new Channel('notifications.user.' . $this->notification->user_id);
+            $channels[] = new Channel('notifications.user.'.$this->notification->user_id);
         }
 
         return $channels;

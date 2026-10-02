@@ -1,9 +1,14 @@
 <?php
 
+use App\Http\Middleware\EnsureDeviceAbility;
+use App\Http\Middleware\EnsurePasswordIsChanged;
+use App\Http\Middleware\EnsureUserRole;
+use App\Http\Middleware\TrackUserLastSeen;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -13,9 +18,17 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->trustProxies(at: ['127.0.0.1', '::1']);
+
         $middleware->web(append: [
-            \App\Http\Middleware\TrackUserLastSeen::class,
+            TrackUserLastSeen::class,
         ]);
+
+        $middleware->api(prepend: [
+            EnsureFrontendRequestsAreStateful::class,
+        ]);
+
+        $middleware->throttleApi('60,1');
 
         $middleware->redirectUsersTo(function (Request $request): string {
             $role = strtolower(trim((string) $request->user()?->role));
@@ -29,8 +42,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->redirectGuestsTo(static fn (): string => route('auth.login'));
 
         $middleware->alias([
-            'role' => \App\Http\Middleware\EnsureUserRole::class,
-            'password.changed' => \App\Http\Middleware\EnsurePasswordIsChanged::class,
+            'role' => EnsureUserRole::class,
+            'password.changed' => EnsurePasswordIsChanged::class,
+            'device.ability' => EnsureDeviceAbility::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

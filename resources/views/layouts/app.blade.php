@@ -3,27 +3,27 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>@yield('title', 'SmartRoom') – SmartRoom</title>
+    <title>@yield('title', 'SmartRoom') - SmartRoom</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3H59N9lWKQCaYMx50uDF08MkCsBPSP3E2McJ6+8WcGXflyZ2Zy1H56ZWDr8ZGhnPJ+9WMwQvvN4g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link href="{{ asset('css/classroom-detail.css') }}" rel="stylesheet"/>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --primary: #f5c518;
-            --primary-light: #fde97a;
-            --primary-dark: #d4a10a;
-            --blue: #112060;
-            --blue-light: #1a2f80;
-            --green: #16a34a;
-            --gray: #5a6785;
-            --gray-light: #eef2ff;
-            --gray-lighter: #f4f7ff;
-            --white: #ffffff;
-            --border: #dbe3f5;
-            --text: #0b1640;
-            --text-secondary: #5a6785;
-            --red: #ef4444;
+            -primary: #f5c518;
+            -primary-light: #fde97a;
+            -primary-dark: #d4a10a;
+            -blue: #112060;
+            -blue-light: #1a2f80;
+            -green: #16a34a;
+            -gray: #5a6785;
+            -gray-light: #eef2ff;
+            -gray-lighter: #f4f7ff;
+            -white: #ffffff;
+            -border: #dbe3f5;
+            -text: #0b1640;
+            -text-secondary: #5a6785;
+            -red: #ef4444;
         }
 
         *, *::before, *::after {
@@ -38,8 +38,8 @@
 
         body {
             font-family: 'Inter', sans-serif;
-            background: var(--gray-lighter);
-            color: var(--text);
+            background: var(-gray-lighter);
+            color: var(-text);
             overflow-x: hidden;
             line-height: 1.6;
         }
@@ -53,7 +53,7 @@
         /* ── SIDEBAR ── */
         .sidebar {
             width: 260px;
-            background: linear-gradient(180deg, var(--text) 0%, var(--blue) 100%);
+            background: linear-gradient(180deg, var(-text) 0%, var(-blue) 100%);
             border-right: 1px solid rgba(245, 197, 24, 0.18);
             display: flex;
             flex-direction: column;
@@ -87,7 +87,7 @@
             padding: 0 20px;
             margin-bottom: 40px;
             text-decoration: none;
-            color: var(--white);
+            color: var(-white);
             cursor: pointer;
             transition: all 0.3s;
         }
@@ -105,7 +105,7 @@
             display: flex;
             flex-direction: column;
             line-height: 1;
-            color: var(--white);
+            color: var(-white);
         }
 
         .sidebar-logo-text .brand-psu {
@@ -122,11 +122,11 @@
             font-weight: 700;
             font-size: 0.98rem;
             letter-spacing: -0.01em;
-            color: var(--white);
+            color: var(-white);
         }
 
         .sidebar-logo-text .door-accent {
-            color: var(--primary);
+            color: var(-primary);
         }
 
         .sidebar-nav {
@@ -152,7 +152,7 @@
         }
 
         .sidebar-nav a:hover {
-            color: var(--primary-light);
+            color: var(-primary-light);
             background: rgba(255, 255, 255, 0.06);
         }
 
@@ -163,12 +163,12 @@
             top: 0;
             bottom: 0;
             width: 4px;
-            background: var(--primary);
+            background: var(-primary);
             opacity: 0;
         }
 
         .sidebar-nav a.active {
-            color: var(--primary);
+            color: var(-primary);
             background: rgba(245, 197, 24, 0.16);
         }
 
@@ -196,7 +196,7 @@
         }
 
         .sidebar-logout a:hover {
-            color: var(--primary-light);
+            color: var(-primary-light);
             background: rgba(255, 255, 255, 0.06);
         }
 
@@ -205,7 +205,7 @@
             flex: 1;
             margin-left: 260px;
             overflow-y: auto;
-            background: var(--gray-lighter);
+            background: var(-gray-lighter);
             padding: 32px;
             z-index: 1;
         }
@@ -229,7 +229,7 @@
             justify-content: space-between;
             align-items: flex-start;
             margin-bottom: 32px;
-            background: var(--white);
+            background: var(-white);
             padding: 24px 28px;
             border-radius: 12px;
             border: 1px solid rgba(229, 231, 235, 0.6);
@@ -240,11 +240,11 @@
             font-size: 1.8rem;
             font-weight: 700;
             margin-bottom: 8px;
-            color: var(--text);
+            color: var(-text);
         }
 
         .page-subtitle {
-            color: var(--text-secondary);
+            color: var(-text-secondary);
             font-size: 0.9rem;
         }
 
@@ -264,7 +264,7 @@
             padding: 8px 16px;
             border-radius: 8px;
             background: transparent;
-            color: var(--text-secondary);
+            color: var(-text-secondary);
             text-decoration: none;
             font-size: 0.9rem;
             font-weight: 500;
@@ -272,7 +272,7 @@
         }
 
         .filter-icon-btn {
-            background: var(--white);
+            background: var(-white);
             border: 1px solid rgba(229, 231, 235, 0.6);
             width: 40px;
             height: 40px;
@@ -281,7 +281,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            color: var(--text-secondary);
+            color: var(-text-secondary);
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         }
 
@@ -293,7 +293,7 @@
         }
 
         .room-card {
-            background: var(--white);
+            background: var(-white);
             border: 1px solid rgba(229, 231, 235, 0.6);
             border-radius: 12px;
             overflow: hidden;
@@ -307,7 +307,7 @@
 
         .card-header {
             padding: 20px;
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid var(-border);
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
@@ -316,13 +316,13 @@
         .room-name {
             font-size: 1.1rem;
             font-weight: 700;
-            color: var(--text);
+            color: var(-text);
             margin-bottom: 4px;
         }
 
         .room-location {
             font-size: 0.85rem;
-            color: var(--text-secondary);
+            color: var(-text-secondary);
         }
 
         .room-status {
@@ -337,17 +337,17 @@
 
         .status-available {
             background: rgba(39, 174, 96, 0.1);
-            color: var(--green);
+            color: var(-green);
         }
 
         .status-occupied {
             background: rgba(26, 47, 128, 0.12);
-            color: var(--blue-light);
+            color: var(-blue-light);
         }
 
         .status-reserved {
             background: rgba(245, 197, 24, 0.14);
-            color: var(--primary);
+            color: var(-primary);
         }
 
         .card-body {
@@ -369,29 +369,29 @@
         }
 
         .info-label {
-            color: var(--text-secondary);
+            color: var(-text-secondary);
         }
 
         .info-value {
             font-weight: 600;
-            color: var(--text);
+            color: var(-text);
         }
 
         .room-class {
             padding: 12px;
             border-radius: 8px;
-            background: var(--gray-light);
+            background: var(-gray-light);
             font-size: 0.85rem;
         }
 
         .class-title {
             font-weight: 600;
-            color: var(--text);
+            color: var(-text);
             margin-bottom: 4px;
         }
 
         .class-time {
-            color: var(--text-secondary);
+            color: var(-text-secondary);
             font-size: 0.8rem;
         }
 
@@ -432,7 +432,7 @@
 </head>
 <body>
     <div class="container">
-        <!-- Sidebar -->
+        <!- Sidebar ->
         <div class="sidebar">
             <a href="#" class="sidebar-logo">
                 <img src="{{ asset('images/logo.png') }}" alt="PSU SmartDoor Logo" class="sidebar-logo-img">
@@ -447,9 +447,9 @@
                 <li><a href="/classrooms" class="{{ Request::is('classrooms*') ? 'active' : '' }}"><i class="fas fa-school"></i> Classrooms</a></li>
                 <li><a href="/schedule" class="{{ Request::is('schedule*') ? 'active' : '' }}"><i class="fas fa-calendar"></i> Schedule</a></li>
                 <li><a href="/smartlocking" class="{{ Request::is('smartlocking*') ? 'active' : '' }}"><i class="fas fa-lock"></i> SmartLocking</a></li>
-                <!-- AI Recommendations removed from sidebar -->
+                <!- AI Recommendations removed from sidebar ->
                 <li><a href="/attendance" class="{{ Request::is('attendance*') ? 'active' : '' }}"><i class="fas fa-clipboard-check"></i> Attendance</a></li>
-                <!-- Reports link removed from sidebar -->
+                <!- Reports link removed from sidebar ->
             </ul>
 
             <div class="sidebar-logout">
@@ -462,7 +462,7 @@
             </div>
         </div>
 
-        <!-- Main Content -->
+        <!- Main Content ->
         <div class="main-content">
             @yield('content')
         </div>

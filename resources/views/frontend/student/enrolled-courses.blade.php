@@ -10,11 +10,11 @@ $studentId = optional($student)->student_id ?? 'N/A';
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   <style>
-    :root { --navy: #1B2A5E; }
-    body { background: #F4F6FA; font-family: 'Segoe UI', sans-serif; }
-    .course-card { border: 1px solid #e8eaf0; border-radius: 14px; background: #fff; height: 100%; }
-    .course-code { color: var(--navy); font-size: .75rem; font-weight: 800; letter-spacing: .06em; }
-    .course-meta { color: #6b7280; font-size: .8rem; }
+    :root { -navy: #0b1640; }
+.course-card { border: 1px solid var(--border, #e4e8f0); border-radius: 14px; background: #fff; height: 100%; box-shadow: var(--shadow-sm, 0 2px 6px rgba(15,23,41,.06)); transition: transform 0.2s ease, box-shadow 0.2s ease; padding: 16px 24px !important; }
+    .course-card:hover { transform: translateY(-1px); box-shadow: 0 4px 6px rgba(0,0,0,.05); }
+    .course-code { color: var(--navy); font-size: .75rem; font-weight: 700; letter-spacing: .02em; }
+    .course-meta { color: var(--text-3, #7c8a9e); font-size: .875rem; }
   </style>
   @include('frontend.student._theme')
 </head>

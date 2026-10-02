@@ -1,11 +1,14 @@
 <?php
-require __DIR__ . '/../vendor/autoload.php';
-$app = require_once __DIR__ . '/../bootstrap/app.php';
-$kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
+
+require __DIR__.'/../vendor/autoload.php';
+$app = require_once __DIR__.'/../bootstrap/app.php';
+$kernel = $app->make(Kernel::class);
 $kernel->bootstrap();
 
 use App\Models\AccessLog;
 use App\Models\Reservation;
+use Carbon\Carbon;
+use Illuminate\Contracts\Console\Kernel;
 
 echo "Recent access logs (last 20) for classroom_id=1:\n";
 $logs = AccessLog::where('classroom_id', 1)->latest()->limit(20)->get();
@@ -18,7 +21,7 @@ foreach ($logs as $l) {
 }
 
 echo "\nActive reservations for classroom_id=1:\n";
-$now = \Carbon\Carbon::now()->utc();
+$now = Carbon::now()->utc();
 $res = Reservation::where('classroom_id', 1)
     ->where('end_at', '>=', $now)
     ->orderBy('start_at')

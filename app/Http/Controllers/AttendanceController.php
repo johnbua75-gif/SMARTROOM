@@ -2,17 +2,25 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\QuickStartAttendanceRequest;
+use App\Http\Requests\StartFromCardAttendanceRequest;
+use App\Http\Requests\StoreAttendanceRequest;
+use App\Http\Requests\StoreRecordAttendanceRequest;
+use App\Models\AccessCard;
+use App\Models\AttendanceRecord;
+use App\Models\AttendanceSession;
+use App\Models\Course;
+use App\Models\Enrollment;
+use App\Models\Schedule;
+use App\Models\Student;
+use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Log;
-use App\Models\Course;
-use App\Models\Schedule;
-use App\Models\AttendanceSession;
-use App\Models\AttendanceRecord;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class AttendanceController extends Controller
@@ -33,9 +41,11 @@ class AttendanceController extends Controller
         if ($filterCourse) {
             // attendance_sessions table doesn't have a reliable `course_id` column in some schemas,
             // filter by the schedule's course instead.
-            $q->whereHas('schedule', fn($qq) => $qq->where('course_id', $filterCourse));
+            $q->whereHas('schedule', fn ($qq) => $qq->where('course_id', $filterCourse));
         }
-        if ($filterStatus) $q->where('status', $filterStatus);
+        if ($filterStatus) {
+            $q->where('status', $filterStatus);
+        }
         if ($filterMonth) {
             [$y, $m] = explode('-', $filterMonth);
             $q->whereYear('date', $y)->whereMonth('date', $m);
@@ -50,10 +60,9 @@ class AttendanceController extends Controller
         $thisMonth = AttendanceSession::where('created_by', Auth::id())->whereYear('date', now()->year)->whereMonth('date', now()->month)->count();
 
         $overallRate = 0;
-        $records = AttendanceRecord::whereHas('session', fn($q) => $q->where('created_by', Auth::id()))->get();
+        $records = AttendanceRecord::whereHas('session', fn ($q) => $q->where('created_by', Auth::id()))->get();
         if ($records->count() > 0) {
-            $attendedRecords = $records->filter(fn (AttendanceRecord $record): bool =>
-                (bool) $record->present || in_array($record->status, ['present', 'late'], true)
+            $attendedRecords = $records->filter(fn (AttendanceRecord $record): bool => (bool) $record->present || in_array($record->status, ['present', 'late'], true)
             )->count();
             $overallRate = round(100 * ($attendedRecords / $records->count()), 1);
         }
@@ -63,7 +72,7 @@ class AttendanceController extends Controller
         // attendance_sessions may not have a course_id column; derive course count from schedules
         $scheduleIds = AttendanceSession::where('created_by', Auth::id())->pluck('schedule_id')->filter()->unique()->toArray();
         $coursesCount = 0;
-        if (!empty($scheduleIds)) {
+        if (! empty($scheduleIds)) {
             $coursesCount = Schedule::whereIn('id', $scheduleIds)->distinct('course_id')->count('course_id');
         }
 
@@ -82,7 +91,7 @@ class AttendanceController extends Controller
         $facultyScheduleQuery = Schedule::whereHas('course', function ($q) {
             $q->where('instructor_user_id', Auth::id());
         });
-        
+
         $attendanceCards = (clone $facultyScheduleQuery)
             ->with(['classroom', 'course'])
             ->orderBy('start_at')
@@ -122,19 +131,19 @@ class AttendanceController extends Controller
                 $courseTitle = (string) ($primary->course?->title ?? 'Untitled Subject');
                 $roomName = (string) ($primary->classroom?->name ?? 'Room N/A');
                 $building = (string) ($primary->classroom?->building ?? '');
-                $section = (string) ($primary->block_section ?? '—');
+                $section = (string) ($primary->block_section ?? '-');
 
                 return [
                     'schedule_id' => (int) $primary->id,
                     'course_code' => $courseCode,
                     'subject' => $courseTitle,
                     'section' => $section,
-                    'room' => trim($roomName . ($building !== '' ? ', ' . $building : '')),
+                    'room' => trim($roomName.($building !== '' ? ', '.$building : '')),
                     'time' => $primary->start_at
-                        ? $primary->start_at->format('g:i A') . ($primary->end_at ? ' - ' . $primary->end_at->format('g:i A') : '')
+                        ? $primary->start_at->format('g:i A').($primary->end_at ? ' - '.$primary->end_at->format('g:i A') : '')
                         : 'TBA',
                     'status' => $status,
-                    'search' => strtolower(trim($courseCode . ' ' . $courseTitle . ' ' . $section . ' ' . $roomName . ' ' . $building)),
+                    'search' => strtolower(trim($courseCode.' '.$courseTitle.' '.$section.' '.$roomName.' '.$building)),
                 ];
             })
             ->filter()
@@ -144,12 +153,9 @@ class AttendanceController extends Controller
         return view('frontend.faculty.attendance', compact('courses', 'sessions', 'stats', 'attendanceCards', 'filterCourse', 'filterStatus', 'filterMonth'));
     }
 
-    public function store(Request $request)
+    public function store(StoreAttendanceRequest $request)
     {
-        $request->validate([
-            'schedule_id' => 'sometimes|nullable|integer|exists:schedules,id',
-            'session_date' => 'required|date',
-        ]);
+        $request->validated();
 
         $schedule = null;
         $scheduleId = $request->input('schedule_id');
@@ -206,7 +212,7 @@ class AttendanceController extends Controller
             'schedule.classroom',
             'course',
         ])->find($id);
-        if (!$session) {
+        if (! $session) {
             return redirect()->route('faculty.attendance')->with('error', 'Session not found.');
         }
 
@@ -223,8 +229,7 @@ class AttendanceController extends Controller
         $classroom = $session->schedule?->classroom;
 
         $records = $session->records ?? collect();
-        $presentRecords = $records->filter(fn (AttendanceRecord $record): bool =>
-            (bool) $record->present || in_array($record->status, ['present', 'late'], true)
+        $presentRecords = $records->filter(fn (AttendanceRecord $record): bool => (bool) $record->present || in_array($record->status, ['present', 'late'], true)
         );
         $stats = [
             'total' => $records->count(),
@@ -265,9 +270,12 @@ class AttendanceController extends Controller
     public function showQr($id)
     {
         $session = AttendanceSession::find($id);
-        if (! $session) return redirect()->route('faculty.attendance')->with('error', 'Session not found');
+        if (! $session) {
+            return redirect()->route('faculty.attendance')->with('error', 'Session not found');
+        }
 
         $checkinUrl = route('attendance.checkin.show', $session->token);
+
         return view('frontend.faculty.attendance-qr', compact('session', 'checkinUrl'));
     }
 
@@ -342,7 +350,7 @@ class AttendanceController extends Controller
 
         $studentIds = $records->pluck('student_id')->filter()->map(fn ($id): int => (int) $id);
         $studentNumbers = $records->pluck('student_id_number')->filter()->values();
-        $students = \App\Models\Student::query()
+        $students = Student::query()
             ->where(function ($query) use ($studentIds, $studentNumbers): void {
                 $query->whereIn('id', $studentIds)
                     ->orWhereIn('student_id', $studentNumbers);
@@ -357,7 +365,7 @@ class AttendanceController extends Controller
             'session' => [
                 'id' => $session->id,
                 'course' => $session->course?->code ?? $session->schedule?->course?->code ?? 'Attendance Session',
-                'date' => $session->date ? Carbon::parse((string) $session->date)->format('M j, Y') : '—',
+                'date' => $session->date ? Carbon::parse((string) $session->date)->format('M j, Y') : '-',
             ],
             'students' => $records->map(function (AttendanceRecord $record) use ($students, $studentsByNumber, $defaultBlock): array {
                 $student = $students->get((int) $record->student_id)
@@ -366,7 +374,7 @@ class AttendanceController extends Controller
 
                 return [
                     'name' => $record->student_name,
-                    'student_id' => $record->student_id_number ?? $student?->student_id ?? '—',
+                    'student_id' => $record->student_id_number ?? $student?->student_id ?? '-',
                     'block' => $student?->block_section ?? $defaultBlock ?? 'Unassigned',
                     'status' => $status ?: ($record->present ? 'present' : 'absent'),
                     'checked_in' => $record->time_in !== null,
@@ -403,18 +411,17 @@ class AttendanceController extends Controller
         $total = AttendanceSession::where('created_by', Auth::id())->count();
         $thisMonth = AttendanceSession::where('created_by', Auth::id())->whereYear('date', now()->year)->whereMonth('date', now()->month)->count();
 
-        $records = AttendanceRecord::whereHas('session', fn($q) => $q->where('created_by', Auth::id()))->get();
+        $records = AttendanceRecord::whereHas('session', fn ($q) => $q->where('created_by', Auth::id()))->get();
         $rate = 0;
         if ($records->count() > 0) {
-            $attendedRecords = $records->filter(fn (AttendanceRecord $record): bool =>
-                (bool) $record->present || in_array($record->status, ['present', 'late'], true)
+            $attendedRecords = $records->filter(fn (AttendanceRecord $record): bool => (bool) $record->present || in_array($record->status, ['present', 'late'], true)
             )->count();
             $rate = round(100 * ($attendedRecords / $records->count()), 1);
         }
 
         $scheduleIds = AttendanceSession::where('created_by', Auth::id())->pluck('schedule_id')->filter()->unique()->toArray();
         $coursesCount = 0;
-        if (!empty($scheduleIds)) {
+        if (! empty($scheduleIds)) {
             $coursesCount = Schedule::whereIn('id', $scheduleIds)->distinct('course_id')->count('course_id');
         }
 
@@ -423,15 +430,14 @@ class AttendanceController extends Controller
         return view('frontend.faculty.attendance-dashboard', compact('sessions', 'stats'));
     }
 
-    public function storeRecord(Request $request, $id)
+    public function storeRecord(StoreRecordAttendanceRequest $request, $id)
     {
-        $request->validate([
-            'student_name' => 'required|string',
-            'present' => 'required|in:0,1',
-        ]);
+        $request->validated();
 
         $session = AttendanceSession::find($id);
-        if (!$session) return redirect()->back()->with('error', 'Session not found.');
+        if (! $session) {
+            return redirect()->back()->with('error', 'Session not found.');
+        }
 
         AttendanceRecord::create([
             'attendance_session_id' => $session->id,
@@ -448,12 +454,12 @@ class AttendanceController extends Controller
     public function storeRecordsBulk(Request $request, $id)
     {
         $session = AttendanceSession::find($id);
-        if (!$session) {
+        if (! $session) {
             return response()->json(['success' => false, 'message' => 'Session not found.'], 404);
         }
 
         $payload = $request->input('records');
-        if (!is_array($payload)) {
+        if (! is_array($payload)) {
             return response()->json(['success' => false, 'message' => 'Invalid payload.'], 400);
         }
 
@@ -462,7 +468,9 @@ class AttendanceController extends Controller
             AttendanceRecord::where('attendance_session_id', $session->id)->delete();
             foreach ($payload as $r) {
                 $name = trim($r['student_name'] ?? '');
-                if ($name === '') continue;
+                if ($name === '') {
+                    continue;
+                }
                 $status = $r['status'] ?? 'present';
                 $present = in_array($status, ['present', 'late']);
                 AttendanceRecord::create([
@@ -488,7 +496,7 @@ class AttendanceController extends Controller
             ->whereKey($id)
             ->where('created_by', Auth::id())
             ->first();
-        if (!$session) {
+        if (! $session) {
             return response()->json(['success' => false, 'message' => 'Session not found.'], 404);
         }
         $session->status = 'closed';
@@ -501,11 +509,11 @@ class AttendanceController extends Controller
     public function export($id)
     {
         $session = AttendanceSession::with('records')->find($id);
-        if (!$session) {
+        if (! $session) {
             return redirect()->route('faculty.attendance')->with('error', 'Session not found.');
         }
 
-        $filename = 'attendance_export_' . $session->id . '.csv';
+        $filename = 'attendance_export_'.$session->id.'.csv';
         $rows = [];
         $rows[] = ['Date', 'Course', 'Room', 'Session Status', 'Student', 'Student ID', 'Attendance Status', 'Present', 'Remarks'];
         foreach ($session->records as $r) {
@@ -515,7 +523,9 @@ class AttendanceController extends Controller
         }
 
         $handle = fopen('php://temp', 'r+');
-        foreach ($rows as $row) { fputcsv($handle, $row); }
+        foreach ($rows as $row) {
+            fputcsv($handle, $row);
+        }
         rewind($handle);
         $csv = stream_get_contents($handle);
         fclose($handle);
@@ -553,7 +563,7 @@ class AttendanceController extends Controller
         // Only enrolled students should be able to check in.
         $courseId = $session->course_id ?: optional($session->schedule)->course_id;
         if ($courseId) {
-            $isEnrolled = \App\Models\Enrollment::where('student_id', $student->id)
+            $isEnrolled = Enrollment::where('student_id', $student->id)
                 ->where('course_id', $courseId)
                 ->whereIn('status', ['active', 'enrolled'])
                 ->exists();
@@ -573,7 +583,7 @@ class AttendanceController extends Controller
         }
 
         $startReference = $session->started_at
-            ? \Carbon\Carbon::parse(($session->date ?? now()->toDateString()) . ' ' . $session->started_at)
+            ? Carbon::parse(($session->date ?? now()->toDateString()).' '.$session->started_at)
             : $session->created_at;
         $minutesLate = $startReference ? $startReference->diffInMinutes(now(), false) : 0;
         $status = $minutesLate <= 5 ? 'present' : 'late';
@@ -605,7 +615,7 @@ class AttendanceController extends Controller
     public function getInstructorCourses(Request $request)
     {
         $userId = Auth::id();
-        $now = \Carbon\Carbon::now();
+        $now = Carbon::now();
 
         // Get all courses assigned to this instructor
         $courses = Course::where('instructor_user_id', $userId)
@@ -621,7 +631,7 @@ class AttendanceController extends Controller
             // Get the next upcoming schedule for this course
             $nextSchedule = $course->schedules->first();
 
-            if (!$nextSchedule) {
+            if (! $nextSchedule) {
                 return null;
             }
 
@@ -652,7 +662,7 @@ class AttendanceController extends Controller
                 'schedule_id' => $nextSchedule->id,
                 'schedule_start' => $startTime ? $startTime->format('g:i A') : 'TBA',
                 'schedule_time' => $startTime && $endTime
-                    ? $startTime->format('g:i A') . ' - ' . $endTime->format('g:i A')
+                    ? $startTime->format('g:i A').' - '.$endTime->format('g:i A')
                     : 'TBA',
                 'status' => $status,
                 'enrolled' => $nextSchedule->enrolled ?? 0,
@@ -672,18 +682,16 @@ class AttendanceController extends Controller
      * Quick attendance start: Auto-create or resume session
      * Prevents duplicate sessions for the same schedule and day
      */
-    public function quickAttendanceStart(Request $request)
+    public function quickAttendanceStart(QuickStartAttendanceRequest $request)
     {
         try {
-            $request->validate([
-                'schedule_id' => 'required|integer|exists:schedules,id',
-            ]);
+            $request->validated();
 
             $userId = Auth::id();
             $scheduleId = $request->input('schedule_id');
             $schedule = Schedule::with('course', 'classroom')->find($scheduleId);
 
-            if (!$schedule) {
+            if (! $schedule) {
                 return response()->json(['success' => false, 'message' => 'Schedule not found'], 404);
             }
 
@@ -694,7 +702,7 @@ class AttendanceController extends Controller
 
             [$session, $message, $created] = $this->openOrResumeScheduleSession($schedule);
 
-            if (!$session || !$session->id) {
+            if (! $session || ! $session->id) {
                 return response()->json(['success' => false, 'message' => 'Failed to create attendance session'], 500);
             }
 
@@ -708,11 +716,12 @@ class AttendanceController extends Controller
                 'created' => $created,
             ]);
         } catch (\Exception $e) {
-            Log::error('quickAttendanceStart error: ' . $e->getMessage(), [
+            Log::error('quickAttendanceStart error: '.$e->getMessage(), [
                 'schedule_id' => $request->input('schedule_id'),
                 'user_id' => Auth::id(),
             ]);
-            return response()->json(['success' => false, 'message' => 'Server error: ' . $e->getMessage()], 500);
+
+            return response()->json(['success' => false, 'message' => 'Server error: '.$e->getMessage()], 500);
         }
     }
 
@@ -720,12 +729,9 @@ class AttendanceController extends Controller
      * Start attendance session when faculty taps card (card reader webhook).
      * Expects: card_number, optional schedule_id
      */
-    public function startFromCard(Request $request)
+    public function startFromCard(StartFromCardAttendanceRequest $request)
     {
-        $request->validate([
-            'card_number' => 'required|string',
-            'schedule_id' => 'sometimes|integer|exists:schedules,id',
-        ]);
+        $request->validated();
 
         // optional secret header validation
         $hookSecret = env('CARD_HOOK_SECRET');
@@ -735,7 +741,7 @@ class AttendanceController extends Controller
                 return response()->json(['message' => 'Invalid hook secret'], 403);
             }
         }
-        $card = \App\Models\AccessCard::where('card_number', $request->input('card_number'))->first();
+        $card = AccessCard::where('card_number', $request->input('card_number'))->first();
         if (! $card || ! $card->user) {
             return response()->json(['message' => 'Access card not recognized'], 404);
         }
@@ -756,7 +762,7 @@ class AttendanceController extends Controller
         }
 
         if ($schedule) {
-            [$session, $message] = $this->openOrResumeScheduleSession($schedule, 'Started by card: ' . $card->card_number);
+            [$session, $message] = $this->openOrResumeScheduleSession($schedule, 'Started by card: '.$card->card_number);
 
             return response()->json([
                 'message' => $message,
@@ -767,14 +773,14 @@ class AttendanceController extends Controller
             ], 201);
         }
 
-        $token = \Illuminate\Support\Str::upper(\Illuminate\Support\Str::random(8));
+        $token = Str::upper(Str::random(8));
         $session = AttendanceSession::create([
             'schedule_id' => $schedule?->id,
             'room' => $schedule?->classroom?->name ?? $card->classroom?->name ?? null,
             'date' => now()->format('Y-m-d'),
             'started_at' => now()->format('H:i:s'),
             'status' => 'open',
-            'remarks' => 'Started by card: ' . $card->card_number,
+            'remarks' => 'Started by card: '.$card->card_number,
             'created_by' => $user->id,
             'faculty_user_id' => $user->id,
             'token' => $token,
@@ -843,7 +849,7 @@ class AttendanceController extends Controller
                 return [$session, 'Attendance session started successfully.', true];
             });
         } catch (\Exception $e) {
-            Log::error('openOrResumeScheduleSession failed: ' . $e->getMessage(), [
+            Log::error('openOrResumeScheduleSession failed: '.$e->getMessage(), [
                 'schedule_id' => $schedule->id,
                 'trace' => $e->getTraceAsString(),
             ]);
@@ -859,7 +865,7 @@ class AttendanceController extends Controller
             return;
         }
 
-        $enrollments = \App\Models\Enrollment::query()
+        $enrollments = Enrollment::query()
             ->where('course_id', $courseId)
             ->whereIn('status', ['active', 'enrolled'])
             ->with('student')
@@ -889,14 +895,14 @@ class AttendanceController extends Controller
     public function searchStudents(Request $request)
     {
         $email = $request->query('email');
-        if (!$email || strlen($email) < 2) {
+        if (! $email || strlen($email) < 2) {
             return response()->json(['success' => false, 'students' => []]);
         }
 
         try {
             // Search for users with matching email (typically students)
-            $students = \App\Models\User::query()
-                ->where('email', 'ilike', '%' . $email . '%')
+            $students = User::query()
+                ->where('email', 'ilike', '%'.$email.'%')
                 ->where(function ($q) {
                     // Include users with role 'student' or no specific restriction
                     $q->where('role', 'student')->orWhereNull('role');
@@ -915,7 +921,8 @@ class AttendanceController extends Controller
 
             return response()->json(['success' => true, 'students' => $students]);
         } catch (\Exception $e) {
-            Log::error('searchStudents error: ' . $e->getMessage());
+            Log::error('searchStudents error: '.$e->getMessage());
+
             return response()->json(['success' => false, 'students' => [], 'error' => $e->getMessage()], 500);
         }
     }

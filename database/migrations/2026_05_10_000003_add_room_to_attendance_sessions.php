@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (Schema::hasTable('attendance_sessions') && !Schema::hasColumn('attendance_sessions', 'room')) {
+        if (Schema::hasTable('attendance_sessions') && ! Schema::hasColumn('attendance_sessions', 'room')) {
             Schema::table('attendance_sessions', function (Blueprint $table): void {
                 $table->string('room')->nullable()->after('date');
             });

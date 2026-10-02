@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 $facultyName = $facultyName ?? request()->user()?->name ?? 'Faculty';
 $facultyDept = $facultyDept ?? request()->user()?->department ?? 'Faculty';
 $facultyEmail = $facultyEmail ?? request()->user()?->email ?? '';
@@ -707,7 +707,7 @@ body{
     <!-- AI Recommendations removed from sidebar -->
     <li>
       <a href="{{ route('faculty.rfid.verification') }}" class="{{ Request::is('rfid-verification') ? 'active' : '' }}">
-        <span class="nav-icon"><i class="fas fa-id-card"></i></span>RFID Verification
+        <span class="nav-icon"><i class="fas fa-id-card"></i></span>RFID
       </a>
     </li>
     <li><a href="{{ route('faculty.notifications') }}" class="{{ Request::routeIs('faculty.notifications') ? 'active' : '' }}"><span class="nav-icon"><i class="fas fa-bell"></i></span>Notifications</a></li>
@@ -993,18 +993,28 @@ body{
 </div>
 
 <div class="reserve-overlay" id="checkOverlay" aria-hidden="true">
-  <div class="reserve-modal" role="dialog" aria-modal="true" aria-labelledby="checkTitle">
-    <div class="reserve-head">
-      <div>
-        <div class="reserve-title" id="checkTitle">Check Availability</div>
-        <div class="reserve-sub" id="checkRoomName">Select a time range</div>
+  <div class="reserve-modal" role="dialog" aria-modal="true" aria-labelledby="checkTitle" style="width:min(1100px,calc(100% - 40px));max-height:min(820px,calc(100vh - 40px));overflow:hidden;display:flex;flex-direction:column">
+    <div style="position:relative;min-height:110px;display:flex;align-items:flex-end;padding:20px 24px;overflow:hidden;background:linear-gradient(100deg,rgba(11,22,64,.92),rgba(11,22,64,.45)),url('/images/map.png') center/cover no-repeat;color:#fff;flex-shrink:0;border-radius:var(--r-lg,16px) var(--r-lg,16px) 0 0">
+      <div style="position:absolute;top:0;right:0;width:100px;height:100%;background:linear-gradient(135deg,rgba(245,197,24,.2),transparent);pointer-events:none"></div>
+      <div style="position:absolute;inset:0;background:linear-gradient(180deg,transparent 30%,rgba(11,22,64,.4));pointer-events:none"></div>
+      <div style="position:relative;z-index:1">
+        <div style="font-size:.65rem;font-weight:800;letter-spacing:.16em;opacity:.7;text-transform:uppercase">ROOM SCHEDULE</div>
+        <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:1.5rem;font-weight:800;display:flex;align-items:center;gap:8px" id="checkTitle"><i class="fas fa-calendar-alt" style="font-size:.9rem;opacity:.7"></i> <span id="checkRoomName">Room</span></div>
       </div>
-      <button type="button" class="reserve-close" id="checkCloseBtn" aria-label="Close availability dialog">
+      <button type="button" class="reserve-close" id="checkCloseBtn" aria-label="Close" style="position:absolute;top:14px;right:14px;z-index:2;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;backdrop-filter:blur(6px)">
         <i class="fas fa-xmark"></i>
       </button>
     </div>
-    <form id="checkForm" class="reserve-body">
+    <form id="checkForm" class="reserve-body" style="flex:1;overflow-y:auto;max-height:calc(100vh - 200px)">
       <input type="hidden" id="checkRoomId" name="classroom_id">
+
+      <div id="checkTimetableWrap" style="margin-bottom:16px;overflow-x:auto;border:1px solid #d4daf0;border-radius:10px">
+        <table id="checkTimetable" style="width:100%;min-width:780px;border-collapse:collapse;font-size:.7rem"></table>
+      </div>
+      <div id="checkTimetableLegend" style="display:none;gap:14px;margin-bottom:14px;font-size:.72rem;color:#5b6577;font-weight:600">
+        <span style="display:inline-flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:3px;background:#dde3fa;border:1px solid #c7d0ee;display:inline-block"></span> Class</span>
+        <span style="display:inline-flex;align-items:center;gap:5px;margin-left:12px"><span style="width:10px;height:10px;border-radius:3px;background:#fdf0b8;border:1px solid #f0dc7a;display:inline-block"></span> Reservation</span>
+      </div>
 
       <div class="reserve-group">
         <label class="reserve-label" for="checkStartAt">Start</label>
@@ -1105,6 +1115,9 @@ document.addEventListener('DOMContentLoaded', function () {
   var checkResultBox = document.getElementById('checkResultBox');
   var checkCancelledBox = document.getElementById('checkCancelledBox');
   var checkCancelledList = document.getElementById('checkCancelledList');
+  var checkTimetable = document.getElementById('checkTimetable');
+  var checkTimetableWrap = document.getElementById('checkTimetableWrap');
+  var checkTimetableLegend = document.getElementById('checkTimetableLegend');
   var checkSubmitBtn = document.getElementById('checkSubmitBtn');
   var toastWrap = document.getElementById('toastWrap');
   var roomDetailOverlay = document.getElementById('roomDetailOverlay');
@@ -1307,6 +1320,55 @@ document.addEventListener('DOMContentLoaded', function () {
     document.body.style.overflow = '';
   }
 
+  /* ── Timetable grid for check modal ── */
+  var TT_HOURS=[7,8,9,10,11,12,13,14,15,16,17,18,19];
+  var TT_LABELS=['7-8','8-9','9-10','10-11','11-12','12-1','1-2','2-3','3-4','4-5','5-6','6-7','7-8'];
+  var TT_DAYS=['MON','TUE','WED','THU','FRI','SAT','SUN'];
+  var TT_DAYMAP={1:'MON',2:'TUE',3:'WED',4:'THU',5:'FRI',6:'SAT',0:'SUN'};
+  function renderTimetable(payload){
+    if(!checkTimetable)return;
+    var entries=[];
+    (payload.schedules||[]).forEach(function(s){entries.push(Object.assign({},s,{kind:'class'}));});
+    (payload.reservations||[]).forEach(function(r){entries.push(Object.assign({},r,{kind:'reservation',course:r.course||'Reserved'}));});
+    var grid={};TT_DAYS.forEach(function(d){grid[d]={};});
+    entries.forEach(function(e){
+      var st=e.start_time?e.start_time.split(':').map(Number):null;
+      var en=e.end_time?e.end_time.split(':').map(Number):null;
+      var startDate=e.start_at?new Date(e.start_at):null;
+      var endDate=e.end_at?new Date(e.end_at):null;
+      var dayOfWeek=Number.isInteger(Number(e.day_of_week))?Number(e.day_of_week):(startDate?startDate.getDay():1);
+      var dk=TT_DAYMAP[dayOfWeek]||'MON';
+      var sh=st?st[0]+(st[1]/60):startDate?startDate.getHours():7;
+      var eh=en?en[0]+(en[1]/60):endDate?endDate.getHours():sh+1;
+      var firstHour=Math.floor(sh),lastHour=Math.ceil(eh),sp=Math.max(1,lastHour-firstHour);
+      sh=firstHour;
+      if(grid[dk]){grid[dk][sh]={course:e.course_code||e.course_title||'Scheduled',title:e.course_title||e.course||'Scheduled class',span:sp,kind:e.kind};
+        for(var f=sh+1;f<sh+sp;f++)grid[dk][f]='skip';}
+    });
+    var ths='background:#0b1640;color:#fff;font-weight:700;padding:9px 4px;font-size:.65rem;text-align:center;border:1px solid #1a2f80;';
+    var dts='background:#f1f4ff;color:#0b1640;font-weight:800;padding:9px 8px;font-size:.72rem;text-align:center;border:1px solid #d4daf0;';
+    var tds='background:#fff;height:44px;min-width:58px;border:1px solid #d4daf0;padding:0;text-align:center;vertical-align:middle;';
+    var h='<thead><tr><th style="'+ths+'min-width:60px">TIME</th>';
+    TT_LABELS.forEach(function(l){h+='<th style="'+ths+'">'+l+'</th>';});
+    h+='</tr></thead><tbody>';
+    TT_DAYS.forEach(function(day){
+      h+='<tr><th style="'+dts+'">'+day+'</th>';
+      for(var i=0;i<TT_HOURS.length;i++){
+        var hr=TT_HOURS[i],c=grid[day][hr];
+        if(c==='skip')continue;
+        if(c&&c.course){
+          var cs=c.span>1?' colspan="'+Math.min(c.span,TT_HOURS.length-i)+'"':'';
+          var bg=c.kind==='reservation'?'background:linear-gradient(135deg,#fef5cd,#fdf0b8);color:#7a5d0a;border:1px solid #f0dc7a;':'background:linear-gradient(135deg,#e8ecfb,#dde3fa);color:#0b1640;border:1px solid #c7d0ee;';
+          h+='<td style="'+tds+'"'+cs+'><div title="'+escapeHtml(c.title)+'" style="'+bg+'border-radius:4px;margin:2px;padding:4px 3px;font-size:.62rem;font-weight:800;line-height:1.2;min-height:38px;display:flex;flex-direction:column;align-items:center;justify-content:center"><span>'+escapeHtml(c.course)+'</span><small style="font-size:.55rem;font-weight:600;margin-top:2px">'+escapeHtml(c.title)+'</small></div></td>';
+        }else{h+='<td style="'+tds+'"></td>';}
+      }h+='</tr>';
+    });h+='</tbody>';
+    checkTimetable.innerHTML=h;
+    checkTimetableWrap.style.display='block';
+    checkTimetableLegend.style.display=entries.length?'flex':'none';
+  }
+  function ttWeekStart(d){var v=new Date(d);var dy=v.getDay();v.setDate(v.getDate()-(dy===0?6:dy-1));return v.toISOString().slice(0,10);}
+
   function openCheckOverlay(roomId, roomName) {
     if (!checkOverlay || !checkForm) {
       return;
@@ -1326,6 +1388,13 @@ document.addEventListener('DOMContentLoaded', function () {
     checkCancelledBox.classList.remove('is-visible');
     checkSubmitBtn.disabled = false;
 
+    // Render empty timetable, then fetch data
+    if(checkTimetable){renderTimetable({schedules:[],reservations:[]});
+      fetch('<?= url('/api/v1/map/rooms') ?>/'+encodeURIComponent(roomId)+'/fixed-schedules?week_start='+ttWeekStart(new Date()),{headers:{Accept:'application/json'}})
+        .then(function(r){if(!r.ok)throw new Error();return r.json();})
+        .then(function(p){renderTimetable(p.data||{});})
+        .catch(function(){});
+    }
     checkOverlay.classList.add('is-open');
     checkOverlay.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
@@ -1427,7 +1496,6 @@ document.addEventListener('DOMContentLoaded', function () {
       pillClass = 'pill-res';
       timeClass = 'ty';
       label = 'Reserved';
-      canReserve = false;
       addViewTempScheduleButton(card, roomStatus.classroom_id);
     } else {
       removeViewTempScheduleButton(card);
@@ -1438,7 +1506,6 @@ document.addEventListener('DOMContentLoaded', function () {
       pillClass = 'pill-occ';
       timeClass = 'tr';
       label = 'Occupied';
-      canReserve = false;
     }
 
     if (status === 'closed') {

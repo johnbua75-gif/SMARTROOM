@@ -16,53 +16,54 @@ $nav = [
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Schedule – Student Portal</title>
+  <title>Schedule - Student Portal</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    :root { --gold: #F5A800; --navy: #1B2A5E; --ink: #102044; --muted: #718096; --line: #e5eaf2; --ff: 'Instrument Sans', sans-serif; --ff-head: 'Sora', sans-serif; --ff-mono: 'JetBrains Mono', monospace; }
-    body { background: #f3f6fb; color: var(--ink); font-family: var(--ff); font-size: 14px; -webkit-font-smoothing: antialiased; }
+    :root { -gold: #f5c518; -navy: #0b1640; -ink: #111827; -muted: #6b7280; -line: #e5e7eb; -ff: 'Instrument Sans', sans-serif; -ff-head: 'Sora', sans-serif; -ff-mono: 'JetBrains Mono', monospace; }
+    body { background: var(--bg, #f0f2f8); color: var(--ink); font-family: var(--ff); font-size: 14px; -webkit-font-smoothing: antialiased; }
 
     #sidebar { width: 230px; min-height: 100vh; background: #fff; border-right: 1px solid #e8eaf0; }
     .brand-icon { background: var(--gold); border-radius: 10px; width: 42px; height: 42px; display:grid; place-items:center; }
-    .nav-link { color: #555; border-radius: 8px; padding: .55rem 1rem; font-weight: 500; }
+    .nav-link { color: #555; border-radius: 10px; padding: .55rem 1rem; font-weight: 500; }
     .nav-link:hover, .nav-link.active { background: #F0F4FF; color: var(--navy); }
     .nav-link.active::after { content:''; display:inline-block; width:7px; height:7px; background:var(--navy); border-radius:50%; margin-left:auto; }
     .avatar { width:38px; height:38px; background:var(--navy); border-radius:50%; display:grid; place-items:center; color:#fff; font-weight:700; font-size:.85rem; }
     
     main { max-width: 1320px; }
     .page-top { padding-bottom: 1.15rem; border-bottom: 1px solid var(--line); }
-    .eyebrow { color: #5470a8; font-size: .68rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
-    .page-title { color: var(--ink); font-family: var(--ff-head); font-size: 1.55rem; letter-spacing: -.03em; }
-    .page-subtitle { color: var(--muted); font-size: .78rem; }
-    .summary-panel { position: relative; overflow: hidden; border: 1px solid #dfe7f5; border-radius: 18px; background: linear-gradient(120deg, #1b2a5e 0%, #263d85 70%, #3159a0 100%); box-shadow: 0 12px 28px rgba(27, 42, 94, .14); color: #fff; }
-    .summary-panel::after { content: ''; position: absolute; right: -42px; top: -70px; width: 190px; height: 190px; border: 1px solid rgba(255,255,255,.12); border-radius: 50%; }
-    .summary-copy { position: relative; z-index: 1; }
-    .summary-label { color: rgba(255,255,255,.66); font-size: .68rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
-    .summary-value { font-family: var(--ff-head); font-size: 1.8rem; font-weight: 800; letter-spacing: -.04em; }
-    .summary-meta { color: rgba(255,255,255,.72); font-size: .78rem; }
-    .summary-icon { position: relative; z-index: 1; display: grid; width: 58px; height: 58px; place-items: center; border: 1px solid rgba(255,255,255,.18); border-radius: 16px; background: rgba(255,255,255,.1); color: #ffd45c; font-size: 1.5rem; }
-    .section-heading { color: var(--ink); font-family: var(--ff-head); font-size: .95rem; font-weight: 800; }
-    .schedule-row { padding: 1rem 1.25rem; border-bottom: 1px solid #edf0f5; transition: background 0.15s; }
+    .eyebrow { color: var(--muted); font-size: 0.75rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 4px; }
+    .page-title { color: var(--ink); font-family: var(--ff-head); font-size: 1.5rem; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 4px; }
+    .page-subtitle { color: var(--muted); font-size: 0.875rem; }
+    .summary-panel { position: relative; overflow: hidden; background: #fff; border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow-sm, 0 2px 6px rgba(15,23,41,.06)); }
+    .summary-copy { position: relative; z-index: 1; color: var(--ink); }
+    .summary-label { color: var(--muted); font-size: 0.75rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 8px; }
+    .summary-value { font-family: var(--ff-head); font-size: 1.5rem; font-weight: 700; letter-spacing: -0.01em; color: var(--ink); }
+    .summary-meta { color: var(--muted); font-size: 0.875rem; margin-top: 4px; }
+    .summary-icon { position: relative; z-index: 1; display: grid; width: 48px; height: 48px; place-items: center; border: 1px solid var(--line); border-radius: 10px; background: #f8f9fb; color: var(--navy); font-size: 1.25rem; }
+    .section-heading { color: var(--ink); font-family: var(--ff-head); font-size: 1rem; font-weight: 700; letter-spacing: -0.01em; }
+    .schedule-row { padding: 16px 24px; border-bottom: 1px solid var(--line); transition: background 0.2s ease; }
     .schedule-row:last-child { border-bottom: none; }
-    .schedule-row:hover { background: #F0F4FF; }
-    .subject-list { border: 1px solid var(--line); border-radius: 16px; background: #fff; overflow: hidden; box-shadow: 0 5px 18px rgba(26, 45, 82, .05); }
+    .schedule-row:hover { background: #f8f9fb; }
+    .subject-list { border: 1px solid var(--line); border-radius: 14px; background: #fff; overflow: hidden; box-shadow: var(--shadow-sm, 0 2px 6px rgba(15,23,41,.06)); }
     .subject-item + .subject-item { border-top: 1px solid var(--line); }
-    .subject-toggle { width: 100%; border: 0; background: #fff; padding: 1.1rem 1.3rem; text-align: left; display: flex; align-items: center; gap: .9rem; cursor: pointer; color: var(--ink); }
-    .subject-toggle:hover, .subject-toggle[aria-expanded="true"] { background: #f7f9fe; }
-    .subject-icon { display: grid; width: 34px; height: 34px; flex: 0 0 34px; place-items: center; border-radius: 10px; background: #fff4d6; color: #b97800; }
-    .subject-code { display: block; color: #5470a8; font-size: .68rem; font-weight: 800; letter-spacing: .08em; }
-    .subject-name { display: block; margin-top: 2px; font-family: var(--ff-head); font-size: .9rem; font-weight: 700; }
-    .schedule-count { margin-left: auto; border: 1px solid #dce5f5; border-radius: 999px; background: #f6f8fd; color: #5470a8; font-size: .68rem; font-weight: 800; white-space: nowrap; }
-    .subject-toggle .subject-arrow { margin-left: auto; transition: transform .2s ease; }
+    .subject-toggle { width: 100%; border: 0; background: #fff; padding: 16px 24px; text-align: left; display: flex; align-items: center; gap: 16px; cursor: pointer; color: var(--ink); transition: background 0.2s ease; }
+    .subject-toggle:hover, .subject-toggle[aria-expanded="true"] { background: #f8f9fb; }
+    .subject-icon { display: grid; width: 32px; height: 32px; flex: 0 0 32px; place-items: center; border-radius: 6px; background: #f8f9fb; border: 1px solid var(--line); color: var(--navy); }
+    .subject-code { display: block; color: var(--muted); font-size: 0.75rem; font-weight: 600; }
+    .subject-name { display: block; margin-top: 2px; font-family: var(--ff-head); font-size: 0.95rem; font-weight: 700; color: var(--ink); }
+    .schedule-count { margin-left: auto; border: 1px solid var(--line); border-radius: 6px; background: #f8f9fb; color: var(--text-3, #7c8a9e); font-size: 0.75rem; font-weight: 600; padding: 4px 8px; white-space: nowrap; }
+    .subject-toggle .subject-arrow { margin-left: 12px; transition: transform 0.2s ease; color: var(--muted); }
     .subject-toggle[aria-expanded="true"] .subject-arrow { transform: rotate(180deg); }
-    .subject-schedules { border-top: 1px solid #e8eaf0; }
+    .subject-schedules { border-top: 1px solid var(--line); background: #fcfcfc; }
     .subject-schedules[hidden] { display: none; }
-    .time-badge { background: #eef3ff; border-radius: 10px; color: var(--navy); font-family: var(--ff-mono); font-size: .7rem; font-weight: 600; width: 68px; text-align: center; padding: 8px 0; }
-    .schedule-date { color: var(--ink); font-family: var(--ff-head); font-size: .8rem; font-weight: 700; }
-    .schedule-meta { color: var(--muted); font-size: .72rem; }
-    @media (max-width: 640px) { .subject-toggle { padding: 1rem; } .schedule-row { align-items: flex-start !important; padding: .9rem 1rem; } .summary-panel { border-radius: 14px; } }
+    .time-badge { background: #f8f9fb; border: 1px solid var(--line); border-radius: 6px; color: var(--navy); font-family: var(--ff-mono); font-size: 0.75rem; font-weight: 600; width: 64px; text-align: center; padding: 6px 0; }
+    .schedule-date { color: var(--ink); font-family: var(--ff-head); font-size: 0.875rem; font-weight: 700; margin-bottom: 4px; }
+    .schedule-date .badge { border-radius: 6px; border: 1px solid var(--line); background: #fff !important; color: var(--muted) !important; font-size: 0.7rem; }
+    .schedule-meta { color: var(--muted); font-size: 0.8rem; }
+    .schedule-meta i { color: var(--text-4, #b0bac8); }
+    @media (max-width: 640px) { .subject-toggle { padding: 16px; } .schedule-row { align-items: flex-start !important; padding: 16px; } .summary-panel { border-radius: 14px; } }
   </style>
   @include('frontend.student._theme')
 </head>
@@ -71,10 +72,10 @@ $nav = [
 
   @include('frontend.student._sidebar')
 
-  <!-- Main -->
+  <!- Main ->
   <main class="flex-grow-1 p-4">
 
-    <!-- Topbar -->
+    <!- Topbar ->
     <div class="page-top d-flex justify-content-between align-items-center mb-4">
       <div><div class="eyebrow">Student portal</div><h1 class="page-title fw-bold mb-1">My Schedule</h1><div class="page-subtitle">{{ now()->format('l, F j, Y') }} <span class="mx-1">·</span> Your enrolled subjects</div></div>
     </div>
@@ -93,7 +94,7 @@ $nav = [
       <div class="page-subtitle">Select a subject to view its schedule</div>
     </div>
 
-    <!-- Subject List -->
+    <!- Subject List ->
     <div class="subject-list">
       @forelse ($subjectGroups as $courseId => $courseSchedules)
         @php($subject = $courseSchedules->first()->course)

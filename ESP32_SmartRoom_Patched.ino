@@ -48,7 +48,7 @@ void ensureWiFi() {
 
 String getTimestamp() {
   struct tm timeinfo;
-  if (!getLocalTime(&timeinfo)) return "2026-01-01T00:00:00Z";
+  if (!getLocalTime(&timeinfo)) return "";
   char buf[30];
   strftime(buf, sizeof(buf), "%Y-%m-%dT%H:%M:%SZ", &timeinfo);
   return String(buf);
@@ -97,20 +97,17 @@ void resetRFIDReader() {
 
 // ─── API: LOG ACCESS ─────────────────────────────────────────────────────────
 
-void logAccess(String method, String result, int userId = 0, int cardId = 0, String reason = "", String rfidUid = "") {
+bool logAccess(String method, String result, int userId = 0, int cardId = 0, String reason = "", String rfidUid = "") {
   ensureWiFi();
-  if (WiFi.status() != WL_CONNECTED) { Serial.println("No WiFi - skipping log"); return; }
-  HTTPClient http;
-  http.begin(String(API_BASE) + "/access-logs");
-  http.setTimeout(10000);
-  http.addHeader("Content-Type", "application/json");
-  http.addHeader("Authorization", String("Bearer ") + API_TOKEN);
-  http.addHeader("Accept", "application/json");
+  if (WiFi.status() != WL_CONNECTED) { Serial.println("No WiFi - access log failed"); return false; }
+  String timestamp = getTimestamp();
+  if (timestamp.length() == 0) { Serial.println("Clock not synchronized - access log failed"); return false; }
+
   DynamicJsonDocument doc(512);
   doc["classroom_id"]       = CLASSROOM_ID;
   doc["result"]             = result;
   doc["direction"]          = "entry";
-  doc["accessed_at"]        = getTimestamp();
+  doc["accessed_at"]        = timestamp;
   doc["metadata"]["method"] = method;
   if (reason.length() > 0) doc["reason"] = reason;
   if (rfidUid.length() > 0) doc["metadata"]["rfid_uid"] = rfidUid;
@@ -118,11 +115,23 @@ void logAccess(String method, String result, int userId = 0, int cardId = 0, Str
   if (cardId > 0) doc["access_card_id"] = cardId;
   String body; serializeJson(doc, body);
   Serial.println("Log body: " + body);
-  int code = http.POST(body);
-  Serial.printf("Log response: %d\n", code);
-  if (code > 0) Serial.println(http.getString());
-  else Serial.printf("Log error: %s\n", http.errorToString(code).c_str());
-  http.end();
+  for (int attempt = 1; attempt <= 3; attempt++) {
+    HTTPClient http;
+    http.begin(String(API_BASE) + "/access-logs");
+    http.setTimeout(10000);
+    http.addHeader("Content-Type", "application/json");
+    http.addHeader("Authorization", String("Bearer ") + API_TOKEN);
+    http.addHeader("Accept", "application/json");
+    int code = http.POST(body);
+    Serial.printf("Log response (attempt %d): %d\n", attempt, code);
+    if (code > 0) Serial.println(http.getString());
+    if (code >= 200 && code < 300) { http.end(); return true; }
+    if (code >= 400 && code < 500) { http.end(); return false; }
+    http.end();
+    delay(300 * attempt);
+  }
+
+  return false;
 }
 
 // ─── Check RFID against API ───────────────────────────────
@@ -229,9 +238,15 @@ bool checkSchedule(int userId, String rfidUid) {
 // ─── Access results ───────────────────────────────────────
 void grantAccess(const char* method, int userId = 0, int cardId = 0) {
   Serial.printf("ACCESS GRANTED via %s\n", method);
+  if (!logAccess(String(method), "granted", userId, cardId)) {
+    lcdMsg("Access Blocked", "Log unavailable");
+    buzzDenied();
+    delay(2000);
+    lcdMsg("Scan RFID card", "to begin");
+    return;
+  }
   lcdMsg("Access Granted!", ":) Welcome");
   buzzOnce();
-  logAccess(String(method), "granted", userId, cardId);
   unlockDoor();
   lcdMsg("Scan RFID card", "to begin");
 }

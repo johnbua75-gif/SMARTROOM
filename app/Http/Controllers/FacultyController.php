@@ -14,6 +14,7 @@ use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class FacultyController extends Controller
@@ -78,27 +79,24 @@ class FacultyController extends Controller
                 $query->where('instructor_user_id', $user->id);
             });
 
-        $activeScheduleClassroomIds = Schedule::query()
+        $occupiedClassroomIds = Schedule::query()
             ->whereIn('status', ['scheduled', 'ongoing'])
             ->where('start_at', '<=', $now)
             ->where('end_at', '>', $now)
+            ->select('classroom_id')
+            ->unionAll(
+                Reservation::query()
+                    ->whereIn('status', ['reserved', 'approved'])
+                    ->where('start_at', '<=', $now)
+                    ->where('end_at', '>', $now)
+                    ->select('classroom_id')
+            )
             ->pluck('classroom_id');
-        $activeReservationClassroomIds = Reservation::query()
-            ->whereIn('status', ['reserved', 'approved'])
-            ->where('start_at', '<=', $now)
-            ->where('end_at', '>', $now)
-            ->pluck('classroom_id');
-        $occupiedClassroomIds = $activeScheduleClassroomIds
-            ->merge($activeReservationClassroomIds)
-            ->filter()
-            ->unique()
-            ->values();
+
         $availableClassroomsQuery = Classroom::query()
             ->whereNotIn('id', $occupiedClassroomIds)
             ->whereNotIn('status', ['maintenance', 'unavailable'])
             ->where('current_occupancy', 0);
-
-        $availableRooms = (clone $availableClassroomsQuery)->count();
 
         $myReservations = Reservation::query()
             ->where('user_id', $user->id)
@@ -108,18 +106,17 @@ class FacultyController extends Controller
 
         $activeClasses = Course::query()->where('instructor_user_id', $user->id)->count();
 
-        // Deduplicate total students: count each course's enrollment only once
-        $allSchedules = (clone $facultyScheduleQuery)->get();
-        $uniqueCourses = [];
-        foreach ($allSchedules as $schedule) {
-            $courseId = (int) ($schedule->course_id ?? 0);
-            if (! isset($uniqueCourses[$courseId])) {
-                $uniqueCourses[$courseId] = (int) ($schedule->enrolled ?? 0);
-            }
-        }
-        $totalStudents = (int) array_sum($uniqueCourses);
+        $totalStudents = (int) Schedule::query()
+            ->whereHas('course', function ($query) use ($user): void {
+                $query->where('instructor_user_id', $user->id);
+            })
+            ->select(['course_id', DB::raw('MAX(enrolled) as max_enrolled')])
+            ->groupBy('course_id')
+            ->get()
+            ->sum('max_enrolled');
 
         $upcomingReservations = (clone $facultyScheduleQuery)
+            ->select(['id', 'classroom_id', 'course_id', 'start_at', 'end_at', 'status', 'enrolled'])
             ->where('start_at', '>=', $now)
             ->orderBy('start_at')
             ->limit(6)
@@ -159,6 +156,7 @@ class FacultyController extends Controller
             ->values();
 
         $availableNowRooms = $availableClassroomsQuery
+            ->select(['id', 'name', 'building', 'floor', 'capacity', 'rfid_status'])
             ->orderBy('building')
             ->orderBy('name')
             ->get()
@@ -176,6 +174,8 @@ class FacultyController extends Controller
                 ];
             })
             ->values();
+
+        $availableRooms = $availableNowRooms->count();
 
         return view('frontend.faculty.faculty_dashboard', [
             'dateFormatted' => $now->format('h:i A • l, F j, Y'),
@@ -324,20 +324,25 @@ class FacultyController extends Controller
         $user = $request->user();
         $now = Carbon::now();
 
-        $facultySchedules = Schedule::query()
-            ->with(['course', 'classroom'])
+        $currentWeekStart = $now->copy()->startOfWeek();
+        $currentWeekEnd = $now->copy()->endOfWeek();
+        $previousWeekStart = $now->copy()->subWeek()->startOfWeek();
+        $previousWeekEnd = $now->copy()->subWeek()->endOfWeek();
+
+        $facultyScheduleQuery = Schedule::query()
             ->whereHas('course', function ($query) use ($user): void {
                 $query->where('instructor_user_id', $user->id);
-            })
+            });
+
+        $currentWeek = (clone $facultyScheduleQuery)
+            ->with(['course', 'classroom'])
+            ->whereBetween('start_at', [$currentWeekStart, $currentWeekEnd])
+            ->orderBy('start_at')
             ->get();
 
-        $currentWeek = $facultySchedules->filter(function (Schedule $schedule) use ($now): bool {
-            return $schedule->start_at !== null && $schedule->start_at->between($now->copy()->startOfWeek(), $now->copy()->endOfWeek());
-        });
-
-        $previousWeek = $facultySchedules->filter(function (Schedule $schedule) use ($now): bool {
-            return $schedule->start_at !== null && $schedule->start_at->between($now->copy()->subWeek()->startOfWeek(), $now->copy()->subWeek()->endOfWeek());
-        });
+        $previousWeek = (clone $facultyScheduleQuery)
+            ->whereBetween('start_at', [$previousWeekStart, $previousWeekEnd])
+            ->get();
 
         $weeklyBookings = $currentWeek->count();
         $prevWeeklyBookings = max(1, $previousWeek->count());
@@ -352,9 +357,9 @@ class FacultyController extends Controller
         });
         $utilization = min(100, round(($totalMinutes / max(1, 5 * 8 * 60)) * 100, 1));
 
-        $activeUsers = (int) $facultySchedules->sum('enrolled');
-        $totalSchedules = max(1, $facultySchedules->count());
-        $conflicts = $facultySchedules->where('status', 'cancelled')->count();
+        $activeUsers = (int) $currentWeek->sum('enrolled');
+        $totalSchedules = max(1, $weeklyBookings);
+        $conflicts = $currentWeek->where('status', 'cancelled')->count();
         $conflictRate = round(($conflicts / $totalSchedules) * 100, 1);
 
         $stats = [
@@ -447,7 +452,7 @@ class FacultyController extends Controller
         $hourBuckets = [7, 9, 11, 13, 15, 17, 19];
         $lineData = [];
         foreach ($hourBuckets as $hour) {
-            $lineData[] = $facultySchedules->filter(function (Schedule $schedule) use ($hour): bool {
+            $lineData[] = $currentWeek->filter(function (Schedule $schedule) use ($hour): bool {
                 return $schedule->start_at !== null && $schedule->start_at->hour === $hour;
             })->count();
         }

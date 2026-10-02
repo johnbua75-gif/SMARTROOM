@@ -6,8 +6,8 @@ use App\Models\Schedule;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 use Throwable;
 
 class FacultyScheduleAssistantService
@@ -42,7 +42,7 @@ class FacultyScheduleAssistantService
                 $hasKey = (bool) env('GROQ_API_KEY');
                 if ($useLlm || $hasKey) {
                     $llm = $this->callLlm($user, $query);
-                    if ($llm && !empty($llm['answer'])) {
+                    if ($llm && ! empty($llm['answer'])) {
                         return array_merge(['intent' => 'llm_fallback'], $llm);
                     }
                 }
@@ -61,7 +61,9 @@ class FacultyScheduleAssistantService
     private function callLlm(User $user, string $query): ?array
     {
         $apiKey = env('GROQ_API_KEY');
-        if (! $apiKey) return null;
+        if (! $apiKey) {
+            return null;
+        }
 
         // Collect a few upcoming items as context
         $upcoming = $this->baseQuery($user)
@@ -70,13 +72,13 @@ class FacultyScheduleAssistantService
             ->limit(6)
             ->get()
             ->map(function (Schedule $s) {
-                return sprintf("%s | %s | %s - %s", $s->course?->title ?? 'Untitled', optional($s->start_at)->toDateTimeString(), optional($s->end_at)->toDateTimeString(), $s->classroom?->name ?? 'Room N/A');
+                return sprintf('%s | %s | %s - %s', $s->course?->title ?? 'Untitled', optional($s->start_at)->toDateTimeString(), optional($s->end_at)->toDateTimeString(), $s->classroom?->name ?? 'Room N/A');
             })->values()->all();
 
         // Strongly request structured JSON output from the model to make parsing deterministic.
         $prompt = "You are a helpful schedule assistant. Use the instructor's upcoming classes to answer the question.\n\n";
-        $prompt .= "Upcoming classes:\n" . implode("\n", $upcoming) . "\n\n";
-        $prompt .= "Question: " . $query . "\n\n";
+        $prompt .= "Upcoming classes:\n".implode("\n", $upcoming)."\n\n";
+        $prompt .= 'Question: '.$query."\n\n";
         $prompt .= "Respond ONLY with a JSON object with the following keys: \n";
         $prompt .= "{\n  \"answer\": string,\n  \"items\": [ { \"subject\": string, \"date\": string, \"time\": string, \"location\": string } ]\n}\n";
         $prompt .= "The 'answer' should be a concise human-friendly summary. The 'items' array may contain up to 3 upcoming classes with exact date/time/location. Return valid JSON only.";
@@ -94,7 +96,7 @@ class FacultyScheduleAssistantService
             }
 
             $resp = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $apiKey,
+                'Authorization' => 'Bearer '.$apiKey,
                 'Content-Type' => 'application/json',
             ])->post('https://api.groq.ai/v1/completions', [
                 'model' => env('GROQ_MODEL', 'groq-mini'),
@@ -103,7 +105,9 @@ class FacultyScheduleAssistantService
                 'temperature' => 0.1,
             ]);
 
-            if (! $resp->ok()) return null;
+            if (! $resp->ok()) {
+                return null;
+            }
             $data = $resp->json();
 
             // Attempt to parse common response shapes
@@ -116,7 +120,9 @@ class FacultyScheduleAssistantService
                 $text = $data['choices'][0]['message']['content'];
             }
 
-            if (! $text) return null;
+            if (! $text) {
+                return null;
+            }
 
             // Expect the model to return a JSON object. Try to find and decode it.
             $jsonText = null;

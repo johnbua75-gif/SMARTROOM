@@ -5,9 +5,9 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\StoreEnrollmentRequest;
 use App\Http\Resources\EnrollmentResource;
+use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\Student;
-use App\Models\Course;
 use Illuminate\Http\JsonResponse;
 
 class EnrollmentController extends Controller
@@ -18,15 +18,15 @@ class EnrollmentController extends Controller
     public function store(StoreEnrollmentRequest $request): EnrollmentResource|JsonResponse
     {
         $data = $request->validated();
-        
+
         $student = Student::find($data['student_id']);
         $course = Course::find($data['course_id']);
 
-        if (!$student) {
+        if (! $student) {
             return response()->json(['message' => 'Student not found'], 404);
         }
 
-        if (!$course) {
+        if (! $course) {
             return response()->json(['message' => 'Course not found'], 404);
         }
 
@@ -38,7 +38,7 @@ class EnrollmentController extends Controller
         if ($existing) {
             return response()->json([
                 'message' => 'Student already enrolled in this course',
-                'enrollment' => new EnrollmentResource($existing)
+                'enrollment' => new EnrollmentResource($existing),
             ], 409);
         }
 
@@ -76,7 +76,7 @@ class EnrollmentController extends Controller
         }
 
         $course = Course::find($courseId);
-        if (!$course) {
+        if (! $course) {
             return response()->json(['message' => 'Course not found'], 404);
         }
 
@@ -88,12 +88,13 @@ class EnrollmentController extends Controller
 
         foreach ($studentIds as $studentId) {
             $student = Student::find($studentId);
-            
-            if (!$student) {
+
+            if (! $student) {
                 $results['failed'][] = [
                     'student_id' => $studentId,
-                    'reason' => 'Student not found'
+                    'reason' => 'Student not found',
                 ];
+
                 continue;
             }
 
@@ -105,8 +106,9 @@ class EnrollmentController extends Controller
                 $results['already_enrolled'][] = [
                     'student_id' => $student->id,
                     'student_name' => $student->name,
-                    'enrollment_id' => $existing->id
+                    'enrollment_id' => $existing->id,
                 ];
+
                 continue;
             }
 
@@ -120,7 +122,7 @@ class EnrollmentController extends Controller
             $results['enrolled'][] = [
                 'student_id' => $student->id,
                 'student_name' => $student->name,
-                'enrollment_id' => $enrollment->id
+                'enrollment_id' => $enrollment->id,
             ];
         }
 
@@ -132,7 +134,7 @@ class EnrollmentController extends Controller
                 'enrolled' => count($results['enrolled']),
                 'failed' => count($results['failed']),
                 'already_enrolled' => count($results['already_enrolled']),
-            ]
+            ],
         ], 200);
     }
 }

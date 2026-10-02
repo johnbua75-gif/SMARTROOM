@@ -15,7 +15,7 @@ class SmartLockingController extends Controller
 
         // Mock RFID card data
         $cards = collect([
-            (object)[
+            (object) [
                 'id' => 1,
                 'name' => 'Prof. Maria Santos',
                 'department' => 'Computer Science',
@@ -28,7 +28,7 @@ class SmartLockingController extends Controller
                 'lastAccess' => '2 hours ago',
                 'accessCount' => 342,
             ],
-            (object)[
+            (object) [
                 'id' => 2,
                 'name' => 'Dr. Roberto Cruz',
                 'department' => 'Engineering',
@@ -41,7 +41,7 @@ class SmartLockingController extends Controller
                 'lastAccess' => '30 minutes ago',
                 'accessCount' => 456,
             ],
-            (object)[
+            (object) [
                 'id' => 3,
                 'name' => 'Prof. Ana Reyes',
                 'department' => 'Business Administration',
@@ -54,7 +54,7 @@ class SmartLockingController extends Controller
                 'lastAccess' => '5 minutes ago',
                 'accessCount' => 218,
             ],
-            (object)[
+            (object) [
                 'id' => 4,
                 'name' => 'Dr. Carlos Mendoza',
                 'department' => 'Science',
@@ -67,7 +67,7 @@ class SmartLockingController extends Controller
                 'lastAccess' => '1 week ago',
                 'accessCount' => 127,
             ],
-            (object)[
+            (object) [
                 'id' => 5,
                 'name' => 'Prof. Elena Torres',
                 'department' => 'Arts',
@@ -80,7 +80,7 @@ class SmartLockingController extends Controller
                 'lastAccess' => '1 day ago',
                 'accessCount' => 89,
             ],
-            (object)[
+            (object) [
                 'id' => 6,
                 'name' => 'Dr. Juan Dela Cruz',
                 'department' => 'Medicine',
