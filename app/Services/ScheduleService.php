@@ -28,9 +28,9 @@ class ScheduleService
 
     public function ensureItScheduleScope(Schedule $schedule): void
     {
-        $schedule->loadMissing(['course.instructor', 'courseOffering.instructor']);
+        $schedule->loadMissing(['course.instructor', 'instructor', 'courseOffering.instructor']);
 
-        $instructor = $schedule->courseOffering?->instructor ?? $schedule->course?->instructor;
+        $instructor = $schedule->instructor ?? $schedule->courseOffering?->instructor ?? $schedule->course?->instructor;
 
         if (! $this->availabilityService->isItUserDepartment($instructor?->department)) {
             abort(404);
@@ -201,7 +201,7 @@ class ScheduleService
                 }
 
                 $this->ensureInstructorAvailable(
-                    (int) $offering->instructor_user_id,
+                    (int) $user->id,
                     $occurrence['start_at'],
                     $occurrence['end_at'],
                     'day1_start'
@@ -216,6 +216,7 @@ class ScheduleService
                     'classroom_id' => $classroomId,
                     'course_id' => $course->id,
                     'course_offering_id' => $offering->id,
+                    'instructor_user_id' => $user->id,
                     'block_section' => $blockSection,
                     'series_id' => $seriesId,
                     'start_at' => $occurrence['start_at'],
@@ -332,6 +333,9 @@ class ScheduleService
                     $semesterStart,
                     $semesterEnd
                 );
+                $scheduleInstructorId = isset($payload['instructor_user_id'])
+                    ? (int) $payload['instructor_user_id']
+                    : ($offering->instructor_user_id ? (int) $offering->instructor_user_id : null);
                 $seriesId = (string) Str::uuid();
                 foreach ($occurrences as $occurrence) {
                     $scheduleConflict = $this->availabilityService->checkOfficialScheduleConflict(
@@ -364,7 +368,7 @@ class ScheduleService
 
                     if (in_array((string) ($payload['status'] ?? 'scheduled'), ['scheduled', 'ongoing'], true)) {
                         $this->ensureInstructorAvailable(
-                            $offering->instructor_user_id,
+                            $scheduleInstructorId,
                             $occurrence['start_at'],
                             $occurrence['end_at'],
                             'instructor_user_id'
@@ -380,6 +384,7 @@ class ScheduleService
                         'classroom_id' => $payload['classroom_id'],
                         'course_id' => $payload['course_id'],
                         'course_offering_id' => $offering->id,
+                        'instructor_user_id' => $scheduleInstructorId,
                         'block_section' => $payload['block_section'] ?? null,
                         'series_id' => $seriesId,
                         'start_at' => $occurrence['start_at'],
@@ -423,6 +428,9 @@ class ScheduleService
                 $startAt->copy()->startOfDay(),
                 $termEnd
             );
+            $scheduleInstructorId = isset($basePayload['instructor_user_id'])
+                ? (int) $basePayload['instructor_user_id']
+                : ($offering->instructor_user_id ? (int) $offering->instructor_user_id : null);
             $created = collect();
 
             $occurrenceStart = $startAt->copy();
@@ -459,7 +467,7 @@ class ScheduleService
 
                 if (in_array((string) ($basePayload['status'] ?? 'scheduled'), ['scheduled', 'ongoing'], true)) {
                     $this->ensureInstructorAvailable(
-                        $offering->instructor_user_id,
+                        $scheduleInstructorId,
                         $occurrenceStart,
                         $occurrenceEnd,
                         'instructor_user_id'
@@ -468,6 +476,7 @@ class ScheduleService
 
                 $occurrencePayload = $basePayload;
                 $occurrencePayload['course_offering_id'] = $offering->id;
+                $occurrencePayload['instructor_user_id'] = $scheduleInstructorId;
                 $occurrencePayload['start_at'] = $occurrenceStart->copy();
                 $occurrencePayload['end_at'] = $occurrenceEnd->copy();
                 $occurrencePayload['day_of_week'] = $occurrenceStart->dayOfWeek;
@@ -498,13 +507,16 @@ class ScheduleService
         ?int $classroomId,
         string $blockSection,
         Carbon $termStart,
-        Carbon $termEnd
+        Carbon $termEnd,
+        bool $useCourseInstructorAsDefault = true
     ): CourseOffering {
         $course = Course::query()
             ->lockForUpdate()
             ->findOrFail($courseId);
 
-        $instructorUserId ??= $course->instructor_user_id ? (int) $course->instructor_user_id : null;
+        if ($useCourseInstructorAsDefault && $instructorUserId === null) {
+            $instructorUserId = $course->instructor_user_id ? (int) $course->instructor_user_id : null;
+        }
         $blockSection = trim($blockSection) !== '' ? trim($blockSection) : 'Unspecified';
         $termStart = $termStart->copy()->startOfDay();
         $termEnd = $termEnd->copy()->startOfDay();
@@ -518,40 +530,29 @@ class ScheduleService
         $offering = CourseOffering::query()
             ->where('course_id', $course->id)
             ->where('block_section', $blockSection)
-            ->whereDate('term_start', $termStart->toDateString())
-            ->whereDate('term_end', $termEnd->toDateString())
             ->lockForUpdate()
+            ->where(function ($query) use ($termStart, $termEnd): void {
+                $query->whereDate('term_start', $termStart->toDateString())
+                    ->whereDate('term_end', $termEnd->toDateString())
+                    ->orWhere(function ($overlapQuery) use ($termStart, $termEnd): void {
+                        $overlapQuery->whereDate('term_start', '<=', $termEnd->toDateString())
+                            ->whereDate('term_end', '>=', $termStart->toDateString());
+                    });
+            })
+            ->orderBy('term_start')
             ->first();
 
+        if (
+            $offering
+            && ($offering->term_start->toDateString() !== $termStart->toDateString()
+                || $offering->term_end->toDateString() !== $termEnd->toDateString())
+        ) {
+            throw ValidationException::withMessages([
+                'semester_start' => ['The selected term overlaps an existing offering for this subject section. Use the existing term dates or choose non-overlapping dates.'],
+            ]);
+        }
+
         if ($offering) {
-            if (
-                $offering->instructor_user_id !== null
-                && $instructorUserId !== null
-                && (int) $offering->instructor_user_id !== $instructorUserId
-            ) {
-                if ($offering->schedules()->exists() || $offering->enrollments()->exists()) {
-                    throw ValidationException::withMessages([
-                        'instructor_user_id' => ['This subject section cannot be reassigned after schedules or enrollments exist. Create a new offering instead.'],
-                    ]);
-                }
-
-                $offering->instructor_user_id = $instructorUserId;
-            }
-
-            if (
-                $offering->classroom_id !== null
-                && $classroomId !== null
-                && (int) $offering->classroom_id !== $classroomId
-            ) {
-                throw ValidationException::withMessages([
-                    'classroom_id' => ['This subject section already has a different room assigned for the selected term.'],
-                ]);
-            }
-
-            if ($offering->instructor_user_id === null && $instructorUserId !== null) {
-                $offering->instructor_user_id = $instructorUserId;
-            }
-
             if ($offering->classroom_id === null && $classroomId !== null) {
                 $offering->classroom_id = $classroomId;
             }
@@ -836,13 +837,13 @@ class ScheduleService
             ->values();
 
         $schedules = Schedule::query()
-            ->with(['course.instructor', 'courseOffering.instructor'])
+            ->with(['course.instructor', 'instructor', 'courseOffering.instructor'])
             ->whereIn('id', $requestedIds)
             ->get();
 
         $allowedIds = $schedules
             ->filter(function (Schedule $schedule): bool {
-                $instructor = $schedule->courseOffering?->instructor ?? $schedule->course?->instructor;
+                $instructor = $schedule->instructor ?? $schedule->courseOffering?->instructor ?? $schedule->course?->instructor;
 
                 return $this->availabilityService->isItUserDepartment($instructor?->department);
             })

@@ -15,7 +15,9 @@ class Schedule extends Model
         'classroom_id',
         'course_id',
         'course_offering_id',
+        'instructor_user_id',
         'block_section',
+        'class_type',
         'series_id',
         'start_at',
         'end_at',
@@ -45,17 +47,28 @@ class Schedule extends Model
         return $this->belongsTo(CourseOffering::class);
     }
 
+    public function instructor(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'instructor_user_id');
+    }
+
     public function scopeForInstructor(Builder $query, int $instructorUserId): void
     {
         $query->where(function (Builder $scheduleQuery) use ($instructorUserId): void {
-            $scheduleQuery->whereHas('courseOffering', function (Builder $offeringQuery) use ($instructorUserId): void {
-                $offeringQuery->where('instructor_user_id', $instructorUserId);
-            })->orWhere(function (Builder $legacyQuery) use ($instructorUserId): void {
-                $legacyQuery->whereNull('course_offering_id')
-                    ->whereHas('course', function (Builder $courseQuery) use ($instructorUserId): void {
-                        $courseQuery->where('instructor_user_id', $instructorUserId);
-                    });
-            });
+            $scheduleQuery->where('instructor_user_id', $instructorUserId)
+                ->orWhere(function (Builder $offeringLegacyQuery) use ($instructorUserId): void {
+                    $offeringLegacyQuery->whereNull('instructor_user_id')
+                        ->whereHas('courseOffering', function (Builder $offeringQuery) use ($instructorUserId): void {
+                            $offeringQuery->where('instructor_user_id', $instructorUserId);
+                        });
+                })
+                ->orWhere(function (Builder $legacyQuery) use ($instructorUserId): void {
+                    $legacyQuery->whereNull('instructor_user_id')
+                        ->whereNull('course_offering_id')
+                        ->whereHas('course', function (Builder $courseQuery) use ($instructorUserId): void {
+                            $courseQuery->where('instructor_user_id', $instructorUserId);
+                        });
+                });
         });
     }
 }

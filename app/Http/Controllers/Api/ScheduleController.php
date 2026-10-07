@@ -24,12 +24,17 @@ class ScheduleController extends Controller
     public function index(Request $request)
     {
         $query = Schedule::query()
-            ->with(['classroom', 'course.instructor', 'courseOffering.instructor', 'courseOffering.classroom'])
+            ->with(['classroom', 'course.instructor', 'instructor', 'courseOffering.instructor', 'courseOffering.classroom'])
             ->where(function ($query): void {
-                $query->whereHas('courseOffering.instructor', function ($scope): void {
+                $query->whereHas('instructor', function ($scope): void {
                     $this->applyItDepartmentScope($scope);
+                })->orWhere(function ($offeringQuery): void {
+                    $offeringQuery->whereNull('instructor_user_id')
+                        ->whereHas('courseOffering.instructor', function ($scope): void {
+                            $this->applyItDepartmentScope($scope);
+                        });
                 })->orWhere(function ($legacyQuery): void {
-                    $legacyQuery->whereNull('course_offering_id')
+                    $legacyQuery->whereNull('instructor_user_id')->whereNull('course_offering_id')
                         ->whereHas('course.instructor', function ($scope): void {
                             $this->applyItDepartmentScope($scope);
                         });
@@ -91,6 +96,9 @@ class ScheduleController extends Controller
                 $startAt->copy()->startOfDay(),
                 $endAt->copy()->startOfDay()
             );
+            $scheduleInstructorId = isset($payload['instructor_user_id']) && $payload['instructor_user_id'] !== null
+                ? (int) $payload['instructor_user_id']
+                : ($offering->instructor_user_id ? (int) $offering->instructor_user_id : null);
 
             $conflict = $availabilityService->checkOfficialScheduleConflict(
                 (int) $payload['classroom_id'],
@@ -107,10 +115,10 @@ class ScheduleController extends Controller
             }
 
             if (
-                $offering->instructor_user_id
+                $scheduleInstructorId
                 && in_array((string) ($payload['status'] ?? 'scheduled'), ['scheduled', 'ongoing'], true)
                 && $availabilityService->hasInstructorScheduleConflict(
-                    (int) $offering->instructor_user_id,
+                    $scheduleInstructorId,
                     $startAt,
                     $endAt,
                     null,
@@ -123,9 +131,10 @@ class ScheduleController extends Controller
             }
 
             $payload['course_offering_id'] = $offering->id;
+            $payload['instructor_user_id'] = $scheduleInstructorId;
 
             return Schedule::create($payload);
-        })->load(['classroom', 'course.instructor', 'courseOffering.instructor', 'courseOffering.classroom']);
+        })->load(['classroom', 'course.instructor', 'instructor', 'courseOffering.instructor', 'courseOffering.classroom']);
 
         return new ScheduleResource($schedule);
     }
@@ -134,7 +143,7 @@ class ScheduleController extends Controller
     {
         $this->ensureItScheduleScope($schedule);
 
-        return new ScheduleResource($schedule->load(['classroom', 'course.instructor', 'courseOffering.instructor']));
+        return new ScheduleResource($schedule->load(['classroom', 'course.instructor', 'instructor', 'courseOffering.instructor']));
     }
 
     public function update(
@@ -199,11 +208,15 @@ class ScheduleController extends Controller
             $effectiveOffering = isset($payload['course_offering_id'])
                 ? CourseOffering::query()->find($payload['course_offering_id'])
                 : $schedule->courseOffering;
+            $effectiveInstructorId = isset($payload['instructor_user_id'])
+                ? (int) $payload['instructor_user_id']
+                : ($schedule->instructor_user_id ? (int) $schedule->instructor_user_id : null);
+
             if (
-                $effectiveOffering?->instructor_user_id
+                $effectiveInstructorId
                 && in_array((string) ($payload['status'] ?? $schedule->status), ['scheduled', 'ongoing'], true)
                 && $availabilityService->hasInstructorScheduleConflict(
-                    (int) $effectiveOffering->instructor_user_id,
+                    $effectiveInstructorId,
                     $effectiveStartAt,
                     $effectiveEndAt,
                     (int) $schedule->id,
@@ -211,14 +224,14 @@ class ScheduleController extends Controller
                 )
             ) {
                 throw ValidationException::withMessages([
-                    'course_id' => ['The assigned faculty member already has another class scheduled during this time.'],
+                    'instructor_user_id' => ['The assigned faculty member already has another class scheduled during this time.'],
                 ]);
             }
 
             $schedule->update($payload);
         });
 
-        $schedule = $schedule->fresh()->load(['classroom', 'course.instructor', 'courseOffering.instructor']);
+        $schedule = $schedule->fresh()->load(['classroom', 'course.instructor', 'instructor', 'courseOffering.instructor']);
 
         return new ScheduleResource($schedule);
     }

@@ -19,6 +19,8 @@ class ScheduleResource extends JsonResource
             'classroom_id' => $this->classroom_id,
             'course_id' => $this->course_id,
             'course_offering_id' => $this->course_offering_id,
+            'instructor_user_id' => $this->instructor_user_id ?? $this->courseOffering?->instructor_user_id ?? $this->course?->instructor_user_id,
+            'class_type' => $this->class_type,
             'status' => $this->status,
             'start_at' => $this->start_at,
             'end_at' => $this->end_at,
@@ -35,9 +37,9 @@ class ScheduleResource extends JsonResource
                 'title' => $this->course?->title,
                 'capacity' => $this->course?->capacity,
                 'instructor' => [
-                    'id' => ($this->courseOffering?->instructor ?? $this->course?->instructor)?->id,
-                    'name' => ($this->courseOffering?->instructor ?? $this->course?->instructor)?->name,
-                    'email' => ($this->courseOffering?->instructor ?? $this->course?->instructor)?->email,
+                    'id' => ($this->instructor ?? $this->courseOffering?->instructor ?? $this->course?->instructor)?->id,
+                    'name' => ($this->instructor ?? $this->courseOffering?->instructor ?? $this->course?->instructor)?->name,
+                    'email' => ($this->instructor ?? $this->courseOffering?->instructor ?? $this->course?->instructor)?->email,
                 ],
             ]),
             'course_offering' => $this->whenLoaded('courseOffering', fn () => [

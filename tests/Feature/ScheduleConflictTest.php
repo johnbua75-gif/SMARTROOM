@@ -186,3 +186,47 @@ it('blocks API schedule creation when the assigned faculty member is already tea
 
     expect(Schedule::query()->where('course_id', $newCourse->id)->exists())->toBeFalse();
 });
+
+it('updates a schedule instructor and class type through the admin API', function () {
+    $admin = User::factory()->create(['role' => 'admin', 'status' => 'active']);
+    $oldInstructor = User::factory()->create(['role' => 'faculty', 'status' => 'active', 'department' => 'Information Technology']);
+    $newInstructor = User::factory()->create(['role' => 'faculty', 'status' => 'active', 'department' => 'Information Technology']);
+    $room = Classroom::query()->create([
+        'name' => 'Instructor Update Room',
+        'building' => 'Building F',
+        'capacity' => 40,
+        'status' => 'available',
+    ]);
+    $course = Course::query()->create([
+        'code' => 'API-UPDATE-101',
+        'title' => 'Instructor Update Course',
+        'department' => 'Information Technology',
+        'instructor_user_id' => $oldInstructor->id,
+        'classroom_id' => $room->id,
+        'capacity' => 40,
+    ]);
+    $schedule = Schedule::query()->create([
+        'classroom_id' => $room->id,
+        'course_id' => $course->id,
+        'instructor_user_id' => $oldInstructor->id,
+        'class_type' => 'LEC',
+        'start_at' => '2026-04-06 10:00:00',
+        'end_at' => '2026-04-06 11:00:00',
+        'status' => 'scheduled',
+        'day_of_week' => 1,
+        'enrolled' => 20,
+    ]);
+
+    actingAs($admin, 'sanctum')
+        ->putJson("/api/v1/schedules/{$schedule->id}", [
+            'instructor_user_id' => $newInstructor->id,
+            'class_type' => 'LAB',
+        ])
+        ->assertOk()
+        ->assertJsonPath('data.instructor_user_id', $newInstructor->id)
+        ->assertJsonPath('data.class_type', 'LAB');
+
+    expect($schedule->fresh())
+        ->instructor_user_id->toBe($newInstructor->id)
+        ->and($schedule->fresh()->class_type)->toBe('LAB');
+});

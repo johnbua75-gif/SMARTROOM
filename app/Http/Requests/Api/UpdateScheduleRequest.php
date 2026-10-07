@@ -6,6 +6,7 @@ use App\Models\Course;
 use App\Services\RoomAvailabilityService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateScheduleRequest extends FormRequest
 {
@@ -28,6 +29,12 @@ class UpdateScheduleRequest extends FormRequest
         return [
             'classroom_id' => ['sometimes', 'integer', 'exists:classrooms,id'],
             'course_id' => ['sometimes', 'integer', 'exists:courses,id'],
+            'instructor_user_id' => [
+                'sometimes',
+                'nullable',
+                'integer',
+                Rule::exists('users', 'id')->where('role', 'faculty')->where('status', 'active'),
+            ],
             'start_at' => ['sometimes', 'date'],
             'end_at' => ['sometimes', 'date'],
             'repeat_until' => ['sometimes', 'date', 'after_or_equal:start_at'],
@@ -35,6 +42,7 @@ class UpdateScheduleRequest extends FormRequest
             'day_of_week' => ['nullable', 'integer', 'between:0,6'],
             'enrolled' => ['sometimes', 'integer', 'min:0'],
             'block_section' => ['sometimes', 'nullable', 'string', 'max:64'],
+            'class_type' => ['sometimes', 'nullable', 'string', 'in:LEC,LAB'],
             'apply_to_series' => ['sometimes', 'boolean'],
         ];
     }
