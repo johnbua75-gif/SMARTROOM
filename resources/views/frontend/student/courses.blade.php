@@ -65,7 +65,11 @@ $courseImageFor = static function ($course): array {
     .course-meta { display: flex; align-items: flex-start; gap: 9px; min-height: 22px; color: var(--course-muted); font-size: .82rem; line-height: 1.45; }
     .course-meta i { flex: 0 0 16px; margin-top: 2px; color: #8090af; }
     .course-description { display: -webkit-box; overflow: hidden; min-height: 2.6em; margin: 9px 0 18px; color: var(--course-muted); font-size: .8rem; line-height: 1.45; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
-    .enrolled-badge { display: inline-flex; align-items: center; gap: 4px; padding: 5px 8px; color: var(--course-green); background: #eaf7f1; border: 1px solid #ccebdc; border-radius: 999px; font-size: .68rem; font-weight: 800; white-space: nowrap; }
+    .enrolled-badge, .enrollment-status { display: inline-flex; align-items: center; gap: 4px; padding: 5px 8px; border: 1px solid transparent; border-radius: 999px; font-size: .68rem; font-weight: 800; white-space: nowrap; }
+    .enrolled-badge { color: var(--course-green); background: #eaf7f1; border-color: #ccebdc; }
+    .enrollment-pending { color: #805b00; background: #fff7df; border-color: #f3dfaa; }
+    .enrollment-rejected { color: #a33b3b; background: #fff1f0; border-color: #f0cfcc; }
+    .course-assignment-note { color: var(--course-muted); font-size: .78rem; line-height: 1.5; }
     .course-actions { margin-top: auto; padding-top: 2px; }
     .btn-enroll, .btn-unenroll, .btn-outline-primary { width: 100%; padding: 10px 14px; border-radius: 8px; font-size: .8rem; font-weight: 800; transition: all .2s ease; }
     .btn-enroll { color: var(--course-navy); background: #fff; border: 1px solid #cbd4e6; }
@@ -102,7 +106,7 @@ $courseImageFor = static function ($course): array {
         <div>
           <div class="courses-kicker"></div>
           <h1 class="courses-title">Courses</h1>
-          <p class="courses-intro">Build your semester schedule by enrolling in the subjects you need for attendance and class access.</p>
+          <p class="courses-intro">Browse subjects and request enrollment. The instructor assigned to each course reviews requests.</p>
         </div>
         <div class="d-flex flex-column align-items-md-end gap-3">
           <span class="student-id"><i class="bi bi-person-badge"></i>{{ $studentId }}</span>
@@ -112,8 +116,8 @@ $courseImageFor = static function ($course): array {
 
       <section class="course-overview" aria-labelledby="courseOverviewTitle">
         <div>
-          <h2 id="courseOverviewTitle">Find your next subject</h2>
-          <p>Search the available catalog, review the instructor, and keep your enrolled subjects connected to your schedule.</p>
+          <h2 id="courseOverviewTitle">Course catalog</h2>
+          <p>Request a place in a subject. Your schedule and attendance appear after the assigned instructor approves your request.</p>
         </div>
         <div class="overview-stats" aria-label="Course summary">
           <div class="overview-stat"><strong>{{ $courses->count() }}</strong><span>Available</span></div>
@@ -142,7 +146,11 @@ $courseImageFor = static function ($course): array {
 
     <div class="row g-3">
       @forelse ($courses as $course)
-        @php($isEnrolled = in_array($course->id, $enrolledCourseIds, true))
+        @php($enrollmentStatus = $enrollmentStatuses->get($course->id))
+        @php($isEnrolled = in_array($enrollmentStatus, ['active', 'enrolled'], true))
+        @php($isPending = $enrollmentStatus === 'pending')
+        @php($isRejected = $enrollmentStatus === 'rejected')
+        @php($isRestricted = $enrollmentStatus !== null && ! in_array($enrollmentStatus, ['active', 'enrolled', 'pending', 'rejected'], true))
         @php($courseImage = $courseImageFor($course))
         <div class="col-md-6 col-xl-4 course-result" data-course-status="{{ $isEnrolled ? 'enrolled' : 'available' }}" data-course-search="{{ strtolower($course->code.' '.$course->title.' '.($course->instructor?->name ?? '')) }}">
           <article class="course-card">
@@ -154,6 +162,12 @@ $courseImageFor = static function ($course): array {
               <span class="course-code">{{ $course->code }}</span>
               @if ($isEnrolled)
                 <span class="enrolled-badge"><i class="bi bi-check-circle"></i>Enrolled</span>
+              @elseif ($isPending)
+                <span class="enrollment-status enrollment-pending"><i class="bi bi-hourglass-split"></i>Request pending</span>
+              @elseif ($isRejected)
+                <span class="enrollment-status enrollment-rejected"><i class="bi bi-x-circle"></i>Request declined</span>
+              @elseif ($isRestricted)
+                <span class="enrollment-status enrollment-rejected"><i class="bi bi-lock"></i>Administrator managed</span>
               @endif
             </div>
             <h3>{{ $course->title }}</h3>
@@ -167,16 +181,19 @@ $courseImageFor = static function ($course): array {
             <div class="course-actions">
               @if ($isEnrolled)
                 <a href="{{ route('student.courses.overview', $course) }}" class="btn btn-outline-primary mb-2"><i class="bi bi-calendar3 me-1"></i>View schedule &amp; attendance</a>
-                <form method="POST" action="{{ route('student.courses.unenroll', $course) }}">
-                  @csrf
-                  @method('DELETE')
-                  <button type="submit" class="btn btn-unenroll"><i class="bi bi-x-circle me-1"></i>Remove course</button>
-                </form>
+              @elseif ($isPending)
+                <p class="course-assignment-note mb-0">Waiting for the assigned instructor to review your request.</p>
+              @elseif ($isRestricted)
+                <p class="course-assignment-note mb-0">Enrollment is managed by your administrator.</p>
               @else
-                <form method="POST" action="{{ route('student.courses.enroll', $course) }}">
-                  @csrf
-                  <button type="submit" class="btn btn-enroll"><i class="bi bi-plus-circle me-1"></i>Enroll in course</button>
-                </form>
+                @if ($course->instructor_user_id)
+                  <form method="POST" action="{{ route('student.courses.request', $course) }}">
+                    @csrf
+                    <button type="submit" class="btn btn-enroll"><i class="bi bi-send me-1"></i>Request enrollment</button>
+                  </form>
+                @else
+                  <p class="course-assignment-note mb-0">An instructor must be assigned before you can request this course.</p>
+                @endif
               @endif
             </div>
             </div>

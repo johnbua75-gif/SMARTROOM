@@ -570,8 +570,10 @@ class AttendanceController extends Controller
 
         $user = Auth::user();
         $student = $user->student ?? null;
-        if (! $student) {
-            return response()->json(['message' => 'Student profile not found'], 403);
+        if (! $student || $student->status !== 'active') {
+            return response()->json([
+                'message' => $student ? 'Student profile is inactive' : 'Student profile not found',
+            ], 403);
         }
 
         // Only enrolled students should be able to check in.

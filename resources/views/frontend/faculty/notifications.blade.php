@@ -28,6 +28,7 @@
         .main { min-height:100vh; margin-left:230px; padding:42px 44px 60px; }.page-header { margin-bottom:24px; }.eyebrow { color:var(--blue); font-size:.72rem; font-weight:800; letter-spacing:.12em; text-transform:uppercase; }.page-title { margin:5px 0 6px; font:800 1.7rem 'Plus Jakarta Sans',sans-serif; }.page-subtitle { margin:0; color:var(--muted); font-size:.88rem; }
         .notifications-panel { overflow:hidden; max-width:960px; border:1px solid var(--border); border-radius:16px; background:var(--white); box-shadow:0 8px 24px rgba(15,23,42,.05); }.panel-head { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:20px 24px; border-bottom:1px solid var(--border); }.panel-title { display:flex; align-items:center; gap:10px; font:700 1rem 'Plus Jakarta Sans',sans-serif; }.panel-icon { width:32px; height:32px; display:flex; align-items:center; justify-content:center; border-radius:9px; color:var(--blue); background:var(--blue-bg); }.panel-count { color:var(--muted); font-size:.76rem; }
         .notification-list { display:flex; flex-direction:column; }.notification-item { display:flex; align-items:flex-start; gap:14px; padding:18px 24px; border-bottom:1px solid var(--border); }.notification-item:last-child { border-bottom:0; }.notification-item.unread { background:#f8fbff; }.notification-dot { width:9px; height:9px; margin-top:7px; flex:0 0 9px; border-radius:50%; background:transparent; }.unread .notification-dot { background:var(--blue); box-shadow:0 0 0 4px #dbeafe; }.notification-content { min-width:0; flex:1; }.notification-title { font-size:.9rem; font-weight:700; }.notification-body { margin-top:5px; color:#536176; font-size:.82rem; line-height:1.5; }.notification-time { margin-top:8px; color:#9aa6b8; font-size:.72rem; }.notification-type { flex:0 0 auto; padding:4px 8px; border:1px solid var(--border); border-radius:999px; color:var(--muted); font-size:.66rem; font-weight:700; text-transform:capitalize; }.empty-state { padding:56px 24px; color:var(--muted); text-align:center; }.empty-state i { display:block; margin-bottom:12px; color:#c7d2e3; font-size:2rem; }.empty-state strong { display:block; margin-bottom:5px; color:var(--text); font-size:.95rem; }
+        .enrollment-request-details { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px 18px; margin-top:14px; padding:12px; border:1px solid var(--border); border-radius:10px; background:#fbfcff; color:#536176; font-size:.78rem; }.enrollment-request-details strong { display:block; margin-bottom:2px; color:var(--muted); font-size:.66rem; text-transform:uppercase; }.enrollment-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }.enrollment-action { min-height:36px; padding:8px 12px; border:1px solid transparent; border-radius:8px; font:700 .78rem 'DM Sans',sans-serif; cursor:pointer; }.enrollment-action-approve { color:#126c4b; border-color:#bfe3d2; background:#edfaf3; }.enrollment-action-reject { color:#a33b3b; border-color:#efcfcc; background:#fff3f2; }
         @media (max-width:768px) { .sidebar { display:none; }.main { margin-left:0; padding:28px 16px 40px; }.panel-head,.notification-item { padding-left:16px; padding-right:16px; }.notification-type { display:none; } }
     </style>
 </head>
@@ -50,7 +51,8 @@
     <div class="sidebar-footer"><div class="user-widget"><div class="user-avatar">{{ htmlspecialchars($facultyInitials) }}</div><div class="user-widget-info"><div class="user-widget-name">{{ htmlspecialchars($facultyName) }}</div><div class="user-widget-role">{{ htmlspecialchars($facultyDept) }}</div></div></div><form method="POST" action="{{ url('/logout') }}">@csrf<button type="submit" class="sidebar-logout-btn"><i class="fas fa-arrow-right-from-bracket"></i>Sign Out</button></form></div>
 </aside>
 <main class="main">
-    <header class="page-header"><div class="eyebrow">Faculty workspace</div><h1 class="page-title">Notifications</h1><p class="page-subtitle">Stay up to date with room, schedule, and attendance updates.</p></header>
+    <header class="page-header"><div class="eyebrow">Faculty workspace</div><h1 class="page-title">Notifications</h1><p class="page-subtitle">Review enrollment requests and stay up to date with room, schedule, and attendance updates.</p></header>
+    @if (session('success'))<div role="status" style="max-width:960px;margin:0 0 18px;padding:12px 16px;border:1px solid #bfe3d2;border-radius:10px;color:#126c4b;background:#edfaf3;font-size:.84rem;font-weight:600">{{ session('success') }}</div>@endif
     <section class="notifications-panel" aria-labelledby="notificationsTitle">
         <div class="panel-head"><div class="panel-title"><span class="panel-icon"><i class="fas fa-bell"></i></span><span id="notificationsTitle">All notifications</span></div><span class="panel-count">{{ $notifications->count() }} total</span></div>
         @if ($notifications->isEmpty())
@@ -58,9 +60,32 @@
         @else
             <div class="notification-list">
                 @foreach ($notifications as $notification)
+                    @php($enrollmentRequest = $pendingEnrollmentRequests->get((int) data_get($notification->data, 'enrollment_id')))
                     <article class="notification-item {{ $notification->read_at ? '' : 'unread' }}">
                         <span class="notification-dot" aria-hidden="true"></span>
-                        <div class="notification-content"><div class="notification-title">{{ $notification->title }}</div><div class="notification-body">{{ $notification->body ?: 'No additional details.' }}</div><div class="notification-time">{{ $notification->created_at?->diffForHumans() ?? 'Recently' }}</div></div>
+                        <div class="notification-content">
+                            <div class="notification-title">{{ $notification->title }}</div>
+                            <div class="notification-body">{{ $notification->body ?: 'No additional details.' }}</div>
+                            <div class="notification-time">{{ $notification->created_at?->diffForHumans() ?? 'Recently' }}</div>
+                            @if ($notification->type === 'enrollment_request' && $enrollmentRequest)
+                                <div class="enrollment-request-details">
+                                    <div><strong>Student</strong>{{ $enrollmentRequest->student->name }}</div>
+                                    <div><strong>Student ID</strong>{{ $enrollmentRequest->student->student_id }}</div>
+                                    <div><strong>Email</strong>{{ $enrollmentRequest->student->email }}</div>
+                                    <div><strong>Course</strong>{{ $enrollmentRequest->course->code }} - {{ $enrollmentRequest->course->title }}</div>
+                                </div>
+                                <div class="enrollment-actions">
+                                    <form method="POST" action="{{ route('faculty.enrollment-requests.approve', $enrollmentRequest) }}">
+                                        @csrf
+                                        <button type="submit" class="enrollment-action enrollment-action-approve"><i class="fas fa-check me-1" aria-hidden="true"></i>Approve</button>
+                                    </form>
+                                    <form method="POST" action="{{ route('faculty.enrollment-requests.reject', $enrollmentRequest) }}">
+                                        @csrf
+                                        <button type="submit" class="enrollment-action enrollment-action-reject"><i class="fas fa-xmark me-1" aria-hidden="true"></i>Reject</button>
+                                    </form>
+                                </div>
+                            @endif
+                        </div>
                         @if ($notification->type)<span class="notification-type">{{ $notification->type }}</span>@endif
                     </article>
                 @endforeach

@@ -1,7 +1,10 @@
 <?php
 
+use App\Events\NewNotification;
 use App\Models\Notification;
 use App\Models\User;
+use Illuminate\Broadcasting\Channel;
+use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
@@ -83,4 +86,36 @@ it('lets an admin publish a campus announcement that students can see', function
         ->assertSuccessful()
         ->assertSee('Class cancellation')
         ->assertSee('The afternoon lecture is cancelled.');
+});
+
+it('broadcasts user-specific notifications only to the users private channel', function () {
+    $user = User::factory()->create();
+    $notification = Notification::create([
+        'type' => 'enrollment_status',
+        'title' => 'Enrollment approved',
+        'body' => 'Your course enrollment was approved.',
+        'data' => ['student_email' => $user->email],
+        'user_id' => $user->id,
+    ]);
+
+    $channels = (new NewNotification($notification))->broadcastOn();
+
+    expect($channels)->toHaveCount(1)
+        ->and($channels[0])->toBeInstanceOf(PrivateChannel::class)
+        ->and($channels[0]->name)->toBe('private-notifications.user.'.$user->id);
+});
+
+it('keeps campus-wide announcements on the public notifications channel', function () {
+    $notification = Notification::create([
+        'type' => 'announcement',
+        'title' => 'Campus-wide notice',
+        'body' => 'The library closes early today.',
+    ]);
+
+    $channels = (new NewNotification($notification))->broadcastOn();
+
+    expect($channels)->toHaveCount(1)
+        ->and($channels[0])->toBeInstanceOf(Channel::class)
+        ->and($channels[0])->not->toBeInstanceOf(PrivateChannel::class)
+        ->and($channels[0]->name)->toBe('notifications');
 });

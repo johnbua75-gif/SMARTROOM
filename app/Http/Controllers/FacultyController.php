@@ -6,6 +6,7 @@ use App\Models\AccessCard;
 use App\Models\AccessLog;
 use App\Models\Classroom;
 use App\Models\Course;
+use App\Models\Enrollment;
 use App\Models\Notification;
 use App\Models\Reservation;
 use App\Models\Schedule;
@@ -13,7 +14,9 @@ use App\Services\RoomAvailabilityService;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -59,13 +62,88 @@ class FacultyController extends Controller
 
     public function notifications(Request $request): View
     {
+        $user = $request->user();
         $notifications = Notification::query()
-            ->where('user_id', $request->user()->id)
+            ->where('user_id', $user->id)
             ->latest()
             ->limit(100)
             ->get();
+        $enrollmentIds = $notifications
+            ->where('type', 'enrollment_request')
+            ->map(fn (Notification $notification) => data_get($notification->data, 'enrollment_id'))
+            ->filter()
+            ->unique()
+            ->values();
+        $pendingEnrollmentRequests = Enrollment::query()
+            ->with(['course', 'student'])
+            ->whereIn('id', $enrollmentIds)
+            ->where('status', 'pending')
+            ->whereHas('course', fn ($query) => $query->where('instructor_user_id', $user->id))
+            ->get()
+            ->keyBy('id');
 
-        return view('frontend.faculty.notifications', compact('notifications'));
+        return view('frontend.faculty.notifications', compact('notifications', 'pendingEnrollmentRequests'));
+    }
+
+    public function approveEnrollmentRequest(Request $request, Enrollment $enrollment): RedirectResponse
+    {
+        return $this->resolveEnrollmentRequest($request, $enrollment, 'active');
+    }
+
+    public function rejectEnrollmentRequest(Request $request, Enrollment $enrollment): RedirectResponse
+    {
+        return $this->resolveEnrollmentRequest($request, $enrollment, 'rejected');
+    }
+
+    private function resolveEnrollmentRequest(Request $request, Enrollment $enrollment, string $status): RedirectResponse
+    {
+        $faculty = $request->user();
+        $resolvedEnrollment = DB::transaction(function () use ($enrollment, $faculty, $status): Enrollment {
+            $ownedRequest = Enrollment::query()
+                ->with(['course', 'student'])
+                ->whereKey($enrollment->id)
+                ->where('status', 'pending')
+                ->whereHas('course', fn ($query) => $query->where('instructor_user_id', $faculty->id))
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            $ownedRequest->update([
+                'enrolled_at' => $status === 'active' ? now() : null,
+                'status' => $status,
+            ]);
+
+            $course = $ownedRequest->course;
+            Notification::create([
+                'type' => 'enrollment_status',
+                'title' => $status === 'active' ? 'Enrollment approved' : 'Enrollment request declined',
+                'body' => 'Your request for '.$course->code.' - '.$course->title.' was '.($status === 'active' ? 'approved' : 'declined').'.',
+                'data' => [
+                    'enrollment_id' => $ownedRequest->id,
+                    'course_id' => $course->id,
+                    'course_code' => $course->code,
+                    'status' => $status,
+                ],
+                'user_id' => $ownedRequest->student->user_id,
+            ]);
+
+            Notification::query()
+                ->where('user_id', $faculty->id)
+                ->where('type', 'enrollment_request')
+                ->where('data->enrollment_id', $ownedRequest->id)
+                ->whereNull('read_at')
+                ->update(['read_at' => now()]);
+
+            return $ownedRequest;
+        });
+
+        Cache::forget('faculty:notifications:v1:'.$faculty->id);
+        Cache::forget('student:home-summary:v1:'.$resolvedEnrollment->student->user_id);
+
+        $message = $status === 'active'
+            ? 'Enrollment request approved.'
+            : 'Enrollment request declined.';
+
+        return to_route('faculty.notifications')->with('success', $message);
     }
 
     public function dashboard(Request $request): View

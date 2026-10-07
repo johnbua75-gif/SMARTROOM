@@ -50,8 +50,7 @@ Route::middleware(['auth', 'active', 'password.changed', 'role:student'])->group
     Route::get('/student/courses', [StudentController::class, 'courses'])->name('student.courses');
     Route::get('/student/courses/enrolled', [StudentController::class, 'enrolledCourses'])->name('student.courses.enrolled');
     Route::get('/student/courses/{course}', [StudentController::class, 'courseOverview'])->name('student.courses.overview');
-    Route::post('/student/courses/{course}/enroll', [StudentController::class, 'enrollCourse'])->name('student.courses.enroll');
-    Route::delete('/student/courses/{course}/enroll', [StudentController::class, 'unenrollCourse'])->name('student.courses.unenroll');
+    Route::post('/student/courses/{course}/request', [StudentController::class, 'requestEnrollment'])->name('student.courses.request');
     Route::get('/student/schedule', [StudentController::class, 'schedule'])->name('student.schedule');
     Route::get('/student/student-schedule', [StudentController::class, 'studentSchedule'])->name('student.studentSchedule');
     Route::get('/student/attendance', [StudentController::class, 'attendance'])->name('student.attendance');
@@ -72,6 +71,8 @@ Route::middleware(['auth', 'active', 'password.changed', 'role:faculty'])->group
     Route::get('/rfid-verification', [FacultyController::class, 'rfidVerification'])->name('faculty.rfid.verification');
     Route::get('/faculty-notifications', [FacultyController::class, 'notifications'])->name('faculty.notifications');
     Route::get('/faculty-notifications/data', [NotificationController::class, 'index'])->name('faculty.notifications.data');
+    Route::post('/faculty/enrollment-requests/{enrollment}/approve', [FacultyController::class, 'approveEnrollmentRequest'])->name('faculty.enrollment-requests.approve');
+    Route::post('/faculty/enrollment-requests/{enrollment}/reject', [FacultyController::class, 'rejectEnrollmentRequest'])->name('faculty.enrollment-requests.reject');
 
     Route::get('/faculty-schedule', [ScheduleController::class, 'facultyIndex'])->name('faculty.schedule');
     Route::get('/faculty-schedule/export/ics', [ScheduleController::class, 'exportFacultyIcs'])->name('faculty.schedule.export.ics');

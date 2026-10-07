@@ -16,6 +16,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class StudentController extends Controller
@@ -37,12 +38,14 @@ class StudentController extends Controller
             [
                 'name' => $user->name,
                 'email' => $user->email,
-                'student_id' => 'STU-'.rand(10000, 99999),
+                'student_id' => Student::generateStudentId(),
                 'status' => 'active',
             ]
         );
 
-        $enrolledCourseIds = $student->courses()->pluck('courses.id');
+        $enrolledCourseIds = $student->courses()
+            ->wherePivotIn('status', ['active', 'enrolled'])
+            ->pluck('courses.id');
 
         // Only show classes belonging to courses this student is enrolled in.
         $todaySchedules = Schedule::query()
@@ -88,7 +91,9 @@ class StudentController extends Controller
         $userId = Auth::id();
         $summary = Cache::remember('student:home-summary:v1:'.$userId, now()->addSeconds(15), function () use ($userId, $availabilityService): array {
             $student = Student::query()->where('user_id', $userId)->firstOrFail();
-            $enrolledCourseIds = $student->courses()->pluck('courses.id');
+            $enrolledCourseIds = $student->courses()
+                ->wherePivotIn('status', ['active', 'enrolled'])
+                ->pluck('courses.id');
             $todaySchedules = Schedule::query()
                 ->whereIn('course_id', $enrolledCourseIds)
                 ->whereNotNull('start_at')
@@ -155,7 +160,7 @@ class StudentController extends Controller
             [
                 'name' => $user->name,
                 'email' => $user->email,
-                'student_id' => 'STU-'.rand(10000, 99999),
+                'student_id' => Student::generateStudentId(),
                 'status' => 'active',
             ]
         );
@@ -166,15 +171,109 @@ class StudentController extends Controller
             ->orderBy('title')
             ->get();
 
-        $enrolledCourseIds = $student->courses()->pluck('courses.id')->all();
+        $enrollments = $student->enrollments()->get(['course_id', 'status']);
+        $enrollmentStatuses = $enrollments->pluck('status', 'course_id');
+        $enrolledCourseIds = $enrollments
+            ->whereIn('status', ['active', 'enrolled'])
+            ->pluck('course_id')
+            ->all();
 
-        return view('frontend.student.courses', compact('student', 'courses', 'enrolledCourseIds'));
+        return view('frontend.student.courses', compact('student', 'courses', 'enrolledCourseIds', 'enrollmentStatuses'));
+    }
+
+    public function requestEnrollment(Course $course): RedirectResponse
+    {
+        $user = Auth::user();
+
+        $student = Student::firstOrCreate(
+            ['user_id' => $user->id],
+            [
+                'name' => $user->name,
+                'email' => $user->email,
+                'student_id' => Student::generateStudentId(),
+                'status' => 'active',
+            ]
+        );
+
+        if ($student->status !== 'active') {
+            return to_route('student.courses')->with('error', 'Your student profile is inactive. Contact the administrator.');
+        }
+
+        if (! $course->instructor_user_id) {
+            return to_route('student.courses')->with('error', 'This course has no assigned instructor yet. Contact the administrator.');
+        }
+
+        $requestState = DB::transaction(function () use ($course, $student): string {
+            $enrollment = Enrollment::query()
+                ->where('student_id', $student->id)
+                ->where('course_id', $course->id)
+                ->lockForUpdate()
+                ->first();
+
+            if ($enrollment && in_array($enrollment->status, ['active', 'enrolled'], true)) {
+                return 'active';
+            }
+
+            if ($enrollment?->status === 'pending') {
+                return 'pending';
+            }
+
+            if ($enrollment && $enrollment->status !== 'rejected') {
+                return 'restricted';
+            }
+
+            if ($enrollment) {
+                $enrollment->update([
+                    'enrolled_at' => null,
+                    'status' => 'pending',
+                ]);
+            } else {
+                $enrollment = Enrollment::create([
+                    'student_id' => $student->id,
+                    'course_id' => $course->id,
+                    'enrolled_at' => null,
+                    'status' => 'pending',
+                ]);
+            }
+
+            Notification::create([
+                'type' => 'enrollment_request',
+                'title' => 'Student enrollment request',
+                'body' => $student->name.' requested enrollment in '.$course->code.' - '.$course->title.'.',
+                'data' => [
+                    'enrollment_id' => $enrollment->id,
+                    'student_id' => $student->id,
+                    'student_name' => $student->name,
+                    'student_id_number' => $student->student_id,
+                    'student_email' => $student->email,
+                    'course_id' => $course->id,
+                    'course_code' => $course->code,
+                ],
+                'user_id' => $course->instructor_user_id,
+            ]);
+
+            return 'requested';
+        });
+
+        $message = match ($requestState) {
+            'active' => 'You are already enrolled in this course.',
+            'pending' => 'Your enrollment request is already awaiting faculty review.',
+            'restricted' => 'This enrollment is managed by your administrator.',
+            default => 'Your request was sent to the assigned faculty member.',
+        };
+
+        return to_route('student.courses')->with($requestState === 'restricted' ? 'error' : 'success', $message);
     }
 
     public function enrolledCourses(): View
     {
         $student = Student::query()->where('user_id', Auth::id())->firstOrFail();
-        $courses = $student->courses()->with('instructor')->orderBy('code')->orderBy('title')->get();
+        $courses = $student->courses()
+            ->wherePivotIn('status', ['active', 'enrolled'])
+            ->with('instructor')
+            ->orderBy('code')
+            ->orderBy('title')
+            ->get();
 
         return view('frontend.student.enrolled-courses', compact('student', 'courses'));
     }
@@ -182,7 +281,13 @@ class StudentController extends Controller
     public function courseOverview(Course $course): View
     {
         $student = Student::query()->where('user_id', Auth::id())->firstOrFail();
-        abort_unless($student->courses()->whereKey($course->id)->exists(), 404);
+        abort_unless(
+            $student->courses()
+                ->wherePivotIn('status', ['active', 'enrolled'])
+                ->whereKey($course->id)
+                ->exists(),
+            404
+        );
 
         $course->load('instructor');
         $schedules = Schedule::query()
@@ -203,46 +308,6 @@ class StudentController extends Controller
         return view('frontend.student.course-overview', compact('student', 'course', 'schedules', 'attendanceRecords'));
     }
 
-    public function enrollCourse(Course $course): RedirectResponse
-    {
-        $user = Auth::user();
-
-        $student = Student::firstOrCreate(
-            ['user_id' => $user->id],
-            [
-                'name' => $user->name,
-                'email' => $user->email,
-                'student_id' => 'STU-'.rand(10000, 99999),
-                'status' => 'active',
-            ]
-        );
-
-        Enrollment::query()->updateOrCreate(
-            [
-                'student_id' => $student->id,
-                'course_id' => $course->id,
-            ],
-            [
-                'enrolled_at' => now(),
-                'status' => 'active',
-            ]
-        );
-
-        return to_route('student.courses')->with('success', 'Course enrolled successfully.');
-    }
-
-    public function unenrollCourse(Course $course): RedirectResponse
-    {
-        $student = Student::query()->where('user_id', Auth::id())->firstOrFail();
-
-        Enrollment::query()
-            ->where('student_id', $student->id)
-            ->where('course_id', $course->id)
-            ->delete();
-
-        return to_route('student.courses')->with('success', 'Course removed from your schedule.');
-    }
-
     /**
      * Show student schedule.
      */
@@ -257,7 +322,9 @@ class StudentController extends Controller
         $student = Student::where('user_id', $user->id)->first();
 
         // Fetch only schedules for courses the student is enrolled in
-        $enrolledCourseIds = $student?->courses()->pluck('courses.id') ?? collect();
+        $enrolledCourseIds = $student?->courses()
+            ->wherePivotIn('status', ['active', 'enrolled'])
+            ->pluck('courses.id') ?? collect();
         $hasEnrolledCourses = $enrolledCourseIds->isNotEmpty();
 
         $schedules = $hasEnrolledCourses
@@ -274,29 +341,9 @@ class StudentController extends Controller
     /**
      * Show the studentSchedule view (legacy "studentSchedule" page).
      */
-    public function studentSchedule()
+    public function studentSchedule(): RedirectResponse
     {
-        $user = Auth::user();
-
-        if (! $user) {
-            return redirect()->route('auth.login');
-        }
-
-        $student = Student::where('user_id', $user->id)->first();
-
-        // Fetch only schedules for courses the student is enrolled in
-        $enrolledCourseIds = $student?->courses()->pluck('courses.id') ?? collect();
-        $hasEnrolledCourses = $enrolledCourseIds->isNotEmpty();
-
-        $schedules = $hasEnrolledCourses
-            ? Schedule::whereIn('course_id', $enrolledCourseIds)
-                ->whereNotNull('start_at')
-                ->with(['course', 'classroom'])
-                ->orderBy('start_at')
-                ->get()
-            : collect([]);
-
-        return view('frontend.student.studentSchedule', compact('student', 'schedules', 'hasEnrolledCourses'));
+        return to_route('student.schedule');
     }
 
     /**
@@ -310,7 +357,15 @@ class StudentController extends Controller
             return redirect()->route('auth.login');
         }
 
-        $student = Student::where('user_id', $user->id)->first();
+        $student = Student::firstOrCreate(
+            ['user_id' => $user->id],
+            [
+                'name' => $user->name,
+                'email' => $user->email,
+                'student_id' => Student::generateStudentId(),
+                'status' => 'active',
+            ]
+        );
 
         // Fetch attendance records (match by student PK or student id number)
         $attendanceRecords = AttendanceRecord::with('session.course')->where(function ($q) use ($student) {
@@ -334,7 +389,16 @@ class StudentController extends Controller
 
     public function attendanceSummary()
     {
-        $student = Student::query()->where('user_id', Auth::id())->firstOrFail();
+        $user = Auth::user();
+        $student = Student::firstOrCreate(
+            ['user_id' => $user->id],
+            [
+                'name' => $user->name,
+                'email' => $user->email,
+                'student_id' => Student::generateStudentId(),
+                'status' => 'active',
+            ]
+        );
         $records = AttendanceRecord::query()
             ->where(function ($query) use ($student): void {
                 $query->where('student_id', $student->id)

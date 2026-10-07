@@ -23,6 +23,7 @@ it('renders course images based on each subject title', function () {
         'studentId' => $student->student_id,
         'courses' => $courses,
         'enrolledCourseIds' => [],
+        'enrollmentStatuses' => collect(),
     ])->render();
 
     expect(substr_count($html, 'class="course-card-image"'))->toBe(4)

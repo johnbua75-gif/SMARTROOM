@@ -5,6 +5,7 @@ namespace App\Events;
 use App\Models\Notification;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
+use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
@@ -42,16 +43,10 @@ class NewNotification implements ShouldBroadcastNow
 
     public function broadcastOn()
     {
-        $channels = [];
-
-        // global announcements
-        $channels[] = new Channel('notifications');
-
-        // user-specific channel
         if ($this->notification->user_id) {
-            $channels[] = new Channel('notifications.user.'.$this->notification->user_id);
+            return [new PrivateChannel('notifications.user.'.$this->notification->user_id)];
         }
 
-        return $channels;
+        return [new Channel('notifications')];
     }
 }

@@ -35,6 +35,14 @@ it('can sign up a new user', function () {
         'role' => 'student',
     ]);
 
+    $user = User::query()->where('email', '22-ur-0967@psu.edu.ph')->firstOrFail();
+
+    assertDatabaseHas('students', [
+        'user_id' => $user->id,
+        'name' => 'Jane Doe',
+        'email' => '22-ur-0967@psu.edu.ph',
+    ]);
+
     assertAuthenticated();
 });
 
