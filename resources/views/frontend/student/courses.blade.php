@@ -146,11 +146,13 @@ $courseImageFor = static function ($course): array {
 
     <div class="row g-3">
       @forelse ($courses as $course)
-        @php($enrollmentStatus = $enrollmentStatuses->get($course->id))
-        @php($isEnrolled = in_array($enrollmentStatus, ['active', 'enrolled'], true))
-        @php($isPending = $enrollmentStatus === 'pending')
-        @php($isRejected = $enrollmentStatus === 'rejected')
-        @php($isRestricted = $enrollmentStatus !== null && ! in_array($enrollmentStatus, ['active', 'enrolled', 'pending', 'rejected'], true))
+        @php($enrollmentStatus = $enrollmentStatuses->get('course:'.$course->id))
+        @php($courseOfferings = $course->relationLoaded('offerings') ? $course->offerings : collect())
+        @php($hasOfferings = $courseOfferings->isNotEmpty())
+        @php($isEnrolled = ! $hasOfferings && in_array($enrollmentStatus, ['active', 'enrolled'], true))
+        @php($isPending = ! $hasOfferings && $enrollmentStatus === 'pending')
+        @php($isRejected = ! $hasOfferings && $enrollmentStatus === 'rejected')
+        @php($isRestricted = ! $hasOfferings && $enrollmentStatus !== null && ! in_array($enrollmentStatus, ['active', 'enrolled', 'pending', 'rejected'], true))
         @php($courseImage = $courseImageFor($course))
         <div class="col-md-6 col-xl-4 course-result" data-course-status="{{ $isEnrolled ? 'enrolled' : 'available' }}" data-course-search="{{ strtolower($course->code.' '.$course->title.' '.($course->instructor?->name ?? '')) }}">
           <article class="course-card">
@@ -186,7 +188,32 @@ $courseImageFor = static function ($course): array {
               @elseif ($isRestricted)
                 <p class="course-assignment-note mb-0">Enrollment is managed by your administrator.</p>
               @else
-                @if ($course->instructor_user_id)
+                @if ($hasOfferings)
+                  @foreach ($courseOfferings as $offering)
+                    @php($offeringStatus = $enrollmentStatuses->get('offering:'.$offering->id))
+                    <div class="mb-2">
+                      <div class="course-assignment-note mb-1">
+                        {{ $offering->block_section }} · {{ $offering->term_start->format('M j, Y') }} to {{ $offering->term_end->format('M j, Y') }} · {{ $offering->instructor?->name ?? 'Instructor TBA' }}
+                      </div>
+                      @if (in_array($offeringStatus, ['active', 'enrolled'], true))
+                        <span class="enrolled-badge"><i class="bi bi-check-circle"></i>Enrolled in this section</span>
+                        <a href="{{ route('student.courses.overview', $course) }}" class="btn btn-outline-primary mb-2"><i class="bi bi-calendar3 me-1"></i>View subject schedule</a>
+                      @elseif ($offeringStatus === 'pending')
+                        <span class="enrollment-status enrollment-pending"><i class="bi bi-hourglass-split"></i>Request pending</span>
+                      @elseif ($offeringStatus === 'rejected')
+                        <span class="enrollment-status enrollment-rejected"><i class="bi bi-x-circle"></i>Request declined</span>
+                      @elseif ($offering->instructor_user_id)
+                        <form method="POST" action="{{ route('student.courses.request', $course) }}">
+                          @csrf
+                          <input type="hidden" name="course_offering_id" value="{{ $offering->id }}">
+                          <button type="submit" class="btn btn-enroll"><i class="bi bi-send me-1"></i>Request {{ $offering->block_section }}</button>
+                        </form>
+                      @else
+                        <span class="course-assignment-note">An instructor must be assigned before you can request this section.</span>
+                      @endif
+                    </div>
+                  @endforeach
+                @elseif ($course->instructor_user_id)
                   <form method="POST" action="{{ route('student.courses.request', $course) }}">
                     @csrf
                     <button type="submit" class="btn btn-enroll"><i class="bi bi-send me-1"></i>Request enrollment</button>

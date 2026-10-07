@@ -14,6 +14,7 @@ use Carbon\Carbon;
 use Carbon\CarbonInterface;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -43,16 +44,21 @@ class StudentController extends Controller
             ]
         );
 
-        $enrolledCourseIds = $student->courses()
-            ->wherePivotIn('status', ['active', 'enrolled'])
-            ->pluck('courses.id');
+        $enrollments = $student->enrollments()
+            ->whereIn('status', ['active', 'enrolled'])
+            ->get(['course_id', 'course_offering_id']);
+        $legacyCourseIds = $enrollments->whereNull('course_offering_id')->pluck('course_id')->unique();
+        $offeringIds = $enrollments->whereNotNull('course_offering_id')->pluck('course_offering_id')->unique();
 
         // Only show classes belonging to courses this student is enrolled in.
         $todaySchedules = Schedule::query()
-            ->whereIn('course_id', $enrolledCourseIds)
+            ->where(function ($query) use ($legacyCourseIds, $offeringIds): void {
+                $query->whereIn('course_offering_id', $offeringIds)
+                    ->orWhereIn('course_id', $legacyCourseIds);
+            })
             ->whereNotNull('start_at')
             ->whereDate('start_at', today())
-            ->with(['course.instructor', 'classroom'])
+            ->with(['course.instructor', 'courseOffering.instructor', 'classroom'])
             ->orderBy('start_at')
             ->get();
 
@@ -91,11 +97,16 @@ class StudentController extends Controller
         $userId = Auth::id();
         $summary = Cache::remember('student:home-summary:v1:'.$userId, now()->addSeconds(15), function () use ($userId, $availabilityService): array {
             $student = Student::query()->where('user_id', $userId)->firstOrFail();
-            $enrolledCourseIds = $student->courses()
-                ->wherePivotIn('status', ['active', 'enrolled'])
-                ->pluck('courses.id');
+            $enrollments = $student->enrollments()
+                ->whereIn('status', ['active', 'enrolled'])
+                ->get(['course_id', 'course_offering_id']);
+            $legacyCourseIds = $enrollments->whereNull('course_offering_id')->pluck('course_id')->unique();
+            $offeringIds = $enrollments->whereNotNull('course_offering_id')->pluck('course_offering_id')->unique();
             $todaySchedules = Schedule::query()
-                ->whereIn('course_id', $enrolledCourseIds)
+                ->where(function ($query) use ($legacyCourseIds, $offeringIds): void {
+                    $query->whereIn('course_offering_id', $offeringIds)
+                        ->orWhereIn('course_id', $legacyCourseIds);
+                })
                 ->whereNotNull('start_at')
                 ->whereDate('start_at', today())
                 ->orderBy('start_at')
@@ -166,13 +177,19 @@ class StudentController extends Controller
         );
 
         $courses = Course::query()
-            ->with('instructor')
+            ->with(['instructor', 'offerings.instructor'])
             ->orderBy('code')
             ->orderBy('title')
             ->get();
 
-        $enrollments = $student->enrollments()->get(['course_id', 'status']);
-        $enrollmentStatuses = $enrollments->pluck('status', 'course_id');
+        $enrollments = $student->enrollments()->get(['course_id', 'course_offering_id', 'status']);
+        $enrollmentStatuses = $enrollments->mapWithKeys(function (Enrollment $enrollment): array {
+            $key = $enrollment->course_offering_id
+                ? 'offering:'.$enrollment->course_offering_id
+                : 'course:'.$enrollment->course_id;
+
+            return [$key => $enrollment->status];
+        });
         $enrolledCourseIds = $enrollments
             ->whereIn('status', ['active', 'enrolled'])
             ->pluck('course_id')
@@ -181,9 +198,26 @@ class StudentController extends Controller
         return view('frontend.student.courses', compact('student', 'courses', 'enrolledCourseIds', 'enrollmentStatuses'));
     }
 
-    public function requestEnrollment(Course $course): RedirectResponse
+    public function requestEnrollment(Request $request, Course $course): RedirectResponse
     {
         $user = Auth::user();
+
+        $offering = null;
+        $offeringId = $request->integer('course_offering_id');
+        if ($offeringId > 0) {
+            $offering = $course->offerings()
+                ->whereKey($offeringId)
+                ->with('instructor')
+                ->first();
+
+            if (! $offering || ! $offering->instructor_user_id) {
+                return to_route('student.courses')->with('error', 'That subject offering is no longer available.');
+            }
+        } elseif ($course->offerings()->exists()) {
+            return to_route('student.courses')->with('error', 'Select a subject section before requesting enrollment.');
+        }
+
+        $instructorUserId = $offering?->instructor_user_id ?? $course->instructor_user_id;
 
         $student = Student::firstOrCreate(
             ['user_id' => $user->id],
@@ -199,14 +233,15 @@ class StudentController extends Controller
             return to_route('student.courses')->with('error', 'Your student profile is inactive. Contact the administrator.');
         }
 
-        if (! $course->instructor_user_id) {
+        if (! $instructorUserId) {
             return to_route('student.courses')->with('error', 'This course has no assigned instructor yet. Contact the administrator.');
         }
 
-        $requestState = DB::transaction(function () use ($course, $student): string {
+        $requestState = DB::transaction(function () use ($course, $student, $offering, $instructorUserId): string {
             $enrollment = Enrollment::query()
                 ->where('student_id', $student->id)
                 ->where('course_id', $course->id)
+                ->where('course_offering_id', $offering?->id)
                 ->lockForUpdate()
                 ->first();
 
@@ -231,6 +266,7 @@ class StudentController extends Controller
                 $enrollment = Enrollment::create([
                     'student_id' => $student->id,
                     'course_id' => $course->id,
+                    'course_offering_id' => $offering?->id,
                     'enrolled_at' => null,
                     'status' => 'pending',
                 ]);
@@ -249,7 +285,7 @@ class StudentController extends Controller
                     'course_id' => $course->id,
                     'course_code' => $course->code,
                 ],
-                'user_id' => $course->instructor_user_id,
+                'user_id' => $instructorUserId,
             ]);
 
             return 'requested';
@@ -270,7 +306,7 @@ class StudentController extends Controller
         $student = Student::query()->where('user_id', Auth::id())->firstOrFail();
         $courses = $student->courses()
             ->wherePivotIn('status', ['active', 'enrolled'])
-            ->with('instructor')
+            ->with(['instructor', 'offerings.instructor'])
             ->orderBy('code')
             ->orderBy('title')
             ->get();
@@ -281,22 +317,38 @@ class StudentController extends Controller
     public function courseOverview(Course $course): View
     {
         $student = Student::query()->where('user_id', Auth::id())->firstOrFail();
-        abort_unless(
-            $student->courses()
-                ->wherePivotIn('status', ['active', 'enrolled'])
-                ->whereKey($course->id)
-                ->exists(),
-            404
-        );
+        $enrollments = $student->enrollments()
+            ->where('course_id', $course->id)
+            ->whereIn('status', ['active', 'enrolled'])
+            ->get(['course_offering_id']);
+        abort_unless($enrollments->isNotEmpty(), 404);
+
+        $offeringIds = $enrollments->whereNotNull('course_offering_id')->pluck('course_offering_id');
+        $hasLegacyEnrollment = $enrollments->contains(fn (Enrollment $enrollment): bool => $enrollment->course_offering_id === null);
 
         $course->load('instructor');
         $schedules = Schedule::query()
             ->where('course_id', $course->id)
-            ->with('classroom')
+            ->where(function ($query) use ($offeringIds, $hasLegacyEnrollment): void {
+                $query->whereIn('course_offering_id', $offeringIds);
+                if ($hasLegacyEnrollment) {
+                    $query->orWhereNull('course_offering_id');
+                    $query->orWhereNotNull('course_offering_id');
+                }
+            })
+            ->with(['classroom', 'courseOffering.instructor'])
             ->orderBy('start_at')
             ->get();
         $attendanceRecords = AttendanceRecord::query()
-            ->whereHas('session', fn ($query) => $query->where('course_id', $course->id))
+            ->whereHas('session', function ($query) use ($course, $schedules, $hasLegacyEnrollment): void {
+                $query->where('course_id', $course->id)
+                    ->where(function ($sessionQuery) use ($schedules, $hasLegacyEnrollment): void {
+                        $sessionQuery->whereIn('schedule_id', $schedules->pluck('id'));
+                        if ($hasLegacyEnrollment) {
+                            $sessionQuery->orWhereNull('schedule_id');
+                        }
+                    });
+            })
             ->with('session')
             ->where(function ($query) use ($student): void {
                 $query->where('student_id', $student->id)
@@ -322,15 +374,20 @@ class StudentController extends Controller
         $student = Student::where('user_id', $user->id)->first();
 
         // Fetch only schedules for courses the student is enrolled in
-        $enrolledCourseIds = $student?->courses()
-            ->wherePivotIn('status', ['active', 'enrolled'])
-            ->pluck('courses.id') ?? collect();
-        $hasEnrolledCourses = $enrolledCourseIds->isNotEmpty();
+        $enrollments = $student?->enrollments()
+            ->whereIn('status', ['active', 'enrolled'])
+            ->get(['course_id', 'course_offering_id']) ?? collect();
+        $legacyCourseIds = $enrollments->whereNull('course_offering_id')->pluck('course_id')->unique();
+        $offeringIds = $enrollments->whereNotNull('course_offering_id')->pluck('course_offering_id')->unique();
+        $hasEnrolledCourses = $enrollments->isNotEmpty();
 
         $schedules = $hasEnrolledCourses
-            ? Schedule::whereIn('course_id', $enrolledCourseIds)
+            ? Schedule::query()->where(function ($query) use ($legacyCourseIds, $offeringIds): void {
+                $query->whereIn('course_offering_id', $offeringIds)
+                    ->orWhereIn('course_id', $legacyCourseIds);
+            })
                 ->whereNotNull('start_at')
-                ->with(['course', 'classroom'])
+                ->with(['course', 'courseOffering.instructor', 'classroom'])
                 ->orderBy('start_at')
                 ->get()
             : collect([]);

@@ -113,10 +113,10 @@ $nav = [
                   {{ $s->start_at ? \Carbon\Carbon::parse($s->start_at)->format('H:i') : 'N/A' }}
                 </div>
                 <div class="flex-grow-1">
-                  <div class="schedule-date">{{ $s->start_at?->format('l, F j, Y') ?? 'Date unavailable' }} <span class="badge bg-light text-secondary ms-1">{{ $s->block_section ?? 'N/A' }}</span></div>
+                  <div class="schedule-date">{{ $s->start_at?->format('l, F j, Y') ?? 'Date unavailable' }} <span class="badge bg-light text-secondary ms-1">{{ $s->courseOffering?->block_section ?? $s->block_section ?? 'N/A' }}</span></div>
                   <div class="schedule-meta">
                     <i class="bi bi-clock me-1"></i>{{ $s->start_at?->format('g:i A') ?? 'TBA' }} - {{ $s->end_at?->format('g:i A') ?? 'TBA' }}
-                    <i class="bi bi-person ms-2 me-1"></i>{{ $s->course?->instructor?->name ?? 'Instructor TBA' }}
+                    <i class="bi bi-person ms-2 me-1"></i>{{ ($s->courseOffering?->instructor ?? $s->course?->instructor)?->name ?? 'Instructor TBA' }}
                     <i class="bi bi-geo-alt ms-2 me-1"></i>{{ $s->classroom?->name ?? 'Room TBA' }}@if ($s->classroom?->building), {{ $s->classroom->building }}@endif
                   </div>
                 </div>

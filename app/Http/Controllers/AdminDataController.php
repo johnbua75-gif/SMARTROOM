@@ -12,6 +12,7 @@ use App\Mail\TemporaryPasswordMail;
 use App\Models\AccessCard;
 use App\Models\AccessLog;
 use App\Models\Course;
+use App\Models\CourseOffering;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -135,6 +136,26 @@ class AdminDataController extends Controller
         }
 
         return redirect()->back()->with('status', 'Course unassigned successfully.');
+    }
+
+    public function unassignCourseOffering(Request $request, CourseOffering $courseOffering): RedirectResponse|JsonResponse
+    {
+        if ($courseOffering->schedules()->exists() || $courseOffering->enrollments()->exists()) {
+            $message = 'This subject offering cannot be unassigned because it has schedule or enrollment history.';
+
+            return $request->expectsJson()
+                ? response()->json(['message' => $message], 422)
+                : redirect()->back()->withErrors(['course_offering' => $message]);
+        }
+
+        $courseOffering->instructor_user_id = null;
+        $courseOffering->save();
+
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'Subject offering unassigned successfully.']);
+        }
+
+        return redirect()->back()->with('status', 'Subject offering unassigned successfully.');
     }
 
     public function storeAccessCard(StoreAccessCardRequest $request): RedirectResponse|JsonResponse
@@ -270,12 +291,18 @@ class AdminDataController extends Controller
     public function destroyUser(Request $request, User $user): RedirectResponse|JsonResponse
     {
         $hasCourseHistory = strtolower((string) $user->role) === 'faculty'
-            && Course::query()
-                ->where('instructor_user_id', $user->id)
-                ->where(function ($query): void {
-                    $query->whereHas('schedules')->orWhereHas('enrollments');
-                })
-                ->exists();
+            && (
+                Course::query()
+                    ->where('instructor_user_id', $user->id)
+                    ->where(function ($query): void {
+                        $query->whereHas('schedules')->orWhereHas('enrollments');
+                    })
+                    ->exists()
+                || CourseOffering::query()
+                    ->where('instructor_user_id', $user->id)
+                    ->whereHas('schedules')
+                    ->exists()
+            );
 
         if ($hasCourseHistory) {
             $message = 'This faculty account cannot be deleted while assigned subjects have schedule or enrollment history.';
@@ -337,8 +364,24 @@ class AdminDataController extends Controller
                 $course->save();
             }
 
+            $offerings = CourseOffering::query()
+                ->where('instructor_user_id', $user->id)
+                ->lockForUpdate()
+                ->get();
+
+            if ($offerings->contains(fn (CourseOffering $offering): bool => $offering->schedules()->exists())) {
+                throw ValidationException::withMessages([
+                    'replacement_user_id' => ['A subject offering with schedule history cannot be reassigned.'],
+                ]);
+            }
+
+            foreach ($offerings as $offering) {
+                $offering->instructor_user_id = $replacement->id;
+                $offering->save();
+            }
+
             return [
-                'reassigned_courses' => $courses->count(),
+                'reassigned_courses' => $courses->count() + $offerings->count(),
             ];
         });
 

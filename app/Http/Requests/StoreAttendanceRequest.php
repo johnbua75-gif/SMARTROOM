@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\CourseOffering;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -20,7 +21,12 @@ class StoreAttendanceRequest extends FormRequest
                 'sometimes',
                 'nullable',
                 'integer',
-                Rule::exists('courses', 'id')->where(fn ($query) => $query->where('instructor_user_id', $this->user()->id)),
+                Rule::exists('courses', 'id')->where(function ($query): void {
+                    $query->where('instructor_user_id', $this->user()->id)
+                        ->orWhereIn('id', CourseOffering::query()
+                            ->select('course_id')
+                            ->where('instructor_user_id', $this->user()->id));
+                }),
             ],
             'session_date' => 'required|date',
         ];

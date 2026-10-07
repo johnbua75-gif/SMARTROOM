@@ -31,7 +31,10 @@ class AttendanceController extends Controller
     {
         // Fetch only courses assigned to the current instructor
         $courses = Course::with('schedules.classroom')
-            ->where('instructor_user_id', Auth::id())
+            ->where(function ($query): void {
+                $query->where('instructor_user_id', Auth::id())
+                    ->orWhereHas('offerings', fn ($offeringQuery) => $offeringQuery->where('instructor_user_id', Auth::id()));
+            })
             ->orderBy('code')
             ->get();
 
@@ -90,9 +93,7 @@ class AttendanceController extends Controller
 
         // Build assigned attendance cards from schedules
         $now = now();
-        $facultyScheduleQuery = Schedule::whereHas('course', function ($q) {
-            $q->where('instructor_user_id', Auth::id());
-        });
+        $facultyScheduleQuery = Schedule::query()->forInstructor((int) Auth::id());
 
         $attendanceCards = (clone $facultyScheduleQuery)
             ->with(['classroom', 'course'])
@@ -167,7 +168,7 @@ class AttendanceController extends Controller
                 return redirect()->route('faculty.attendance')->with('error', 'Schedule not found.');
             }
 
-            if (($schedule->course?->instructor_user_id ?? null) !== Auth::id()) {
+            if (! Schedule::query()->forInstructor((int) Auth::id())->whereKey($schedule->id)->exists()) {
                 return redirect()->route('faculty.attendance')->with('error', 'You are not allowed to open this schedule.');
             }
         }
@@ -633,59 +634,58 @@ class AttendanceController extends Controller
         $userId = Auth::id();
         $now = Carbon::now();
 
-        // Get all courses assigned to this instructor
-        $courses = Course::where('instructor_user_id', $userId)
-            ->with(['schedules' => function ($query) use ($now) {
-                // Get schedules for today and upcoming
-                $query->where('start_at', '>=', $now->copy()->startOfDay())
-                    ->orderBy('start_at', 'asc');
-            }, 'schedules.classroom'])
-            ->orderBy('title')
+        $scheduleGroups = Schedule::query()
+            ->forInstructor((int) $userId)
+            ->where('start_at', '>=', $now->copy()->startOfDay())
+            ->whereIn('status', ['scheduled', 'ongoing'])
+            ->with(['course', 'courseOffering', 'classroom'])
+            ->orderBy('start_at')
             ->get();
 
-        $coursesData = $courses->map(function ($course) use ($now) {
-            // Get the next upcoming schedule for this course
-            $nextSchedule = $course->schedules->first();
+        $coursesData = $scheduleGroups
+            ->groupBy(fn (Schedule $schedule): string => $schedule->course_offering_id
+                ? 'offering:'.$schedule->course_offering_id
+                : 'course:'.$schedule->course_id)
+            ->map(function ($schedules) use ($now) {
+                $nextSchedule = $schedules->first();
+                $course = $nextSchedule->course;
 
-            if (! $nextSchedule) {
-                return null;
-            }
+                // Determine status: Ongoing, Upcoming, Finished
+                $startTime = $nextSchedule->start_at;
+                $endTime = $nextSchedule->end_at;
+                $status = 'upcoming';
 
-            // Determine status: Ongoing, Upcoming, Finished
-            $startTime = $nextSchedule->start_at;
-            $endTime = $nextSchedule->end_at;
-            $status = 'upcoming';
+                if ($startTime && $startTime <= $now && ($endTime === null || $endTime > $now)) {
+                    $status = 'ongoing';
+                } elseif ($endTime && $endTime <= $now) {
+                    $status = 'finished';
+                }
 
-            if ($startTime && $startTime <= $now && ($endTime === null || $endTime > $now)) {
-                $status = 'ongoing';
-            } elseif ($endTime && $endTime <= $now) {
-                $status = 'finished';
-            }
+                // Check if session already exists for this schedule today
+                $existingSession = AttendanceSession::where('schedule_id', $nextSchedule->id)
+                    ->whereDate('date', $nextSchedule->start_at->toDateString())
+                    ->where('status', 'open')
+                    ->first();
 
-            // Check if session already exists for this schedule today
-            $existingSession = AttendanceSession::where('schedule_id', $nextSchedule->id)
-                ->whereDate('date', $nextSchedule->start_at->toDateString())
-                ->where('status', 'open')
-                ->first();
-
-            return [
-                'id' => $course->id,
-                'code' => $course->code,
-                'title' => $course->title,
-                'section' => $nextSchedule->block_section ?? 'N/A',
-                'room' => $nextSchedule->classroom?->name ?? 'TBA',
-                'building' => $nextSchedule->classroom?->building ?? null,
-                'schedule_id' => $nextSchedule->id,
-                'schedule_start' => $startTime ? $startTime->format('g:i A') : 'TBA',
-                'schedule_time' => $startTime && $endTime
-                    ? $startTime->format('g:i A').' - '.$endTime->format('g:i A')
-                    : 'TBA',
-                'status' => $status,
-                'enrolled' => $nextSchedule->enrolled ?? 0,
-                'has_session' => (bool) $existingSession,
-                'session_id' => $existingSession?->id,
-            ];
-        })->filter()->values();
+                return [
+                    'id' => $course->id,
+                    'course_offering_id' => $nextSchedule->course_offering_id,
+                    'code' => $course->code,
+                    'title' => $course->title,
+                    'section' => $nextSchedule->courseOffering?->block_section ?? $nextSchedule->block_section ?? 'N/A',
+                    'room' => $nextSchedule->classroom?->name ?? 'TBA',
+                    'building' => $nextSchedule->classroom?->building ?? null,
+                    'schedule_id' => $nextSchedule->id,
+                    'schedule_start' => $startTime ? $startTime->format('g:i A') : 'TBA',
+                    'schedule_time' => $startTime && $endTime
+                        ? $startTime->format('g:i A').' - '.$endTime->format('g:i A')
+                        : 'TBA',
+                    'status' => $status,
+                    'enrolled' => $nextSchedule->enrolled ?? 0,
+                    'has_session' => (bool) $existingSession,
+                    'session_id' => $existingSession?->id,
+                ];
+            })->values();
 
         return response()->json([
             'success' => true,
@@ -712,7 +712,7 @@ class AttendanceController extends Controller
             }
 
             // Verify this schedule belongs to the current instructor
-            if ($schedule->course->instructor_user_id !== $userId) {
+            if (! Schedule::query()->forInstructor((int) $userId)->whereKey($schedule->id)->exists()) {
                 return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
             }
 
@@ -773,7 +773,7 @@ class AttendanceController extends Controller
             $schedule = Schedule::find($request->input('schedule_id'));
         }
 
-        if ($schedule && $schedule->course?->instructor_user_id !== $user->id) {
+        if ($schedule && ! Schedule::query()->forInstructor((int) $user->id)->whereKey($schedule->id)->exists()) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -884,6 +884,12 @@ class AttendanceController extends Controller
         $enrollments = Enrollment::query()
             ->where('course_id', $courseId)
             ->whereIn('status', ['active', 'enrolled'])
+            ->when($schedule->course_offering_id, function ($query) use ($schedule): void {
+                $query->where(function ($enrollmentQuery) use ($schedule): void {
+                    $enrollmentQuery->where('course_offering_id', $schedule->course_offering_id)
+                        ->orWhereNull('course_offering_id');
+                });
+            })
             ->with('student')
             ->get();
 

@@ -3,8 +3,10 @@
 namespace App\Providers;
 
 use App\Models\Course;
+use App\Models\CourseOffering;
 use App\Models\Reservation;
 use App\Observers\CourseObserver;
+use App\Observers\CourseOfferingObserver;
 use App\Policies\ReservationPolicy;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\URL;
@@ -27,6 +29,7 @@ class AppServiceProvider extends ServiceProvider
     {
         Gate::policy(Reservation::class, ReservationPolicy::class);
         Course::observe(CourseObserver::class);
+        CourseOffering::observe(CourseOfferingObserver::class);
 
         if (str_starts_with((string) config('app.url'), 'https://')) {
             URL::forceScheme('https');

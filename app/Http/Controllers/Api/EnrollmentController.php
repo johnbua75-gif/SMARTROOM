@@ -21,6 +21,7 @@ class EnrollmentController extends Controller
 
         $student = Student::find($data['student_id']);
         $course = Course::find($data['course_id']);
+        $offeringId = $data['course_offering_id'] ?? null;
 
         if (! $student) {
             return response()->json(['message' => 'Student not found'], 404);
@@ -33,6 +34,7 @@ class EnrollmentController extends Controller
         // Check if already enrolled
         $existing = Enrollment::where('student_id', $student->id)
             ->where('course_id', $course->id)
+            ->where('course_offering_id', $offeringId)
             ->first();
 
         if ($existing) {
@@ -45,11 +47,12 @@ class EnrollmentController extends Controller
         $enrollment = Enrollment::create([
             'student_id' => $student->id,
             'course_id' => $course->id,
+            'course_offering_id' => $offeringId,
             'enrolled_at' => now(),
             'status' => $data['status'] ?? 'active',
         ]);
 
-        return new EnrollmentResource($enrollment->load(['student', 'course']));
+        return new EnrollmentResource($enrollment->load(['student', 'course', 'courseOffering']));
     }
 
     /**
@@ -70,6 +73,7 @@ class EnrollmentController extends Controller
         $data = $request->validated();
         $studentIds = $data['student_ids'] ?? [];
         $courseId = $data['course_id'];
+        $offeringId = $data['course_offering_id'] ?? null;
 
         if (empty($studentIds)) {
             return response()->json(['message' => 'No student IDs provided'], 400);
@@ -100,6 +104,7 @@ class EnrollmentController extends Controller
 
             $existing = Enrollment::where('student_id', $student->id)
                 ->where('course_id', $course->id)
+                ->where('course_offering_id', $offeringId)
                 ->first();
 
             if ($existing) {
@@ -115,6 +120,7 @@ class EnrollmentController extends Controller
             $enrollment = Enrollment::create([
                 'student_id' => $student->id,
                 'course_id' => $course->id,
+                'course_offering_id' => $offeringId,
                 'enrolled_at' => now(),
                 'status' => 'active',
             ]);

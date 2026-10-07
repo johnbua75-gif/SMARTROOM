@@ -1168,6 +1168,14 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
     ->map(fn($courseSchedules) => (int) ($courseSchedules->first()->classroom_id ?? 0))
     ->filter(fn($classroomId) => $classroomId > 0);
   $courseRoomAssignments = $courseRoomAssignments->union($scheduledRoomAssignments);
+  $offeringRoomAssignments = collect($facultyOfferings ?? [])->mapWithKeys(function ($offering) use ($facultySchedules) {
+    $roomId = $offering->classroom_id ?: collect($facultySchedules ?? [])
+      ->where('course_offering_id', $offering->id)
+      ->sortByDesc('start_at')
+      ->first()?->classroom_id;
+
+    return [(int) $offering->id => (int) ($roomId ?? 0)];
+  });
 @endphp
 
 <div class="modal-overlay" id="addModal" aria-hidden="true">
@@ -1180,50 +1188,42 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
       <button class="modal-close" id="closeAddModal" type="button"><i class="ti ti-x"></i></button>
     </div>
     <div class="modal-body">
-      @if($facultyCourses->isEmpty())
+      @if($facultyOfferings->isEmpty())
         <div class="alert alert-warning mb-0">
-          No subjects are assigned to your account yet, so schedule creation is unavailable.
+          No subject offerings are assigned to your account yet, so schedule creation is unavailable.
         </div>
       @else
       <form method="POST" action="{{ route('faculty.schedule.store') }}" class="form-grid">
         @csrf
         <div class="fg full">
-          <label class="flabel">Subject</label>
-          <select name="course_id" class="fselect" required>
-            <option value="">Select your subjectâ€¦</option>
-            @foreach($bsitOptions as $option)
-              @php $course=$facultyLookup->get((string)$option['code']); @endphp
-              @if($course)
-                <option value="{{ $course->id }}" data-room-id="{{ $courseRoomAssignments->get($course->id, 0) }}" {{ (string)old('course_id')===(string)$course->id?'selected':'' }}>
-                  {{ $option['code'] }} â€“ {{ $course->title }}
-                </option>
-              @endif
+          <label class="flabel" for="facultyOfferingSelect">Subject Offering</label>
+          <select id="facultyOfferingSelect" name="course_offering_id" class="fselect" required>
+            <option value="">Select an assigned subject offeringâ€¦</option>
+            @foreach($facultyOfferings as $offering)
+              <option
+                value="{{ $offering->id }}"
+                data-room-id="{{ $offeringRoomAssignments->get($offering->id, 0) }}"
+                data-term-start="{{ $offering->term_start->toDateString() }}"
+                data-term-end="{{ $offering->term_end->toDateString() }}"
+                data-block-section="{{ $offering->block_section }}"
+                {{ (string) old('course_offering_id') === (string) $offering->id ? 'selected' : '' }}
+              >
+                {{ $offering->course?->code }} â€“ {{ $offering->course?->title }} | {{ $offering->block_section }} | {{ $offering->term_start->format('M j, Y') }} to {{ $offering->term_end->format('M j, Y') }}
+              </option>
             @endforeach
-            @if($remainingFacultyCourses->isNotEmpty())
-              <option value="" disabled>â€” Other Subjects â€”</option>
-              @foreach($remainingFacultyCourses as $course)
-                <option value="{{ $course->id }}" data-room-id="{{ $courseRoomAssignments->get($course->id, 0) }}" {{ (string)old('course_id')===(string)$course->id?'selected':'' }}>
-                  {{ $course->code }} â€“ {{ $course->title }}
-                </option>
-              @endforeach
-            @endif
           </select>
         </div>
         <div class="fg">
-          <label class="flabel" for="facultyBlockSection">Block</label>
-          <select id="facultyBlockSection" name="block_section" class="fselect" required>
-            <option value="">Select blockâ€¦</option>
-            <option value="Block A" {{ old('block_section') === 'Block A' ? 'selected' : '' }}>Block A</option>
-            <option value="Block B" {{ old('block_section') === 'Block B' ? 'selected' : '' }}>Block B</option>
-          </select>
+          <label class="flabel">Section</label>
+          <div class="finput" id="facultyOfferingSection">Select an offering</div>
         </div>
         <div class="fg">
           <label class="flabel">Semester Start</label>
-          <input type="date" name="semester_start" class="finput" value="{{ old('semester_start') }}" required>
+          <input type="date" name="semester_start" class="finput" value="{{ old('semester_start') }}" readonly required>
         </div>
         <div class="fg">
           <label class="flabel">Semester End</label>
-          <input type="date" name="semester_end" class="finput" value="{{ old('semester_end') }}" required>
+          <input type="date" name="semester_end" class="finput" value="{{ old('semester_end') }}" readonly required>
         </div>
 
         <div class="form-row">
@@ -1448,8 +1448,8 @@ async function runAvailCheck() {
   const token = ++availToken;
   const form = document.querySelector('#addModal form');
   if (!form) return;
-  const courseOption = form.querySelector('[name=course_id] option:checked');
-  const roomId = courseOption?.dataset.roomId || '';
+  const offeringOption = form.querySelector('[name=course_offering_id] option:checked');
+  const roomId = offeringOption?.dataset.roomId || '';
   const semStart = form.querySelector('[name=semester_start]')?.value;
   const day1 = form.querySelector('[name=day1]')?.value;
   const day1s = form.querySelector('[name=day1_start]')?.value;
@@ -1527,6 +1527,17 @@ async function runAvailCheck() {
 
 }
 
+document.getElementById('facultyOfferingSelect')?.addEventListener('change', event => {
+  const option = event.currentTarget.options[event.currentTarget.selectedIndex];
+  const form = event.currentTarget.form;
+  if (!form) return;
+
+  form.querySelector('[name=semester_start]').value = option?.dataset.termStart || '';
+  form.querySelector('[name=semester_end]').value = option?.dataset.termEnd || '';
+  document.getElementById('facultyOfferingSection').textContent = option?.dataset.blockSection || 'Select an offering';
+  queueAvailCheck();
+});
+
 document.querySelector('#addModal form')?.addEventListener('change', queueAvailCheck);
 document.querySelector('#addModal form')?.addEventListener('input', queueAvailCheck);
 
@@ -1547,7 +1558,7 @@ document.getElementById('suggestList')?.addEventListener('click', e => {
 
 document.querySelector('#addModal form')?.addEventListener('submit', e => {
   const form = e.currentTarget;
-  const subject = form.querySelector('[name=course_id] option:checked')?.textContent?.trim() || 'your subject';
+  const subject = form.querySelector('[name=course_offering_id] option:checked')?.textContent?.trim() || 'your subject';
   const semesterStart = form.querySelector('[name=semester_start]')?.value || 'the selected start date';
   const semesterEnd = form.querySelector('[name=semester_end]')?.value || 'the selected end date';
   const day1 = form.querySelector('[name=day1] option:checked')?.textContent?.trim();

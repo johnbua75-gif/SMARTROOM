@@ -340,17 +340,24 @@ class ReservationController extends Controller
             ->where('day_of_week', $now->dayOfWeek)
             ->whereTime('start_at', '<=', $now->format('H:i:s'))
             ->whereTime('end_at', '>=', $now->format('H:i:s'))
-            ->whereHas('course', function ($courseQuery) use ($userId): void {
-                $courseQuery->where('instructor_user_id', $userId)
-                    ->orWhereHas('enrollments', function ($enrollmentQuery) use ($userId): void {
-                        $enrollmentQuery->where('status', 'active')
-                            ->whereHas('student', function ($studentQuery) use ($userId): void {
-                                $studentQuery->where('user_id', $userId)
-                                    ->where('status', 'active');
-                            });
-                    });
+            ->where(function ($scheduleQuery) use ($userId): void {
+                $scheduleQuery->whereHas('courseOffering', function ($offeringQuery) use ($userId): void {
+                    $offeringQuery->where('instructor_user_id', $userId);
+                })->orWhere(function ($legacyQuery) use ($userId): void {
+                    $legacyQuery->whereNull('course_offering_id')
+                        ->whereHas('course', function ($courseQuery) use ($userId): void {
+                            $courseQuery->where('instructor_user_id', $userId)
+                                ->orWhereHas('enrollments', function ($enrollmentQuery) use ($userId): void {
+                                    $enrollmentQuery->where('status', 'active')
+                                        ->whereHas('student', function ($studentQuery) use ($userId): void {
+                                            $studentQuery->where('user_id', $userId)
+                                                ->where('status', 'active');
+                                        });
+                                });
+                        });
+                });
             })
-            ->with('course')
+            ->with(['course', 'courseOffering.instructor'])
             ->first();
 
         if ($officialSchedule) {

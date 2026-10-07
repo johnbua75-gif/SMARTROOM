@@ -13,7 +13,7 @@ use function Pest\Laravel\actingAs;
 
 uses(RefreshDatabase::class);
 
-it('prevents changing a course instructor after schedules exist', function () {
+it('preserves the catalog instructor while allowing a different section offering', function () {
     $admin = User::factory()->create(['role' => 'admin', 'status' => 'active']);
     $originalFaculty = User::factory()->create(['role' => 'faculty', 'status' => 'active']);
     $replacementFaculty = User::factory()->create(['role' => 'faculty', 'status' => 'active']);
@@ -51,8 +51,9 @@ it('prevents changing a course instructor after schedules exist', function () {
             'classroom_id' => $classroom->id,
             'course_id' => $course->id,
             'instructor_user_id' => $replacementFaculty->id,
-            'semester_start' => '2026-04-08',
-            'semester_end' => '2026-04-08',
+            'block_section' => 'Block B',
+            'semester_start' => '2026-04-06',
+            'semester_end' => '2026-04-10',
             'day1' => 3,
             'day1_start' => '13:00',
             'day1_end' => '14:00',
@@ -60,11 +61,13 @@ it('prevents changing a course instructor after schedules exist', function () {
             'day2_start' => '15:00',
             'day2_end' => '16:00',
         ])
-        ->assertSessionHasErrors('instructor_user_id');
+        ->assertRedirect(route('admin.schedule'));
 
     expect($course->refresh()->instructor_user_id)->toBe($originalFaculty->id)
         ->and($schedule->refresh()->course->instructor_user_id)->toBe($originalFaculty->id)
-        ->and(Schedule::query()->where('course_id', $course->id)->count())->toBe(1);
+        ->and(Schedule::query()->where('course_id', $course->id)->count())->toBe(3)
+        ->and($schedule->refresh()->courseOffering)->toBeNull()
+        ->and($course->offerings()->where('block_section', 'Block B')->where('instructor_user_id', $replacementFaculty->id)->exists())->toBeTrue();
 });
 
 it('archives courses with schedules and enrollments without deleting their history', function () {

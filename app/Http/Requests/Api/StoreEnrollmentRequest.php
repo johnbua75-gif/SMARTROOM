@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Api;
 
+use App\Models\CourseOffering;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -27,6 +28,20 @@ class StoreEnrollmentRequest extends FormRequest
             'student_ids' => 'sometimes|array|exists:students,id',
             'student_ids.*' => 'integer|exists:students,id',
             'course_id' => 'required|exists:courses,id',
+            'course_offering_id' => [
+                'nullable',
+                'integer',
+                'exists:course_offerings,id',
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if (! $value) {
+                        return;
+                    }
+
+                    if ((int) CourseOffering::query()->whereKey($value)->value('course_id') !== (int) $this->input('course_id')) {
+                        $fail('The selected offering does not belong to the selected course.');
+                    }
+                },
+            ],
             'status' => 'nullable|string|in:active,inactive,suspended',
         ];
     }

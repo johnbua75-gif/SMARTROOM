@@ -14,10 +14,14 @@ class CourseController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Course::query()->with('instructor');
+        $query = Course::query()->with(['instructor', 'offerings.instructor']);
 
         if ($request->filled('instructor_user_id')) {
-            $query->where('instructor_user_id', $request->integer('instructor_user_id'));
+            $instructorUserId = $request->integer('instructor_user_id');
+            $query->where(function ($courseQuery) use ($instructorUserId): void {
+                $courseQuery->where('instructor_user_id', $instructorUserId)
+                    ->orWhereHas('offerings', fn ($offeringQuery) => $offeringQuery->where('instructor_user_id', $instructorUserId));
+            });
         }
 
         if ($request->filled('search')) {
@@ -43,14 +47,14 @@ class CourseController extends Controller
 
     public function show(Course $course): CourseResource
     {
-        return new CourseResource($course->load(['instructor', 'schedules.classroom']));
+        return new CourseResource($course->load(['instructor', 'offerings.instructor', 'offerings.classroom', 'schedules.classroom', 'schedules.courseOffering']));
     }
 
     public function update(UpdateCourseRequest $request, Course $course): CourseResource
     {
         $course->update($request->validated());
 
-        return new CourseResource($course->fresh()->load('instructor'));
+        return new CourseResource($course->fresh()->load(['instructor', 'offerings.instructor', 'offerings.classroom']));
     }
 
     public function destroy(Course $course): JsonResponse

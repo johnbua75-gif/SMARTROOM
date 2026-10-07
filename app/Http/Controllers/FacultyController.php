@@ -75,10 +75,16 @@ class FacultyController extends Controller
             ->unique()
             ->values();
         $pendingEnrollmentRequests = Enrollment::query()
-            ->with(['course', 'student'])
+            ->with(['course', 'courseOffering', 'student'])
             ->whereIn('id', $enrollmentIds)
             ->where('status', 'pending')
-            ->whereHas('course', fn ($query) => $query->where('instructor_user_id', $user->id))
+            ->where(function ($query) use ($user): void {
+                $query->whereHas('courseOffering', fn ($offeringQuery) => $offeringQuery->where('instructor_user_id', $user->id))
+                    ->orWhere(function ($legacyQuery) use ($user): void {
+                        $legacyQuery->whereNull('course_offering_id')
+                            ->whereHas('course', fn ($courseQuery) => $courseQuery->where('instructor_user_id', $user->id));
+                    });
+            })
             ->get()
             ->keyBy('id');
 
@@ -100,10 +106,16 @@ class FacultyController extends Controller
         $faculty = $request->user();
         $resolvedEnrollment = DB::transaction(function () use ($enrollment, $faculty, $status): Enrollment {
             $ownedRequest = Enrollment::query()
-                ->with(['course', 'student'])
+                ->with(['course', 'courseOffering', 'student'])
                 ->whereKey($enrollment->id)
                 ->where('status', 'pending')
-                ->whereHas('course', fn ($query) => $query->where('instructor_user_id', $faculty->id))
+                ->where(function ($query) use ($faculty): void {
+                    $query->whereHas('courseOffering', fn ($offeringQuery) => $offeringQuery->where('instructor_user_id', $faculty->id))
+                        ->orWhere(function ($legacyQuery) use ($faculty): void {
+                            $legacyQuery->whereNull('course_offering_id')
+                                ->whereHas('course', fn ($courseQuery) => $courseQuery->where('instructor_user_id', $faculty->id));
+                        });
+                })
                 ->lockForUpdate()
                 ->firstOrFail();
 
@@ -153,9 +165,7 @@ class FacultyController extends Controller
 
         $facultyScheduleQuery = Schedule::query()
             ->with(['classroom', 'course'])
-            ->whereHas('course', function ($query) use ($user): void {
-                $query->where('instructor_user_id', $user->id);
-            });
+            ->forInstructor((int) $user->id);
 
         $occupiedClassroomIds = Schedule::query()
             ->whereIn('status', ['scheduled', 'ongoing'])
@@ -182,12 +192,15 @@ class FacultyController extends Controller
             ->whereBetween('start_at', [$now->copy()->startOfWeek(), $now->copy()->endOfWeek()])
             ->count();
 
-        $activeClasses = Course::query()->where('instructor_user_id', $user->id)->count();
+        $activeClasses = Course::query()
+            ->where(function ($query) use ($user): void {
+                $query->where('instructor_user_id', $user->id)
+                    ->orWhereHas('offerings', fn ($offeringQuery) => $offeringQuery->where('instructor_user_id', $user->id));
+            })
+            ->count();
 
         $totalStudents = (int) Schedule::query()
-            ->whereHas('course', function ($query) use ($user): void {
-                $query->where('instructor_user_id', $user->id);
-            })
+            ->forInstructor((int) $user->id)
             ->select(['course_id', DB::raw('MAX(enrolled) as max_enrolled')])
             ->groupBy('course_id')
             ->get()
@@ -349,7 +362,7 @@ class FacultyController extends Controller
             ->values();
 
         $cancelledByRoom = Schedule::query()
-            ->with(['course.instructor', 'classroom'])
+            ->with(['course.instructor', 'courseOffering.instructor', 'classroom'])
             ->whereIn('classroom_id', $classrooms->pluck('id')->all())
             ->where('status', 'cancelled')
             ->orderByDesc('start_at')
@@ -371,7 +384,7 @@ class FacultyController extends Controller
 
                         return [
                             'subject' => (string) ($schedule->course?->title ?? 'Untitled Subject'),
-                            'instructor' => (string) ($schedule->course?->instructor?->name ?? 'Unassigned Instructor'),
+                            'instructor' => (string) (($schedule->courseOffering?->instructor ?? $schedule->course?->instructor)?->name ?? 'Unassigned Instructor'),
                             'time' => $timeRange,
                         ];
                     })
@@ -408,9 +421,7 @@ class FacultyController extends Controller
         $previousWeekEnd = $now->copy()->subWeek()->endOfWeek();
 
         $facultyScheduleQuery = Schedule::query()
-            ->whereHas('course', function ($query) use ($user): void {
-                $query->where('instructor_user_id', $user->id);
-            });
+            ->forInstructor((int) $user->id);
 
         $currentWeek = (clone $facultyScheduleQuery)
             ->with(['course', 'classroom'])
@@ -476,7 +487,10 @@ class FacultyController extends Controller
         ];
 
         $departments = Course::query()
-            ->where('instructor_user_id', $user->id)
+            ->where(function ($query) use ($user): void {
+                $query->where('instructor_user_id', $user->id)
+                    ->orWhereHas('offerings', fn ($offeringQuery) => $offeringQuery->where('instructor_user_id', $user->id));
+            })
             ->get()
             ->groupBy(function (Course $course): string {
                 return (string) ($course->code !== '' ? explode(' ', $course->code)[0] : 'General');
@@ -628,9 +642,7 @@ class FacultyController extends Controller
 
         $schedules = Schedule::query()
             ->with(['course', 'classroom'])
-            ->whereHas('course', function ($query) use ($user): void {
-                $query->where('instructor_user_id', $user->id);
-            })
+            ->forInstructor((int) $user->id)
             ->orderByDesc('start_at')
             ->get();
 

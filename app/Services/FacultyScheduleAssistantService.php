@@ -369,9 +369,7 @@ class FacultyScheduleAssistantService
     {
         return Schedule::query()
             ->with(['classroom', 'course'])
-            ->whereHas('course', function ($query) use ($user): void {
-                $query->where('instructor_user_id', $user->id);
-            })
+            ->forInstructor((int) $user->id)
             ->whereNotIn('status', ['cancelled']);
     }
 

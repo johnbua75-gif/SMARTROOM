@@ -78,7 +78,7 @@ class RoomMapService
     ): Collection {
         return $this->availabilityService->itScopedSchedules()
             ->where('classroom_id', $classroomId)
-            ->with('course.instructor')
+            ->with(['course.instructor', 'courseOffering.instructor'])
             ->when(! $recurringWeek, function ($query) use ($rangeStart, $rangeEnd): void {
                 $query
                     ->where('start_at', '<', $rangeEnd)

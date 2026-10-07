@@ -34,7 +34,8 @@ $absentCount = $attendanceRecords->where('status', 'absent')->count();
       <div>
         <a href="{{ route('student.courses.enrolled') }}" class="text-decoration-none small"><i class="bi bi-arrow-left me-1"></i>Enrolled courses</a>
         <h3 class="fw-bold mb-1 mt-2">{{ $course->title }}</h3>
-        <div class="course-code">{{ $course->code }} <span class="muted fw-normal">&middot; {{ $course->instructor?->name ?? 'Instructor TBA' }}</span></div>
+        @php($offering = $schedules->first()?->courseOffering)
+        <div class="course-code">{{ $course->code }} <span class="muted fw-normal">&middot; {{ $offering?->instructor?->name ?? $course->instructor?->name ?? 'Instructor TBA' }}{{ $offering ? ' · '.$offering->block_section : '' }}</span></div>
       </div>
       <span class="text-muted small"><i class="bi bi-person-check me-1"></i>{{ $studentId }}</span>
     </div>
@@ -51,7 +52,7 @@ $absentCount = $attendanceRecords->where('status', 'absent')->count();
           <h5 class="fw-bold mb-3"><i class="bi bi-calendar3 me-2"></i>Schedule</h5>
           @forelse ($schedules as $schedule)
             <div class="border-bottom py-3">
-              <div class="fw-semibold">{{ $schedule->start_at?->format('l, M j, Y') ?? 'Date TBA' }}</div>
+              <div class="fw-semibold">{{ $schedule->start_at?->format('l, M j, Y') ?? 'Date TBA' }} <span class="badge text-bg-light">{{ $schedule->courseOffering?->block_section ?? $schedule->block_section ?? 'Section TBA' }}</span></div>
               <div class="muted mt-1">
                 <i class="bi bi-clock me-1"></i>{{ $schedule->start_at?->format('g:i A') ?? 'TBA' }} - {{ $schedule->end_at?->format('g:i A') ?? 'TBA' }}
                 <span class="ms-3"><i class="bi bi-geo-alt me-1"></i>{{ $schedule->classroom?->name ?? 'Room TBA' }}</span>

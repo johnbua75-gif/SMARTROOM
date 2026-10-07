@@ -651,12 +651,12 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
     @php
       $scheduledFacultySummaries = collect($schedules ?? [])
         ->groupBy(function ($schedule) {
-          $instructorId = (int) ($schedule->course?->instructor_user_id ?? 0);
+          $instructorId = (int) ($schedule->courseOffering?->instructor_user_id ?? $schedule->course?->instructor_user_id ?? 0);
           return $instructorId > 0 ? $instructorId : 'unassigned';
         })
         ->map(function ($group, $instructorId) {
           $primary = $group->first();
-          $instructor = $primary?->course?->instructor;
+          $instructor = $primary?->courseOffering?->instructor ?? $primary?->course?->instructor;
 
           if ($instructorId === 'unassigned') {
             return [
@@ -671,8 +671,10 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
                 ->map(function ($schedule) {
                   return [
                     'course_id' => (int) ($schedule->course_id ?? 0),
+                    'offering_id' => (int) ($schedule->course_offering_id ?? 0),
                     'code' => (string) ($schedule->course?->code ?? 'N/A'),
                     'subject' => (string) ($schedule->course?->title ?? 'Untitled Subject'),
+                    'section' => (string) ($schedule->courseOffering?->block_section ?? $schedule->block_section ?? ''),
                     'room' => (string) ($schedule->classroom?->name ?? 'Room N/A'),
                     'building' => (string) ($schedule->classroom?->building ?? ''),
                     'status' => (string) ($schedule->status ?? 'scheduled'),
@@ -696,8 +698,10 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
               ->map(function ($schedule) {
                 return [
                   'course_id' => (int) ($schedule->course_id ?? 0),
+                  'offering_id' => (int) ($schedule->course_offering_id ?? 0),
                   'code' => (string) ($schedule->course?->code ?? 'N/A'),
                   'subject' => (string) ($schedule->course?->title ?? 'Untitled Subject'),
+                  'section' => (string) ($schedule->courseOffering?->block_section ?? $schedule->block_section ?? ''),
                   'room' => (string) ($schedule->classroom?->name ?? 'Room N/A'),
                   'building' => (string) ($schedule->classroom?->building ?? ''),
                   'status' => (string) ($schedule->status ?? 'scheduled'),
@@ -713,6 +717,7 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
       $facultySummaries = collect($facultyUsers ?? [])->map(function ($faculty) use ($scheduledFacultySummaries) {
         $summary = $scheduledFacultySummaries->firstWhere('id', (int) $faculty->id);
         $courses = collect($faculty->courses ?? []);
+        $offerings = collect($faculty->courseOfferings ?? []);
         $scheduledClasses = collect($summary['classes'] ?? []);
         $scheduledCourseIds = $scheduledClasses->pluck('course_id')->unique();
         $unscheduledClasses = $courses
@@ -729,6 +734,22 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
               'end_at' => null,
             ];
           });
+        $unscheduledOfferings = $offerings
+          ->filter(fn ($offering) => ! $scheduledClasses->contains(fn ($class) => (int) ($class['offering_id'] ?? 0) === (int) $offering->id))
+          ->map(function ($offering) {
+            return [
+              'course_id' => (int) $offering->course_id,
+              'offering_id' => (int) $offering->id,
+              'code' => (string) ($offering->course?->code ?? 'N/A'),
+              'subject' => (string) ($offering->course?->title ?? 'Untitled Subject'),
+              'section' => (string) $offering->block_section,
+              'room' => 'Not scheduled',
+              'building' => '',
+              'status' => 'not_scheduled',
+              'start_at' => null,
+              'end_at' => null,
+            ];
+          });
 
         return [
           'id' => (int) $faculty->id,
@@ -736,8 +757,8 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
           'department' => (string) ($faculty->department ?? 'Faculty'),
           'email' => (string) ($faculty->email ?? ''),
           'class_count' => (int) $scheduledClasses->count(),
-          'course_count' => (int) $courses->count(),
-          'classes' => $scheduledClasses->concat($unscheduledClasses)->values(),
+          'course_count' => (int) ($courses->count() + $offerings->count()),
+          'classes' => $scheduledClasses->concat($unscheduledClasses)->concat($unscheduledOfferings)->values(),
         ];
       })->filter(function ($faculty) {
         return ((int) ($faculty['course_count'] ?? 0) > 0) || ((int) ($faculty['class_count'] ?? 0) > 0);
@@ -1246,10 +1267,12 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
       'classroom_id'        => $schedule->classroom_id,
       'classroom_name'      => (string) ($schedule->classroom?->name ?? 'Unknown Room'),
       'classroom_building'  => (string) ($schedule->classroom?->building ?? ''),
-      'instructor_user_id'  => $schedule->course?->instructor_user_id,
+      'instructor_user_id'  => $schedule->courseOffering?->instructor_user_id ?? $schedule->course?->instructor_user_id,
+      'course_offering_id'  => $schedule->course_offering_id,
+      'block_section'       => (string) ($schedule->courseOffering?->block_section ?? $schedule->block_section ?? ''),
       'course_code'         => (string) ($schedule->course?->code ?? 'N/A'),
       'subject'             => (string) ($schedule->course?->title ?? 'Untitled Subject'),
-      'faculty'             => (string) ($schedule->course?->instructor?->name ?? 'Unassigned Faculty'),
+      'faculty'             => (string) (($schedule->courseOffering?->instructor ?? $schedule->course?->instructor)?->name ?? 'Unassigned Faculty'),
       'start_at'            => optional($schedule->start_at)->toIso8601String(),
       'end_at'              => optional($schedule->end_at)->toIso8601String(),
       'status'              => (string) ($schedule->status ?? 'scheduled'),
@@ -1455,8 +1478,8 @@ function openFacultyModal(facultyId) {
       facultyModalClassList.innerHTML = '<div class="room-schedule-empty">No classes assigned yet.</div>';
     } else {
       const grouped = rows.reduce((acc, row) => {
-        const key = `${row.code}||${row.subject}`;
-        if (!acc[key]) acc[key] = { code: row.code || 'N/A', subject: row.subject || 'Untitled', items: [] };
+        const key = `${row.code}||${row.subject}||${row.section || ''}||${row.offering_id || 0}`;
+        if (!acc[key]) acc[key] = { code: row.code || 'N/A', subject: row.subject || 'Untitled', section: row.section || '', items: [] };
         acc[key].items.push(row);
         return acc;
       }, {});
@@ -1464,6 +1487,7 @@ function openFacultyModal(facultyId) {
       facultyModalClassList.innerHTML = Object.values(grouped).map((group) => {
         const sessionLabel = group.items.length === 1 ? '1 session' : `${group.items.length} sessions`;
         const courseId = group.items[0]?.course_id || 0;
+        const offeringId = group.items[0]?.offering_id || 0;
         const items = group.items.map((row) => {
           const day   = formatFacultyDay(row.start_at);
           const start = formatFacultyTime(row.start_at);
@@ -1482,9 +1506,9 @@ function openFacultyModal(facultyId) {
           <div class="faculty-group-head">
             <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
               <div style="min-width:0;flex:1;">
-                <div class="faculty-group-subject">${group.code} - ${group.subject}</div>
+                <div class="faculty-group-subject">${group.code} - ${group.subject}${group.section ? ` (${group.section})` : ''}</div>
               </div>
-              <button class="js-unassign-course-btn" type="button" data-course-id="${courseId}" data-course-code="${group.code}" title="Unassign subject from instructor">
+              <button class="js-unassign-course-btn" type="button" data-course-id="${courseId}" data-offering-id="${offeringId}" data-course-code="${group.code}" title="Unassign subject offering from instructor">
                 <i class="fas fa-unlink"></i> Unassign
               </button>
             </div>
@@ -1865,6 +1889,7 @@ document.addEventListener('click', (e) => {
   if (!btn) return;
 
   const courseId = btn.getAttribute('data-course-id');
+  const offeringId = btn.getAttribute('data-offering-id');
   const courseCode = btn.getAttribute('data-course-code') || 'this subject';
   if (!courseId) return;
 
@@ -1872,7 +1897,7 @@ document.addEventListener('click', (e) => {
     title: 'Unassign subject?',
     message: `This will remove "${courseCode}" from this instructor.`,
     confirmText: 'Unassign',
-    onConfirm: () => unassignCourse(courseId),
+    onConfirm: () => offeringId ? unassignCourseOffering(offeringId) : unassignCourse(courseId),
   });
 });
 
@@ -1914,6 +1939,31 @@ async function unassignCourse(courseId) {
     window.location.reload();
   } catch {
     alert('Unable to unassign subject right now.');
+  }
+}
+
+async function unassignCourseOffering(offeringId) {
+  try {
+    const response = await fetch(`/admin/course-offerings/${offeringId}/unassign`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-CSRF-TOKEN': "{{ csrf_token() }}",
+      },
+      body: JSON.stringify({}),
+    });
+
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      alert(data?.message || 'Failed to unassign subject offering.');
+      return;
+    }
+
+    alert('Subject offering unassigned successfully.');
+    window.location.reload();
+  } catch {
+    alert('Unable to unassign subject offering right now.');
   }
 }
 

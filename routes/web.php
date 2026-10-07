@@ -154,6 +154,7 @@ Route::middleware(['auth', 'active', 'password.changed', 'role:admin'])->group(f
     Route::post('/admin/courses', [AdminDataController::class, 'storeCourse'])->name('admin.courses.store');
     Route::match(['put', 'patch'], '/admin/courses/{course}', [AdminDataController::class, 'updateCourse'])->name('admin.courses.update');
     Route::patch('/admin/courses/{course}/unassign', [AdminDataController::class, 'unassignCourse'])->name('admin.courses.unassign');
+    Route::patch('/admin/course-offerings/{courseOffering}/unassign', [AdminDataController::class, 'unassignCourseOffering'])->name('admin.course-offerings.unassign');
     Route::delete('/admin/courses/{course}', [AdminDataController::class, 'destroyCourse'])->name('admin.courses.destroy');
 
     Route::post('/admin/access-cards', [AdminDataController::class, 'storeAccessCard'])->name('admin.access-cards.store');

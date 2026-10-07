@@ -11,7 +11,8 @@
     $scheduleEnrolled = data_get($schedule, 'enrolled', 0);
     $courseCode = data_get($schedule, 'course.code', '-');
     $courseTitle = data_get($schedule, 'course.title', '-');
-    $instructorName = data_get($schedule, 'course.instructor.name', '-');
+    $instructorName = data_get($schedule, 'courseOffering.instructor.name', data_get($schedule, 'course.instructor.name', '-'));
+    $sectionName = data_get($schedule, 'courseOffering.block_section', data_get($schedule, 'block_section', '-'));
     $classroomName = data_get($schedule, 'classroom.name', '-');
     $buildingName = data_get($schedule, 'classroom.building', '-');
 @endphp
@@ -33,6 +34,7 @@
         <h2>Course and Room</h2>
         <p><strong>Course:</strong> {{ $courseCode }} - {{ $courseTitle }}</p>
         <p><strong>Instructor:</strong> {{ $instructorName }}</p>
+        <p><strong>Section:</strong> {{ $sectionName }}</p>
         <p><strong>Classroom:</strong> {{ $classroomName }}</p>
         <p><strong>Building:</strong> {{ $buildingName }}</p>
     </section>

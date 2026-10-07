@@ -7,9 +7,11 @@ use App\Http\Requests\Api\StoreScheduleRequest;
 use App\Http\Requests\Api\UpdateScheduleRequest;
 use App\Http\Resources\ScheduleResource;
 use App\Models\Course;
+use App\Models\CourseOffering;
 use App\Models\Reservation;
 use App\Models\Schedule;
 use App\Services\RoomAvailabilityService;
+use App\Services\ScheduleService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -22,9 +24,16 @@ class ScheduleController extends Controller
     public function index(Request $request)
     {
         $query = Schedule::query()
-            ->with(['classroom', 'course.instructor'])
-            ->whereHas('course.instructor', function ($scope): void {
-                $this->applyItDepartmentScope($scope);
+            ->with(['classroom', 'course.instructor', 'courseOffering.instructor', 'courseOffering.classroom'])
+            ->where(function ($query): void {
+                $query->whereHas('courseOffering.instructor', function ($scope): void {
+                    $this->applyItDepartmentScope($scope);
+                })->orWhere(function ($legacyQuery): void {
+                    $legacyQuery->whereNull('course_offering_id')
+                        ->whereHas('course.instructor', function ($scope): void {
+                            $this->applyItDepartmentScope($scope);
+                        });
+                });
             });
 
         if ($request->filled('status')) {
@@ -52,8 +61,11 @@ class ScheduleController extends Controller
         return ScheduleResource::collection($schedules);
     }
 
-    public function store(StoreScheduleRequest $request, RoomAvailabilityService $availabilityService): ScheduleResource
-    {
+    public function store(
+        StoreScheduleRequest $request,
+        RoomAvailabilityService $availabilityService,
+        ScheduleService $scheduleService
+    ): ScheduleResource {
         $payload = $request->validated();
 
         if (! isset($payload['series_id'])) {
@@ -64,15 +76,26 @@ class ScheduleController extends Controller
             $payload['day_of_week'] = Carbon::parse($payload['start_at'])->dayOfWeek;
         }
 
-        $schedule = DB::transaction(function () use ($payload, $availabilityService): Schedule {
+        $schedule = DB::transaction(function () use ($payload, $availabilityService, $scheduleService): Schedule {
             $course = Course::query()
                 ->lockForUpdate()
                 ->findOrFail((int) $payload['course_id']);
 
+            $startAt = Carbon::parse($payload['start_at']);
+            $endAt = Carbon::parse($payload['end_at']);
+            $offering = $scheduleService->resolveCourseOffering(
+                (int) $course->id,
+                isset($payload['instructor_user_id']) ? (int) $payload['instructor_user_id'] : null,
+                (int) $payload['classroom_id'],
+                (string) ($payload['block_section'] ?? 'Unspecified'),
+                $startAt->copy()->startOfDay(),
+                $endAt->copy()->startOfDay()
+            );
+
             $conflict = $availabilityService->checkOfficialScheduleConflict(
                 (int) $payload['classroom_id'],
-                Carbon::parse($payload['start_at']),
-                Carbon::parse($payload['end_at']),
+                $startAt,
+                $endAt,
                 null,
                 true
             );
@@ -84,12 +107,12 @@ class ScheduleController extends Controller
             }
 
             if (
-                $course->instructor_user_id
+                $offering->instructor_user_id
                 && in_array((string) ($payload['status'] ?? 'scheduled'), ['scheduled', 'ongoing'], true)
                 && $availabilityService->hasInstructorScheduleConflict(
-                    (int) $course->instructor_user_id,
-                    Carbon::parse($payload['start_at']),
-                    Carbon::parse($payload['end_at']),
+                    (int) $offering->instructor_user_id,
+                    $startAt,
+                    $endAt,
                     null,
                     true
                 )
@@ -99,8 +122,10 @@ class ScheduleController extends Controller
                 ]);
             }
 
+            $payload['course_offering_id'] = $offering->id;
+
             return Schedule::create($payload);
-        })->load(['classroom', 'course.instructor']);
+        })->load(['classroom', 'course.instructor', 'courseOffering.instructor', 'courseOffering.classroom']);
 
         return new ScheduleResource($schedule);
     }
@@ -109,11 +134,15 @@ class ScheduleController extends Controller
     {
         $this->ensureItScheduleScope($schedule);
 
-        return new ScheduleResource($schedule->load(['classroom', 'course.instructor']));
+        return new ScheduleResource($schedule->load(['classroom', 'course.instructor', 'courseOffering.instructor']));
     }
 
-    public function update(UpdateScheduleRequest $request, Schedule $schedule, RoomAvailabilityService $availabilityService): ScheduleResource
-    {
+    public function update(
+        UpdateScheduleRequest $request,
+        Schedule $schedule,
+        RoomAvailabilityService $availabilityService,
+        ScheduleService $scheduleService
+    ): ScheduleResource {
         $this->ensureItScheduleScope($schedule);
 
         $payload = $request->validated();
@@ -127,7 +156,8 @@ class ScheduleController extends Controller
 
         $old = $schedule->replicate();
 
-        DB::transaction(function () use ($schedule, $payload, $effectiveStartAt, $effectiveEndAt, $availabilityService): void {
+        DB::transaction(function () use ($schedule, $payload, $effectiveStartAt, $effectiveEndAt, $availabilityService, $scheduleService): void {
+            $schedule->loadMissing('courseOffering');
             $conflict = $availabilityService->checkOfficialScheduleConflict(
                 (int) ($payload['classroom_id'] ?? $schedule->classroom_id),
                 $effectiveStartAt,
@@ -142,10 +172,53 @@ class ScheduleController extends Controller
                 ]);
             }
 
+            $targetCourseId = (int) ($payload['course_id'] ?? $schedule->course_id);
+            $targetBlockSection = (string) ($payload['block_section'] ?? $schedule->courseOffering?->block_section ?? $schedule->block_section ?? 'Unspecified');
+            if (
+                $targetCourseId !== (int) $schedule->course_id
+                || $targetBlockSection !== (string) ($schedule->courseOffering?->block_section ?? $schedule->block_section ?? 'Unspecified')
+            ) {
+                $targetCourse = Course::query()->findOrFail($targetCourseId);
+                $termStart = $schedule->courseOffering?->term_start
+                    ? Carbon::parse($schedule->courseOffering->term_start)
+                    : $effectiveStartAt->copy()->startOfDay();
+                $termEnd = $schedule->courseOffering?->term_end
+                    ? Carbon::parse($schedule->courseOffering->term_end)
+                    : $effectiveEndAt->copy()->startOfDay();
+                $offering = $scheduleService->resolveCourseOffering(
+                    $targetCourseId,
+                    $targetCourse->instructor_user_id ? (int) $targetCourse->instructor_user_id : null,
+                    (int) ($payload['classroom_id'] ?? $schedule->classroom_id),
+                    $targetBlockSection,
+                    $termStart,
+                    $termEnd
+                );
+                $payload['course_offering_id'] = $offering->id;
+            }
+
+            $effectiveOffering = isset($payload['course_offering_id'])
+                ? CourseOffering::query()->find($payload['course_offering_id'])
+                : $schedule->courseOffering;
+            if (
+                $effectiveOffering?->instructor_user_id
+                && in_array((string) ($payload['status'] ?? $schedule->status), ['scheduled', 'ongoing'], true)
+                && $availabilityService->hasInstructorScheduleConflict(
+                    (int) $effectiveOffering->instructor_user_id,
+                    $effectiveStartAt,
+                    $effectiveEndAt,
+                    (int) $schedule->id,
+                    true
+                )
+            ) {
+                throw ValidationException::withMessages([
+                    'course_id' => ['The assigned faculty member already has another class scheduled during this time.'],
+                ]);
+            }
+
             $schedule->update($payload);
         });
 
-        $schedule = $schedule->fresh()->load(['classroom', 'course.instructor']);
+        $schedule = $schedule->fresh()->load(['classroom', 'course.instructor', 'courseOffering.instructor']);
 
         return new ScheduleResource($schedule);
     }
@@ -185,7 +258,7 @@ class ScheduleController extends Controller
                             ->where('end_at', '>', $reservation->end_at);
                     });
             })
-            ->with(['classroom', 'course.instructor'])
+            ->with(['classroom', 'course.instructor', 'courseOffering.instructor'])
             ->orderBy('start_at')
             ->get();
 
@@ -206,9 +279,11 @@ class ScheduleController extends Controller
 
     private function ensureItScheduleScope(Schedule $schedule): void
     {
-        $schedule->loadMissing('course.instructor');
+        $schedule->loadMissing(['course.instructor', 'courseOffering.instructor']);
 
-        if (! app(RoomAvailabilityService::class)->isItUserDepartment($schedule->course?->instructor?->department)) {
+        $instructor = $schedule->courseOffering?->instructor ?? $schedule->course?->instructor;
+
+        if (! app(RoomAvailabilityService::class)->isItUserDepartment($instructor?->department)) {
             abort(404);
         }
     }

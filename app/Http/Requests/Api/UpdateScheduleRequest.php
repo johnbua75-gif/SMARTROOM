@@ -75,7 +75,13 @@ class UpdateScheduleRequest extends FormRequest
 
             $courseId = (int) ($this->input('course_id') ?: $schedule->course_id);
             $course = Course::query()->with('instructor')->find($courseId);
-            if (! $course || ! app(RoomAvailabilityService::class)->isItUserDepartment($course->instructor?->department)) {
+            $instructor = $course?->instructor;
+            if ($course && $courseId === (int) $schedule->course_id) {
+                $schedule->loadMissing('courseOffering.instructor');
+                $instructor = $schedule->courseOffering?->instructor ?? $instructor;
+            }
+
+            if (! $course || ! app(RoomAvailabilityService::class)->isItUserDepartment($instructor?->department)) {
                 $validator->errors()->add('course_id', 'Course must belong to IT department scope.');
 
                 return;

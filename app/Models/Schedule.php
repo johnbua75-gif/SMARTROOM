@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -13,6 +14,7 @@ class Schedule extends Model
     protected $fillable = [
         'classroom_id',
         'course_id',
+        'course_offering_id',
         'block_section',
         'series_id',
         'start_at',
@@ -36,5 +38,24 @@ class Schedule extends Model
     public function course(): BelongsTo
     {
         return $this->belongsTo(Course::class)->withTrashed();
+    }
+
+    public function courseOffering(): BelongsTo
+    {
+        return $this->belongsTo(CourseOffering::class);
+    }
+
+    public function scopeForInstructor(Builder $query, int $instructorUserId): void
+    {
+        $query->where(function (Builder $scheduleQuery) use ($instructorUserId): void {
+            $scheduleQuery->whereHas('courseOffering', function (Builder $offeringQuery) use ($instructorUserId): void {
+                $offeringQuery->where('instructor_user_id', $instructorUserId);
+            })->orWhere(function (Builder $legacyQuery) use ($instructorUserId): void {
+                $legacyQuery->whereNull('course_offering_id')
+                    ->whereHas('course', function (Builder $courseQuery) use ($instructorUserId): void {
+                        $courseQuery->where('instructor_user_id', $instructorUserId);
+                    });
+            });
+        });
     }
 }

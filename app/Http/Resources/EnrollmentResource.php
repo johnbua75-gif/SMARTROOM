@@ -18,6 +18,7 @@ class EnrollmentResource extends JsonResource
             'id' => $this->id,
             'student_id' => $this->student_id,
             'course_id' => $this->course_id,
+            'course_offering_id' => $this->course_offering_id,
             'enrolled_at' => $this->enrolled_at,
             'status' => $this->status,
             'student' => $this->whenLoaded('student', fn () => [
@@ -31,7 +32,13 @@ class EnrollmentResource extends JsonResource
                 'id' => $this->course?->id,
                 'code' => $this->course?->code,
                 'title' => $this->course?->title,
-                'instructor_user_id' => $this->course?->instructor_user_id,
+                'instructor_user_id' => $this->courseOffering?->instructor_user_id ?? $this->course?->instructor_user_id,
+            ]),
+            'course_offering' => $this->whenLoaded('courseOffering', fn () => [
+                'id' => $this->courseOffering?->id,
+                'block_section' => $this->courseOffering?->block_section,
+                'term_start' => $this->courseOffering?->term_start?->toDateString(),
+                'term_end' => $this->courseOffering?->term_end?->toDateString(),
             ]),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

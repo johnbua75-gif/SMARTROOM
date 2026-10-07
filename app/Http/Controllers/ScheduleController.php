@@ -11,6 +11,7 @@ use App\Http\Requests\ImportScheduleRequest;
 use App\Http\Requests\SubjectsByYearLevelRequest;
 use App\Models\Classroom;
 use App\Models\Course;
+use App\Models\CourseOffering;
 use App\Models\Schedule;
 use App\Models\User;
 use App\Services\RoomAvailabilityService;
@@ -41,8 +42,19 @@ class ScheduleController extends Controller
         $user = $request->user();
 
         $facultyCourses = Course::query()
-            ->where('instructor_user_id', $user->id)
+            ->where(function ($query) use ($user): void {
+                $query->where('instructor_user_id', $user->id)
+                    ->orWhereHas('offerings', fn ($offeringQuery) => $offeringQuery->where('instructor_user_id', $user->id));
+            })
             ->orderBy('code')
+            ->get();
+
+        $facultyOfferings = CourseOffering::query()
+            ->with(['course', 'classroom'])
+            ->where('instructor_user_id', $user->id)
+            ->whereHas('course')
+            ->orderBy('term_start')
+            ->orderBy('block_section')
             ->get();
 
         $classrooms = Classroom::query()
@@ -51,15 +63,14 @@ class ScheduleController extends Controller
             ->get();
 
         $facultySchedules = Schedule::query()
-            ->with(['classroom', 'course'])
-            ->whereHas('course', function ($query) use ($user): void {
-                $query->where('instructor_user_id', $user->id);
-            })
+            ->with(['classroom', 'course', 'courseOffering.instructor', 'courseOffering.classroom'])
+            ->forInstructor((int) $user->id)
             ->orderBy('start_at')
             ->get();
 
         return view('frontend.faculty.schedule', [
             'facultyCourses' => $facultyCourses,
+            'facultyOfferings' => $facultyOfferings,
             'classrooms' => $classrooms,
             'facultySchedules' => $facultySchedules,
             'faculty_name' => $user->name,
@@ -99,7 +110,7 @@ class ScheduleController extends Controller
         $view = $request->query('view', 'week');
 
         $query = Schedule::query()
-            ->with(['classroom', 'course.instructor']);
+            ->with(['classroom', 'course.instructor', 'courseOffering.instructor', 'courseOffering.classroom']);
 
         if ($filter !== 'all') {
             $query->where('status', $filter);
@@ -115,7 +126,7 @@ class ScheduleController extends Controller
 
         $facultyUsers = User::query()
             ->whereRaw("LOWER(COALESCE(role, '')) = ?", ['faculty'])
-            ->with('courses.schedules.classroom')
+            ->with(['courses.schedules.classroom', 'courseOfferings.course', 'courseOfferings.schedules.classroom'])
             ->orderBy('name')
             ->get(['id', 'name', 'email', 'department']);
 
@@ -141,7 +152,10 @@ class ScheduleController extends Controller
             ->orderBy('code');
 
         if (! empty($validated['instructor_id'])) {
-            $query->where('instructor_user_id', $validated['instructor_id']);
+            $query->where(function ($courseQuery) use ($validated): void {
+                $courseQuery->where('instructor_user_id', $validated['instructor_id'])
+                    ->orWhereHas('offerings', fn ($offeringQuery) => $offeringQuery->where('instructor_user_id', $validated['instructor_id']));
+            });
         }
 
         $courses = $query->get()->filter(function (Course $course) use ($validated): bool {
@@ -210,10 +224,46 @@ class ScheduleController extends Controller
         }
 
         $createdCount = 0;
+        $offeringTerms = [];
 
-        DB::transaction(function () use (&$createdCount, $prepared): void {
+        foreach ($prepared['rows'] as $row) {
+            $payload = $row['payload'];
+            $key = (int) $payload['course_id'].'|'.(string) ($payload['block_section'] ?? 'Unspecified');
+            $scheduleDate = Carbon::parse((string) $payload['start_at'])->toDateString();
+            $offeringTerms[$key] ??= ['start' => $scheduleDate, 'end' => $scheduleDate];
+            $offeringTerms[$key]['start'] = min($offeringTerms[$key]['start'], $scheduleDate);
+            $offeringTerms[$key]['end'] = max($offeringTerms[$key]['end'], $scheduleDate);
+        }
+
+        DB::transaction(function () use (&$createdCount, $prepared, $offeringTerms): void {
             foreach ($prepared['rows'] as $row) {
                 $payload = $row['payload'];
+                $offeringKey = (int) $payload['course_id'].'|'.(string) ($payload['block_section'] ?? 'Unspecified');
+                $course = Course::query()->findOrFail((int) $payload['course_id']);
+                $offering = $this->scheduleService->resolveCourseOffering(
+                    (int) $course->id,
+                    $course->instructor_user_id ? (int) $course->instructor_user_id : null,
+                    (int) $payload['classroom_id'],
+                    (string) ($payload['block_section'] ?? 'Unspecified'),
+                    Carbon::parse($offeringTerms[$offeringKey]['start']),
+                    Carbon::parse($offeringTerms[$offeringKey]['end'])
+                );
+
+                if (
+                    $offering->instructor_user_id
+                    && in_array((string) ($payload['status'] ?? 'scheduled'), ['scheduled', 'ongoing'], true)
+                    && $this->availabilityService->hasInstructorScheduleConflict(
+                        (int) $offering->instructor_user_id,
+                        Carbon::parse($payload['start_at']),
+                        Carbon::parse($payload['end_at']),
+                        null,
+                        true
+                    )
+                ) {
+                    throw ValidationException::withMessages([
+                        'import' => ['Instructor is already scheduled at selected time (row '.$row['row_number'].').'],
+                    ]);
+                }
 
                 $scheduleConflict = $this->availabilityService->checkOfficialScheduleConflict(
                     (int) $payload['classroom_id'],
@@ -243,6 +293,7 @@ class ScheduleController extends Controller
                     ]);
                 }
 
+                $payload['course_offering_id'] = $offering->id;
                 Schedule::create($payload);
                 $createdCount++;
             }
@@ -259,9 +310,16 @@ class ScheduleController extends Controller
     public function show(int $id): View
     {
         $schedule = Schedule::query()
-            ->with(['classroom', 'course.instructor'])
-            ->whereHas('course.instructor', function ($scope): void {
-                $this->scheduleService->applyItDepartmentScope($scope);
+            ->with(['classroom', 'course.instructor', 'courseOffering.instructor', 'courseOffering.classroom'])
+            ->where(function ($query): void {
+                $query->whereHas('courseOffering.instructor', function ($scope): void {
+                    $this->scheduleService->applyItDepartmentScope($scope);
+                })->orWhere(function ($legacyQuery): void {
+                    $legacyQuery->whereNull('course_offering_id')
+                        ->whereHas('course.instructor', function ($scope): void {
+                            $this->scheduleService->applyItDepartmentScope($scope);
+                        });
+                });
             })
             ->findOrFail($id);
 

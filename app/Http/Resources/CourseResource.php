@@ -28,6 +28,14 @@ class CourseResource extends JsonResource
                 'department' => $this->instructor?->department,
             ]),
             'schedules' => ScheduleResource::collection($this->whenLoaded('schedules')),
+            'offerings' => $this->whenLoaded('offerings', fn () => $this->offerings->map(fn ($offering): array => [
+                'id' => $offering->id,
+                'instructor_user_id' => $offering->instructor_user_id,
+                'classroom_id' => $offering->classroom_id,
+                'block_section' => $offering->block_section,
+                'term_start' => $offering->term_start?->toDateString(),
+                'term_end' => $offering->term_end?->toDateString(),
+            ])),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

@@ -14,8 +14,9 @@ class FacultyStoreScheduleRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'course_id' => ['required', 'integer'],
-            'block_section' => ['required', 'string', 'in:Block A,Block B'],
+            'course_id' => ['required_without:course_offering_id', 'nullable', 'integer', 'exists:courses,id'],
+            'course_offering_id' => ['required_without:course_id', 'nullable', 'integer', 'exists:course_offerings,id'],
+            'block_section' => ['required_without:course_offering_id', 'nullable', 'string', 'max:64'],
             'semester_start' => ['required', 'date'],
             'semester_end' => ['required', 'date', 'after_or_equal:semester_start'],
             'day1' => ['nullable', 'integer', 'between:1,5', 'different:day2'],

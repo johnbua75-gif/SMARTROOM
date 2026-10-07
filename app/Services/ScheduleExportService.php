@@ -16,12 +16,17 @@ class ScheduleExportService
     public function exportFacultyIcs(User $user): StreamedResponse
     {
         $schedules = Schedule::query()
-            ->with(['classroom', 'course'])
-            ->whereHas('course', function (Builder $query) use ($user): void {
-                $query->where('instructor_user_id', $user->id);
-            })
-            ->whereHas('course.instructor', function (Builder $query): void {
-                $this->scheduleService->applyItDepartmentScope($query);
+            ->with(['classroom', 'course', 'courseOffering.instructor'])
+            ->forInstructor((int) $user->id)
+            ->where(function (Builder $query): void {
+                $query->whereHas('courseOffering.instructor', function (Builder $instructorQuery): void {
+                    $this->scheduleService->applyItDepartmentScope($instructorQuery);
+                })->orWhere(function (Builder $legacyQuery): void {
+                    $legacyQuery->whereNull('course_offering_id')
+                        ->whereHas('course.instructor', function (Builder $instructorQuery): void {
+                            $this->scheduleService->applyItDepartmentScope($instructorQuery);
+                        });
+                });
             })
             ->orderBy('start_at')
             ->get();
@@ -76,9 +81,16 @@ class ScheduleExportService
     public function exportCsv(string $filter): StreamedResponse
     {
         $query = Schedule::query()
-            ->with(['classroom', 'course.instructor'])
-            ->whereHas('course.instructor', function (Builder $scope): void {
-                $this->scheduleService->applyItDepartmentScope($scope);
+            ->with(['classroom', 'course.instructor', 'courseOffering.instructor'])
+            ->where(function (Builder $query): void {
+                $query->whereHas('courseOffering.instructor', function (Builder $scope): void {
+                    $this->scheduleService->applyItDepartmentScope($scope);
+                })->orWhere(function (Builder $legacyQuery): void {
+                    $legacyQuery->whereNull('course_offering_id')
+                        ->whereHas('course.instructor', function (Builder $scope): void {
+                            $this->scheduleService->applyItDepartmentScope($scope);
+                        });
+                });
             })
             ->orderBy('start_at');
 
