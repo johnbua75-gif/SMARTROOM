@@ -2,6 +2,7 @@
 
 use App\Models\Classroom;
 use App\Models\Course;
+use App\Models\CourseOffering;
 use App\Models\Schedule;
 use App\Models\User;
 use Database\Seeders\RealScheduleSeeder;
@@ -52,6 +53,7 @@ it('imports all 29 timetable patterns into existing records and is safe to rerun
         'A_CC 102',
         'A_CC 101',
         'A_ELEC3',
+        'A_ELEC4',
         'A_IAS 102',
         'A_OS 101',
         'A_SIA 101',
@@ -65,11 +67,41 @@ it('imports all 29 timetable patterns into existing records and is safe to rerun
     foreach ($subjectCodes as $index => $code) {
         Course::query()->create([
             'code' => $code,
-            'title' => $code === 'A_SA 101' ? 'System Administration and Maintenance' : $code,
+            'title' => match ($code) {
+                'A_ELEC3' => 'Elective 3 (Special Topics on Web and Mobile 1)',
+                'A_ELEC4' => 'Elective 4 (Special Topics on Web and Mobile 2)',
+                'A_SIA 101' => 'Systems Integration and Architecture',
+                'A_SA 101' => 'System Administration and Maintenance',
+                default => $code,
+            },
             'instructor_user_id' => User::query()->where('name', $facultyNames[$index % count($facultyNames)])->value('id'),
             'capacity' => 40,
         ]);
     }
+
+    $oldElectiveCourse = Course::query()->where('code', 'A_ELEC3')->firstOrFail();
+    $tarut = User::query()->where('name', 'P. TARUT')->firstOrFail();
+    $oldElectiveOffering = CourseOffering::query()->create([
+        'course_id' => $oldElectiveCourse->id,
+        'instructor_user_id' => $tarut->id,
+        'classroom_id' => $rooms->get(2)->id,
+        'block_section' => 'BSIT IVA',
+        'term_start' => '2026-04-06',
+        'term_end' => '2026-04-10',
+    ]);
+    $legacyElectiveSchedule = Schedule::query()->create([
+        'classroom_id' => $rooms->get(2)->id,
+        'course_id' => $oldElectiveCourse->id,
+        'course_offering_id' => $oldElectiveOffering->id,
+        'instructor_user_id' => $tarut->id,
+        'block_section' => 'BSIT IVA',
+        'class_type' => 'LAB',
+        'start_at' => '2026-04-10 14:00:00',
+        'end_at' => '2026-04-10 16:00:00',
+        'status' => 'scheduled',
+        'day_of_week' => 5,
+        'enrolled' => 0,
+    ]);
 
     $originalUserCount = User::query()->count();
     $originalCourseCount = Course::query()->count();
@@ -129,6 +161,16 @@ it('imports all 29 timetable patterns into existing records and is safe to rerun
         ->where('start_at', '2026-04-07 16:00:00')
         ->where('class_type', 'LEC')
         ->firstOrFail();
+    $electiveLecture = Schedule::query()
+        ->whereHas('course', fn ($query) => $query->where('code', 'A_ELEC4'))
+        ->where('block_section', 'BSIT IVA')
+        ->where('class_type', 'LEC')
+        ->firstOrFail();
+    $electiveLab = Schedule::query()
+        ->whereHas('course', fn ($query) => $query->where('code', 'A_ELEC4'))
+        ->where('block_section', 'BSIT IVA')
+        ->where('class_type', 'LAB')
+        ->firstOrFail();
 
     expect($lecture->instructor->name)->toBe('TEACHER Z II')
         ->and($lab->instructor->name)->toBe('TEACHER Z')
@@ -136,7 +178,10 @@ it('imports all 29 timetable patterns into existing records and is safe to rerun
         ->and($cc101Lecture->course_offering_id)->toBe($cc101Lab->course_offering_id)
         ->and($cc101Lecture->classroom_id)->not->toBe($cc101Lab->classroom_id)
         ->and($systemAdminLecture->course->code)->toBe('A_SA 101')
-        ->and($systemAdminLecture->instructor->name)->toBe('A. UMAGA');
+        ->and($systemAdminLecture->instructor->name)->toBe('A. UMAGA')
+        ->and($electiveLecture->course->title)->toBe('Elective 4 (Special Topics on Web and Mobile 2)')
+        ->and($electiveLab->id)->toBe($legacyElectiveSchedule->id)
+        ->and($electiveLab->course_offering_id)->not->toBe($oldElectiveOffering->id);
 
     $this->seed(RealScheduleSeeder::class);
 

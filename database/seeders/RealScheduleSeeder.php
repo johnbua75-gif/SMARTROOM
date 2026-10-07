@@ -23,12 +23,12 @@ class RealScheduleSeeder extends Seeder
         ['room' => 'RM 15', 'section' => 'BSIT IA', 'day' => 4, 'start' => '13:00', 'end' => '15:00', 'subject' => 'CC 102', 'instructor' => 'W. MOTEA', 'type' => 'LAB'],
         ['room' => 'RM 15', 'section' => 'BSIT IB', 'day' => 2, 'start' => '10:00', 'end' => '12:00', 'subject' => 'CC 102', 'instructor' => 'W. MOTEA', 'type' => 'LEC'],
         ['room' => 'RM 15', 'section' => 'BSIT IB', 'day' => 4, 'start' => '08:00', 'end' => '10:00', 'subject' => 'CC 102', 'instructor' => 'W. MOTEA', 'type' => 'LAB'],
-        ['room' => 'RM 15', 'section' => 'BSIT IVA', 'day' => 3, 'start' => '14:00', 'end' => '16:00', 'subject' => 'ELEC 3', 'instructor' => 'P. TARUT', 'type' => 'LEC'],
+        ['room' => 'RM 15', 'section' => 'BSIT IVA', 'day' => 3, 'start' => '14:00', 'end' => '16:00', 'subject' => 'ELEC 3', 'source_subject' => 'Elective 3 (Special Topics on Web and Mobile 2)', 'catalog_title' => 'Elective 4 (Special Topics on Web and Mobile 2)', 'instructor' => 'P. TARUT', 'type' => 'LEC'],
         ['room' => 'RM 16', 'section' => 'BSIT IA', 'day' => 4, 'start' => '08:00', 'end' => '10:00', 'subject' => 'CC 101', 'instructor' => 'W. HONRADO', 'type' => 'LAB'],
         ['room' => 'RM 16', 'section' => 'BSIT IB', 'day' => 4, 'start' => '13:00', 'end' => '15:00', 'subject' => 'CC 101', 'instructor' => 'W. HONRADO', 'type' => 'LAB'],
         ['room' => 'RM 16', 'section' => 'BSIT IVA', 'day' => 1, 'start' => '10:00', 'end' => '12:00', 'subject' => 'IAS 102', 'instructor' => 'J. VENTURA', 'type' => 'LEC'],
         ['room' => 'RM 16', 'section' => 'BSIT IVA', 'day' => 2, 'start' => '08:00', 'end' => '10:00', 'subject' => 'OS 101', 'instructor' => 'J. VENTURA', 'type' => 'LEC'],
-        ['room' => 'RM 16', 'section' => 'BSIT IVA', 'day' => 2, 'start' => '16:00', 'end' => '17:00', 'subject' => 'SA 101', 'source_subject' => 'SIA 101 System Administration and Maintenance', 'instructor' => 'A. UMAGA', 'type' => 'LEC'],
+        ['room' => 'RM 16', 'section' => 'BSIT IVA', 'day' => 2, 'start' => '16:00', 'end' => '17:00', 'subject' => 'SIA 101', 'source_subject' => 'SIA 101 System Administration and Maintenance', 'catalog_title' => 'System Administration and Maintenance', 'instructor' => 'A. UMAGA', 'type' => 'LEC'],
         ['room' => 'RM 16', 'section' => 'BSIT IVA', 'day' => 3, 'start' => '08:00', 'end' => '10:00', 'subject' => 'IAS 102', 'instructor' => 'J. VENTURA', 'type' => 'LAB'],
         ['room' => 'RM 16', 'section' => 'BSIT IVA', 'day' => 5, 'start' => '08:00', 'end' => '10:00', 'subject' => 'SA 101', 'instructor' => 'A. UMAGA', 'type' => 'LAB'],
         ['room' => 'RM 17', 'section' => 'BSIT III', 'day' => 1, 'start' => '09:00', 'end' => '11:00', 'subject' => 'MD 101', 'instructor' => 'J. DORIA', 'type' => 'LAB'],
@@ -43,7 +43,7 @@ class RealScheduleSeeder extends Seeder
         ['room' => 'RM 17', 'section' => 'BSIT IVA', 'day' => 1, 'start' => '16:00', 'end' => '17:00', 'subject' => 'CAP 102', 'instructor' => 'J. DORIA', 'type' => 'LEC'],
         ['room' => 'RM 17', 'section' => 'BSIT IVA', 'day' => 3, 'start' => '16:00', 'end' => '17:00', 'subject' => 'CAP 102', 'instructor' => 'J. DORIA', 'type' => 'LEC'],
         ['room' => 'RM 17', 'section' => 'BSIT IVA', 'day' => 4, 'start' => '08:00', 'end' => '10:00', 'subject' => 'OS 101', 'instructor' => 'J. VENTURA', 'type' => 'LAB'],
-        ['room' => 'RM 17', 'section' => 'BSIT IVA', 'day' => 5, 'start' => '14:00', 'end' => '16:00', 'subject' => 'ELEC 3', 'instructor' => 'P. TARUT', 'type' => 'LAB'],
+        ['room' => 'RM 17', 'section' => 'BSIT IVA', 'day' => 5, 'start' => '14:00', 'end' => '16:00', 'subject' => 'ELEC 3', 'source_subject' => 'Elective 3 (Special Topics on Web and Mobile 2)', 'catalog_title' => 'Elective 4 (Special Topics on Web and Mobile 2)', 'instructor' => 'P. TARUT', 'type' => 'LAB'],
     ];
 
     public function run(): void
@@ -65,14 +65,15 @@ class RealScheduleSeeder extends Seeder
         $occurrences = $this->buildWeeklyOccurrences($patterns, $termStart, $termEnd);
         $scheduleService = app(ScheduleService::class);
         $insertedCount = 0;
+        $updatedCount = 0;
         $skippedCount = 0;
 
-        DB::transaction(function () use ($patterns, $occurrences, $termStart, $termEnd, $scheduleService, &$insertedCount, &$skippedCount): void {
+        DB::transaction(function () use ($patterns, $occurrences, $termStart, $termEnd, $scheduleService, &$insertedCount, &$updatedCount, &$skippedCount): void {
             $offerings = [];
 
             foreach ($patterns as $pattern) {
                 $offeringKey = $pattern['course']->id.'|'.$pattern['section'];
-                $offerings[$offeringKey] = $scheduleService->resolveCourseOffering(
+                $offering = $scheduleService->resolveCourseOffering(
                     (int) $pattern['course']->id,
                     null,
                     null,
@@ -81,6 +82,8 @@ class RealScheduleSeeder extends Seeder
                     $termEnd,
                     false
                 );
+
+                $offerings[$offeringKey] = $offering;
             }
 
             foreach ($occurrences as $occurrence) {
@@ -91,17 +94,21 @@ class RealScheduleSeeder extends Seeder
                 $endAt = $occurrence['end_at'];
                 $seriesId = $this->seriesIdFor($pattern, $termStart, $termEnd);
 
-                $existingSchedule = Schedule::query()
+                $matchingSchedules = Schedule::query()
                     ->where('classroom_id', $pattern['classroom']->id)
-                    ->where('course_id', $pattern['course']->id)
                     ->where('block_section', $pattern['section'])
                     ->where('day_of_week', $pattern['day'])
                     ->where('start_at', $startAt)
                     ->where('end_at', $endAt)
-                    ->where(function ($query) use ($pattern): void {
-                        $query->whereNull('class_type')->orWhere('class_type', $pattern['type']);
-                    })
-                    ->first();
+                    ->get();
+
+                if ($matchingSchedules->count() > 1) {
+                    throw new RuntimeException(
+                        $this->describePattern($pattern, $startAt).' matches multiple existing schedules; nothing was overwritten.'
+                    );
+                }
+
+                $existingSchedule = $matchingSchedules->first();
 
                 if ($existingSchedule) {
                     if (
@@ -113,14 +120,28 @@ class RealScheduleSeeder extends Seeder
                         );
                     }
 
-                    $existingSchedule->instructor_user_id ??= $pattern['instructor']->id;
-                    $existingSchedule->course_offering_id ??= $offering->id;
-                    $existingSchedule->class_type ??= $pattern['type'];
-                    if ($existingSchedule->isDirty()) {
-                        $existingSchedule->save();
+                    if ((int) $existingSchedule->course_id !== (int) $pattern['course']->id) {
+                        $existingCourseCode = $existingSchedule->course?->code;
+
+                        if (! $existingCourseCode || $this->normalizeCode($existingCourseCode) !== $this->normalizeCode($pattern['subject'])) {
+                            throw new RuntimeException(
+                                $this->describePattern($pattern, $startAt).' matches an existing schedule for a different subject; nothing was overwritten.'
+                            );
+                        }
+
+                        $existingSchedule->course_id = $pattern['course']->id;
                     }
 
-                    $skippedCount++;
+                    $existingSchedule->instructor_user_id ??= $pattern['instructor']->id;
+                    $existingSchedule->course_offering_id = $offering->id;
+                    $existingSchedule->class_type ??= $pattern['type'];
+                    $existingSchedule->series_id = $seriesId;
+                    if ($existingSchedule->isDirty()) {
+                        $existingSchedule->save();
+                        $updatedCount++;
+                    } else {
+                        $skippedCount++;
+                    }
 
                     continue;
                 }
@@ -145,6 +166,7 @@ class RealScheduleSeeder extends Seeder
 
         $this->command?->info('Timetable patterns processed: '.count(self::PATTERNS).'.');
         $this->command?->info('Weekly schedule occurrences inserted: '.$insertedCount.'.');
+        $this->command?->info('Existing matching occurrences updated: '.$updatedCount.'.');
         $this->command?->info('Existing matching occurrences skipped: '.$skippedCount.'.');
     }
 
@@ -153,14 +175,17 @@ class RealScheduleSeeder extends Seeder
     {
         $facultyByName = User::query()->where('role', 'faculty')->get()->groupBy(fn (User $user): string => $this->normalize($user->name));
         $classroomsByName = Classroom::query()->get()->keyBy(fn (Classroom $classroom): string => $this->normalizeRoom($classroom->name));
-        $coursesByCode = Course::query()->get()->groupBy(fn (Course $course): string => $this->normalizeCode($course->code));
+        $courses = Course::query()->get();
+        $coursesByCode = $courses->groupBy(fn (Course $course): string => $this->normalizeCode($course->code));
         $resolved = [];
         $errors = [];
 
         foreach (self::PATTERNS as $index => $pattern) {
             $facultyMatches = $facultyByName->get($this->normalize($pattern['instructor']), collect());
             $classroom = $classroomsByName->get($this->normalizeRoom($pattern['room']));
-            $courseMatches = $coursesByCode->get($this->normalizeCode($pattern['subject']), collect());
+            $courseMatches = isset($pattern['catalog_title'])
+                ? $courses->filter(fn (Course $course): bool => $this->normalize($course->title) === $this->normalize($pattern['catalog_title']))
+                : $coursesByCode->get($this->normalizeCode($pattern['subject']), collect());
 
             if ($facultyMatches->count() !== 1) {
                 $errors[] = 'Schedule '.($index + 1).': expected exactly one existing faculty named '.$pattern['instructor'].'.';
