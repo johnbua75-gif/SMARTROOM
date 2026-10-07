@@ -2,10 +2,30 @@
 
 use App\Models\AttendanceRecord;
 use App\Models\AttendanceSession;
+use App\Models\Course;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
+
+it('only allows faculty to create ad-hoc attendance sessions for their own courses', function () {
+    $faculty = User::factory()->create(['role' => 'faculty']);
+    $otherFaculty = User::factory()->create(['role' => 'faculty']);
+    $otherCourse = Course::create([
+        'code' => 'OTHER101',
+        'title' => 'Other Faculty Course',
+        'instructor_user_id' => $otherFaculty->id,
+        'capacity' => 30,
+    ]);
+    $payload = ['session_date' => today()->toDateString()];
+
+    $this->actingAs($faculty)
+        ->from(route('faculty.attendance'))
+        ->post(route('faculty.attendance.store'), $payload + ['course_id' => $otherCourse->id])
+        ->assertInvalid(['course_id']);
+
+    expect(AttendanceSession::query()->where('created_by', $faculty->id)->exists())->toBeFalse();
+});
 
 it('prevents faculty from accessing or changing another faculty member attendance session', function () {
     $owner = User::factory()->create(['role' => 'faculty']);

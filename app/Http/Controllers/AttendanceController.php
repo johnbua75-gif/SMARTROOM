@@ -157,10 +157,10 @@ class AttendanceController extends Controller
 
     public function store(StoreAttendanceRequest $request)
     {
-        $request->validated();
+        $validated = $request->validated();
 
         $schedule = null;
-        $scheduleId = $request->input('schedule_id');
+        $scheduleId = $validated['schedule_id'] ?? null;
         if ($scheduleId) {
             $schedule = Schedule::find($scheduleId);
             if (! $schedule) {
@@ -173,9 +173,9 @@ class AttendanceController extends Controller
         }
 
         // Accept optional course selection for ad-hoc sessions
-        $courseId = $request->input('course_id');
+        $courseId = $validated['course_id'] ?? null;
 
-        $sessionDate = $request->input('session_date');
+        $sessionDate = $validated['session_date'];
 
         if ($schedule) {
             [$session, $message] = $this->openOrResumeScheduleSession($schedule, (string) $request->input('remarks'));
