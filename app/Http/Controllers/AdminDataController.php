@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Throwable;
 
 class AdminDataController extends Controller
@@ -111,13 +112,17 @@ class AdminDataController extends Controller
 
     public function destroyCourse(Request $request, Course $course): RedirectResponse|JsonResponse
     {
+        $hasHistory = $course->schedules()->exists() || $course->enrollments()->exists();
         $course->delete();
+        $message = $hasHistory
+            ? 'Course archived successfully because it has schedule or enrollment history.'
+            : 'Course archived successfully.';
 
         if ($request->expectsJson()) {
-            return response()->json(['message' => 'Course deleted successfully.']);
+            return response()->json(['message' => $message]);
         }
 
-        return redirect()->back()->with('status', 'Course deleted successfully.');
+        return redirect()->back()->with('status', $message);
     }
 
     public function unassignCourse(Request $request, Course $course): RedirectResponse|JsonResponse
@@ -264,6 +269,22 @@ class AdminDataController extends Controller
 
     public function destroyUser(Request $request, User $user): RedirectResponse|JsonResponse
     {
+        $hasCourseHistory = strtolower((string) $user->role) === 'faculty'
+            && Course::query()
+                ->where('instructor_user_id', $user->id)
+                ->where(function ($query): void {
+                    $query->whereHas('schedules')->orWhereHas('enrollments');
+                })
+                ->exists();
+
+        if ($hasCourseHistory) {
+            $message = 'This faculty account cannot be deleted while assigned subjects have schedule or enrollment history.';
+
+            return $request->expectsJson()
+                ? response()->json(['message' => $message], 422)
+                : redirect()->back()->withErrors(['user' => $message]);
+        }
+
         $user->delete();
 
         if ($request->expectsJson()) {
@@ -298,12 +319,26 @@ class AdminDataController extends Controller
         }
 
         $result = DB::transaction(function () use ($user, $replacement): array {
-            $affectedCourses = Course::query()
+            $courses = Course::query()
                 ->where('instructor_user_id', $user->id)
-                ->update(['instructor_user_id' => $replacement->id]);
+                ->lockForUpdate()
+                ->get();
+
+            foreach ($courses as $course) {
+                if ($course->schedules()->exists() || $course->enrollments()->exists()) {
+                    throw ValidationException::withMessages([
+                        'replacement_user_id' => ['A subject with schedule or enrollment history cannot be reassigned.'],
+                    ]);
+                }
+            }
+
+            foreach ($courses as $course) {
+                $course->instructor_user_id = $replacement->id;
+                $course->save();
+            }
 
             return [
-                'reassigned_courses' => $affectedCourses,
+                'reassigned_courses' => $courses->count(),
             ];
         });
 

@@ -55,8 +55,12 @@ class CourseController extends Controller
 
     public function destroy(Course $course): JsonResponse
     {
+        $hasHistory = $course->schedules()->exists() || $course->enrollments()->exists();
         $course->delete();
+        $message = $hasHistory
+            ? 'Course archived successfully because it has schedule or enrollment history.'
+            : 'Course archived successfully.';
 
-        return response()->json(['message' => 'Course deleted successfully.']);
+        return response()->json(['message' => $message]);
     }
 }

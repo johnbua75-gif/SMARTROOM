@@ -6,9 +6,30 @@ use App\Models\Course;
 use App\Models\Notification;
 use App\Models\User;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Validation\ValidationException;
 
 class CourseObserver
 {
+    public function updating(Course $course): void
+    {
+        if (! $course->isDirty('instructor_user_id') || ! $this->hasHistory($course)) {
+            return;
+        }
+
+        throw ValidationException::withMessages([
+            'instructor_user_id' => ['This subject cannot be reassigned because it has schedule or enrollment history. Create a separate subject assignment instead.'],
+        ]);
+    }
+
+    public function deleting(Course $course): void
+    {
+        if ($course->isForceDeleting() && $this->hasHistory($course)) {
+            throw ValidationException::withMessages([
+                'course' => ['This subject cannot be permanently deleted because it has schedule or enrollment history.'],
+            ]);
+        }
+    }
+
     public function created(Course $course): void
     {
         $this->notifyAssignedFaculty($course);
@@ -50,5 +71,10 @@ class CourseObserver
         ]);
 
         Cache::forget('faculty:notifications:v1:'.$faculty->id);
+    }
+
+    private function hasHistory(Course $course): bool
+    {
+        return $course->schedules()->exists() || $course->enrollments()->exists();
     }
 }
