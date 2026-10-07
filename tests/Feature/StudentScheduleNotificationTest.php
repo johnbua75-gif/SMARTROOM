@@ -161,3 +161,29 @@ it('notifies the assigned faculty when a course is assigned or reassigned', func
         ->assertSee(route('faculty.notifications.data'), false)
         ->assertSee('setInterval', false);
 });
+
+it('shows faculty notification counts and responsive navigation', function () {
+    $faculty = User::factory()->create(['role' => 'faculty', 'status' => 'active']);
+    Notification::create([
+        'type' => 'course_assignment',
+        'title' => 'Subject assigned to you',
+        'body' => 'You are assigned to teach CS101.',
+        'user_id' => $faculty->id,
+    ]);
+    Notification::create([
+        'type' => 'schedule',
+        'title' => 'Schedule updated',
+        'body' => 'Your schedule was updated.',
+        'read_at' => now(),
+        'user_id' => $faculty->id,
+    ]);
+
+    $this->actingAs($faculty)
+        ->get(route('faculty.notifications'))
+        ->assertSuccessful()
+        ->assertSee('Faculty navigation')
+        ->assertSee('aria-label="1 unread notifications"', false)
+        ->assertSee('aria-label="2 total notifications"', false)
+        ->assertSee('Course assignment')
+        ->assertSee('notifications-mobile-menu', false);
+});
