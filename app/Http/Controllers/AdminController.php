@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\AccessCard;
 use App\Models\AccessLog;
 use App\Models\Classroom;
+use App\Models\Notification;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
@@ -19,14 +20,12 @@ class AdminController extends Controller
         $cards = AccessCard::query()
             ->with([
                 'user.courses.schedules.classroom',
-                'classroom',
             ])
             ->latest('id')
             ->get();
 
         $cardViewData = $cards->map(function (AccessCard $card): array {
             $user = $card->user;
-            $roomName = $card->classroom?->name ?? 'Unassigned';
 
             $scheduleRows = collect();
 
@@ -40,20 +39,17 @@ class AdminController extends Controller
                                 : '--:-- - --:--';
 
                             return [
-                                'room_id' => $schedule->classroom_id,
+                                'room' => $schedule->classroom?->name ?? 'Unassigned room',
                                 'day' => $day,
                                 'time' => $time,
                                 'subject' => $course->title,
                             ];
                         });
                     })
-                    ->filter(function (array $row) use ($card) {
-                        return $card->classroom_id === null || $row['room_id'] === $card->classroom_id;
-                    })
                     ->values()
-                    ->take(3)
                     ->map(function (array $row): array {
                         return [
+                            'room' => $row['room'],
                             'day' => $row['day'],
                             'time' => $row['time'],
                             'subject' => $row['subject'],
@@ -70,21 +66,40 @@ class AdminController extends Controller
                 'rfid_uid' => $card->rfid_uid,
                 'status' => strtolower((string) $card->status),
                 'expires' => optional($card->expires_at)?->format('m/y') ?? '--/--',
-                'room' => $roomName,
                 'schedule' => $scheduleRows->all(),
             ];
         })->all();
 
+        $scheduledRoomCount = $cards
+            ->flatMap(function (AccessCard $card) {
+                if (! $card->user) {
+                    return collect();
+                }
+
+                return $card->user->courses->flatMap(
+                    fn ($course) => $course->schedules->pluck('classroom_id')
+                );
+            })
+            ->filter()
+            ->unique()
+            ->count();
+
         $stats = [
             'active_cards' => $cards->where('status', 'active')->count(),
             'total_instructors' => $cards->pluck('user_id')->filter()->unique()->count(),
-            'assigned_rooms' => $cards->pluck('classroom_id')->filter()->unique()->count(),
+            'scheduled_rooms' => $scheduledRoomCount,
             'pending_cards' => $cards->where('status', 'pending')->count(),
         ];
 
         return view('frontend.admin.smartlocking', [
             'stats' => $stats,
             'cards' => $cardViewData,
+            'lostCardReports' => Notification::query()
+                ->where('user_id', auth()->id())
+                ->where('type', 'rfid_card_lost')
+                ->latest('id')
+                ->limit(20)
+                ->get(['id', 'title', 'body', 'read_at', 'created_at']),
             'instructors' => User::query()
                 ->where('role', 'faculty')
                 ->where('status', 'active')
@@ -103,7 +118,6 @@ class AdminController extends Controller
                 'user.authorizedClassrooms',
                 'user.courses.schedules.classroom',
                 'user.accessLogs.classroom',
-                'classroom',
                 'accessLogs.classroom',
             ])
             ->findOrFail($id);
@@ -135,13 +149,6 @@ class AdminController extends Controller
                 });
         }
 
-        if ($authorizedRooms->isEmpty() && $cardModel->classroom) {
-            $authorizedRooms = collect([[
-                'room' => $cardModel->classroom->name,
-                'building' => $cardModel->classroom->building,
-            ]]);
-        }
-
         $schedule = collect();
 
         if ($user) {
@@ -171,9 +178,6 @@ class AdminController extends Controller
             'rfid' => $cardModel->rfid_uid,
             'status' => strtolower((string) $cardModel->status),
             'expiryDate' => optional($cardModel->expires_at)?->toDateString() ?? now()->toDateString(),
-            'room' => $cardModel->classroom?->name ?? 'Unassigned',
-            'building' => $cardModel->classroom?->building ?? 'N/A',
-            'floor' => $cardModel->classroom?->floor ?? 'N/A',
             'lastAccess' => $lastLog?->accessed_at?->format('M d, Y H:i') ?? 'No recent access',
             'lastAccessRoom' => $lastLog?->classroom?->name ?? 'N/A',
             'totalAccess' => $cardModel->accessLogs->count(),

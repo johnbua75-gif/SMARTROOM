@@ -8,11 +8,23 @@ use App\Models\Schedule;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
-use Laravel\Sanctum\Sanctum;
 
 use function Pest\Laravel\actingAs;
 
 uses(RefreshDatabase::class);
+
+function accessCardManagementDeviceCredential(Classroom $classroom, string $name): string
+{
+    $credential = str_repeat('d', 64);
+    Device::create([
+        'name' => $name,
+        'classroom_id' => $classroom->id,
+        'status' => 'active',
+        'credential_hash' => hash('sha256', $credential),
+    ]);
+
+    return $credential;
+}
 
 it('allows an admin to create an RFID access card', function () {
     $admin = User::factory()->create([
@@ -78,6 +90,7 @@ it('allows access during the instructor official class schedule', function () {
     $classroom = Classroom::create([
         'name' => 'Room 15',
         'building' => 'Main Building',
+        'access_mode' => 'esp32',
     ]);
     $course = Course::create([
         'code' => 'STS101',
@@ -105,8 +118,8 @@ it('allows access during the instructor official class schedule', function () {
 
     $this->travelTo($now);
 
-    actingAs($instructor, 'sanctum')
-        ->getJson('/api/v1/reservations/check?user_id='.$instructor->id.'&classroom_id='.$classroom->id.'&rfid_uid='.$card->rfid_uid)
+    $this->withToken(accessCardManagementDeviceCredential($classroom, 'schedule-room-door'))
+        ->getJson('/api/v1/device/reservations/check?user_id='.$instructor->id.'&rfid_uid='.$card->rfid_uid)
         ->assertOk()
         ->assertJsonPath('allowed', true)
         ->assertJsonPath('schedule_id', 1);
@@ -120,6 +133,7 @@ it('resolves the faculty owner when an RFID scan is logged by UID', function () 
     $classroom = Classroom::create([
         'name' => 'Room 15',
         'building' => 'Main Building',
+        'access_mode' => 'esp32',
     ]);
     $card = AccessCard::create([
         'user_id' => $instructor->id,
@@ -129,8 +143,8 @@ it('resolves the faculty owner when an RFID scan is logged by UID', function () 
         'status' => 'active',
     ]);
 
-    actingAs($instructor, 'sanctum')
-        ->postJson('/api/v1/access-logs', [
+    $this->withToken(accessCardManagementDeviceCredential($classroom, 'log-room-door'))
+        ->postJson('/api/v1/device/access-logs', [
             'classroom_id' => $classroom->id,
             'direction' => 'entry',
             'result' => 'denied',
@@ -158,8 +172,11 @@ it('finds a prefixed faculty RFID card from the ESP32 UID', function () {
         'status' => 'active',
     ]);
 
-    actingAs($instructor, 'sanctum')
-        ->getJson('/api/v1/access-cards?rfid_uid=87%3A3E%3AD2%3A06')
+    $this->withToken(accessCardManagementDeviceCredential(
+        Classroom::create(['name' => 'RFID Room', 'building' => 'Main Building', 'access_mode' => 'esp32']),
+        'rfid-room-door'
+    ))
+        ->getJson('/api/v1/device/access-cards?rfid_uid=87%3A3E%3AD2%3A06')
         ->assertSuccessful()
         ->assertJsonPath('data.0.id', $card->id)
         ->assertJsonPath('data.0.user_id', $instructor->id);
@@ -181,9 +198,10 @@ it('finds a faculty card regardless of its legacy classroom value', function () 
         'status' => 'active',
     ]);
 
-    Sanctum::actingAs($instructor, ['device:access']);
+    $deviceRoom->update(['access_mode' => 'esp32']);
 
-    $this->getJson('/api/v1/access-cards?rfid_uid=AA%3ABB%3ACC%3ADD&classroom_id='.$deviceRoom->id)
+    $this->withToken(accessCardManagementDeviceCredential($deviceRoom, 'legacy-room-door'))
+        ->getJson('/api/v1/device/access-cards?rfid_uid=AA%3ABB%3ACC%3ADD&classroom_id='.$deviceRoom->id)
         ->assertSuccessful()
         ->assertJsonPath('data.0.id', AccessCard::first()->id)
         ->assertJsonPath('data.0.user_id', $instructor->id);
@@ -192,10 +210,9 @@ it('finds a faculty card regardless of its legacy classroom value', function () 
 it('rejects personal tokens without the device access ability', function () {
     $user = User::factory()->create(['status' => 'active']);
 
-    Sanctum::actingAs($user, ['profile:read']);
-
-    $this->getJson('/api/v1/access-cards?rfid_uid=AA%3ABB%3ACC%3ADD')
-        ->assertForbidden();
+    $this->withToken('not-a-device-token')
+        ->getJson('/api/v1/device/access-cards?rfid_uid=AA%3ABB%3ACC%3ADD')
+        ->assertUnauthorized();
 });
 
 it('rejects a device token when the requested classroom is not its registered room', function () {
@@ -207,11 +224,12 @@ it('rejects a device token when the requested classroom is not its registered ro
         'classroom_id' => $deviceRoom->id,
         'status' => 'active',
     ]);
+    $deviceRoom->update(['access_mode' => 'esp32']);
     $token = $deviceUser->createToken('room-a-device', ['device:access']);
-    $token->accessToken->update(['device_id' => $device->id]);
+    $token->accessToken->forceFill(['device_id' => $device->id])->save();
 
     $this->withToken($token->plainTextToken)
-        ->getJson('/api/v1/reservations/check?user_id='.$deviceUser->id.'&classroom_id='.$otherRoom->id)
+        ->getJson('/api/v1/device/reservations/check?user_id='.$deviceUser->id.'&classroom_id='.$otherRoom->id)
         ->assertForbidden();
 });
 
@@ -221,6 +239,13 @@ it('keeps official class access logs granted', function () {
         'status' => 'active',
     ]);
     $classroom = Classroom::create(['name' => 'Official Class Room', 'building' => 'Main Building']);
+    $classroom->update(['access_mode' => 'esp32']);
+    $card = AccessCard::create([
+        'user_id' => $instructor->id,
+        'card_number' => 'OFFICIAL-LOG-CARD',
+        'rfid_uid' => 'FE:ED:CA:FE',
+        'status' => 'active',
+    ]);
     $course = Course::create([
         'code' => 'OFFICIAL-LOG',
         'title' => 'Official Log Test',
@@ -237,20 +262,40 @@ it('keeps official class access logs granted', function () {
         'status' => 'scheduled',
     ]);
 
-    Sanctum::actingAs($instructor, ['device:access']);
-
     $this->travelTo($accessedAt);
 
-    $this->postJson('/api/v1/access-logs', [
-        'classroom_id' => $classroom->id,
-        'user_id' => $instructor->id,
-        'direction' => 'entry',
-        'result' => 'granted',
-        'accessed_at' => $accessedAt->toIso8601String(),
-        'metadata' => ['method' => 'RFID'],
-    ])
+    $this->withToken(accessCardManagementDeviceCredential($classroom, 'official-room-door'))
+        ->postJson('/api/v1/device/access-logs', [
+            'classroom_id' => $classroom->id,
+            'user_id' => $instructor->id,
+            'direction' => 'entry',
+            'result' => 'granted',
+            'accessed_at' => $accessedAt->toIso8601String(),
+            'metadata' => ['method' => 'RFID', 'rfid_uid' => $card->rfid_uid],
+        ])
         ->assertSuccessful()
         ->assertJsonPath('data.result', 'granted');
+});
+
+it('does not accept a device grant log without a recognized card', function () {
+    $instructor = User::factory()->create(['role' => 'faculty', 'status' => 'active']);
+    $classroom = Classroom::create([
+        'name' => 'Unverified Log Room',
+        'building' => 'Main Building',
+        'access_mode' => 'esp32',
+    ]);
+
+    $this->withToken(accessCardManagementDeviceCredential($classroom, 'unverified-log-door'))
+        ->postJson('/api/v1/device/access-logs', [
+            'user_id' => $instructor->id,
+            'direction' => 'entry',
+            'result' => 'granted',
+            'accessed_at' => now()->toIso8601String(),
+            'metadata' => ['method' => 'RFID'],
+        ])
+        ->assertCreated()
+        ->assertJsonPath('data.result', 'denied')
+        ->assertJsonPath('data.reason', 'Device grant did not include a recognized access card');
 });
 
 it('stores a manually entered RFID without the RFID display prefix', function () {

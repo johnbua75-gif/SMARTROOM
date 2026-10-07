@@ -449,6 +449,7 @@
                 <li><a href="/smartlocking" class="{{ Request::is('smartlocking*') ? 'active' : '' }}"><i class="fas fa-lock"></i> SmartLocking</a></li>
                 <!- AI Recommendations removed from sidebar ->
                 <li><a href="/attendance" class="{{ Request::is('attendance*') ? 'active' : '' }}"><i class="fas fa-clipboard-check"></i> Attendance</a></li>
+                <li><a href="{{ route('admin.notifications.create') }}" class="{{ Request::is('admin/notifications*') ? 'active' : '' }}"><i class="fas fa-bullhorn"></i> Announcements</a></li>
                 <!- Reports link removed from sidebar ->
             </ul>
 

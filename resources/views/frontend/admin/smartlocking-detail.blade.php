@@ -72,17 +72,13 @@
                 <p>{{ $card['lastAccess'] }} at {{ $card['lastAccessRoom'] }}</p>
             </div>
 
-            <div class="info-block">
-                <label>Primary Room</label>
-                <p><strong>{{ $card['room'] }}</strong></p>
-                <p class="secondary">{{ $card['building'] }} • {{ $card['floor'] }}</p>
-            </div>
         </div>
     </div>
 
-    <!-- Authorized Rooms -->
+    <!-- User-level room metadata, separate from the RFID card. -->
     <div class="authorized-rooms-section">
-        <h2>Authorized Rooms</h2>
+        <h2>User Room Permissions</h2>
+        <p class="secondary">These are account-level room permissions. This RFID card is not limited to one room; access follows the door’s reservation and class-schedule checks.</p>
         @if($card['authorizedRooms'])
             <div class="rooms-list">
                 @foreach($card['authorizedRooms'] as $room)

@@ -206,6 +206,19 @@
   .section-block-sub { font-size: 0.78rem; color: var(--text-secondary); margin-top: 2px; }
 
   .room-form { padding: 22px 24px; display: flex; flex-direction: column; gap: 14px; max-width: 640px; }
+  .device-form { display: flex; align-items: end; gap: 12px; padding: 18px 24px; max-width: 700px; }
+  .device-form .room-field { flex: 1; }
+  .device-actions { display: flex; gap: 8px; }
+  .device-action { border: 1px solid var(--border); background: #fff; color: var(--text-secondary); border-radius: 7px; padding: 7px 10px; cursor: pointer; font: 600 0.75rem var(--font); }
+  .device-action:hover { border-color: var(--blue-border); color: var(--blue); }
+  .device-action:focus-visible, .device-form button:focus-visible { outline: 3px solid var(--blue-border); outline-offset: 2px; }
+  .device-feedback { min-height: 22px; padding: 0 24px 12px; color: var(--text-secondary); font-size: 0.8rem; }
+  .credential-dialog { width: min(560px, calc(100% - 32px)); margin: auto; border: 1px solid var(--border); border-radius: 12px; padding: 24px; color: var(--text); box-shadow: var(--shadow-md); }
+  .credential-dialog::backdrop { background: rgba(11,22,64,0.45); }
+  .credential-dialog h2 { font-size: 1.05rem; margin-bottom: 8px; }
+  .credential-dialog p { color: var(--text-secondary); font-size: 0.82rem; margin-bottom: 14px; }
+  .credential-value { display: block; overflow-wrap: anywhere; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 7px; font: 0.8rem var(--font-mono); }
+  .credential-dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
   .room-label {
     font-size: 0.7rem; font-weight: 800; letter-spacing: 0.1em;
     text-transform: uppercase; color: var(--text-secondary); margin-bottom: 6px; display: block;
@@ -250,6 +263,7 @@
   @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
   @media (max-width:1200px) { .stats-strip { grid-template-columns: repeat(2,1fr); } .content { padding: 24px 24px 48px; } }
   @media (max-width:768px)  { :root { --sidebar-w: 0px; } .sidebar { display: none; } }
+  @media (max-width:600px) { .device-form { align-items: stretch; flex-direction: column; padding-inline: 16px; } }
   </style>
 </head>
 <body>
@@ -378,6 +392,14 @@
         @csrf
         @method('PATCH')
         <label class="room-field">
+          <span class="room-label">Door access</span>
+          <select name="access_mode" class="room-input" required>
+            <option value="manual" {{ $classroom->access_mode === 'manual' ? 'selected' : '' }}>Manual access</option>
+            <option value="esp32" {{ $classroom->access_mode === 'esp32' ? 'selected' : '' }}>ESP32-controlled</option>
+          </select>
+          <span class="room-hint">Schedules and reservations remain separate from device installation.</span>
+        </label>
+        <label class="room-field">
           <span class="room-label">Status</span>
           <select name="status" class="room-input" required>
             <option value="available"   {{ $classroom->status === 'available'   ? 'selected' : '' }}>Available</option>
@@ -396,10 +418,57 @@
         <div>
           <button type="submit" class="btn-primary">
             <i class="fas fa-floppy-disk" style="font-size:0.8rem;"></i>
-            Save Room Status
+            Save Room Settings
           </button>
         </div>
       </form>
+    </div>
+
+    <div class="section-block">
+      <div class="section-block-head">
+        <div>
+          <div class="section-block-title">Door devices</div>
+          <div class="section-block-sub">Devices belong to this room; no user account is created for a door.</div>
+        </div>
+        <span class="chip {{ $classroom->access_mode === 'esp32' ? 'good' : '' }}">{{ $classroom->access_mode === 'esp32' ? 'ESP32-controlled' : 'Manual access' }}</span>
+      </div>
+      @if($classroom->access_mode === 'esp32')
+        <form class="device-form" id="registerDeviceForm" action="{{ route('admin.classrooms.devices.store', $classroom) }}">
+          @csrf
+          <label class="room-field">
+            <span class="room-label">New device name</span>
+            <input class="room-input" name="name" maxlength="255" placeholder="e.g. Main Door" required>
+          </label>
+          <button type="submit" class="btn-primary"><i class="fas fa-plus"></i> Register device</button>
+        </form>
+      @else
+        <div class="room-form"><p class="room-hint">This room uses manual access. Change Door access above to register an ESP32.</p></div>
+      @endif
+      <div class="device-feedback" id="deviceFeedback" role="status" aria-live="polite"></div>
+      <table class="manage-table">
+        <thead><tr><th>Device</th><th>Status</th><th>Last seen</th><th>Actions</th></tr></thead>
+        <tbody>
+          @forelse($classroom->devices as $device)
+            @php
+              $deviceOnline = $device->status === 'active' && $device->last_seen_at?->gt(now()->subMinutes(5));
+              $deviceLabel = $device->status !== 'active' ? 'Disabled' : ($deviceOnline ? 'Online' : ($device->last_seen_at ? 'Offline' : 'Awaiting connection'));
+            @endphp
+            <tr>
+              <td>{{ $device->name }}</td>
+              <td><span class="chip {{ $deviceOnline ? 'good' : 'bad' }}">{{ $deviceLabel }}</span></td>
+              <td class="td-muted">{{ $device->last_seen_at?->diffForHumans() ?? 'Never connected' }}</td>
+              <td>
+                <div class="device-actions">
+                  <button type="button" class="device-action js-rotate-device" data-url="{{ route('admin.classrooms.devices.credential', [$classroom, $device]) }}" title="Rotate device credential"><i class="fas fa-key"></i> Rotate key</button>
+                  <button type="button" class="device-action js-toggle-device" data-url="{{ route('admin.classrooms.devices.status', [$classroom, $device]) }}" data-status="{{ $device->status === 'active' ? 'inactive' : 'active' }}">{{ $device->status === 'active' ? 'Disable' : 'Enable' }}</button>
+                </div>
+              </td>
+            </tr>
+          @empty
+            <tr><td colspan="4" class="td-muted" style="padding:20px 24px;">{{ $classroom->access_mode === 'esp32' ? 'No door device installed yet.' : 'No ESP32 device is needed for manual access.' }}</td></tr>
+          @endforelse
+        </tbody>
+      </table>
     </div>
 
     <!-- SCHEDULES TABLE -->
@@ -435,7 +504,126 @@
       </table>
     </div>
 
+    <dialog class="credential-dialog" id="credentialDialog" aria-labelledby="credentialDialogTitle">
+      <h2 id="credentialDialogTitle">Device credential</h2>
+      <p>Copy this credential into the device config now. It is shown only once; rotate it if you lose it.</p>
+      <code class="credential-value" id="credentialValue"></code>
+      <div class="credential-dialog-actions">
+        <button type="button" class="device-action" id="copyCredentialBtn"><i class="fas fa-copy"></i> Copy</button>
+        <button type="button" class="btn-primary" id="closeCredentialDialog">Done</button>
+      </div>
+    </dialog>
+
     <script>
+      (function () {
+        var csrfToken = '{{ csrf_token() }}';
+        var feedback = document.getElementById('deviceFeedback');
+        var credentialDialog = document.getElementById('credentialDialog');
+        var credentialValue = document.getElementById('credentialValue');
+
+        function showCredential(credential) {
+          credentialValue.textContent = credential;
+          credentialDialog.showModal();
+        }
+
+        async function readResponse(response) {
+          var payload = await response.json().catch(function () { return {}; });
+          if (!response.ok) throw new Error(payload.message || 'Request failed.');
+          return payload;
+        }
+
+        document.getElementById('registerDeviceForm')?.addEventListener('submit', async function (event) {
+          event.preventDefault();
+          var form = event.currentTarget;
+          var submit = form.querySelector('button[type="submit"]');
+          submit.disabled = true;
+          feedback.textContent = 'Registering device…';
+          try {
+            var response = await fetch(form.action, {
+              method: 'POST',
+              credentials: 'same-origin',
+              headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+              body: JSON.stringify({ name: new FormData(form).get('name') })
+            });
+            var payload = await readResponse(response);
+            showCredential(payload.data.credential);
+            form.reset();
+            feedback.textContent = 'Device registered. Credential shown once.';
+          } catch (error) {
+            feedback.textContent = error.message;
+          } finally {
+            submit.disabled = false;
+          }
+        });
+
+        document.querySelectorAll('.js-rotate-device').forEach(function (button) {
+          button.addEventListener('click', async function () {
+            if (!confirm('Rotate this device credential? The old credential will stop working immediately.')) return;
+            button.disabled = true;
+            try {
+              var response = await fetch(button.dataset.url, {
+                method: 'POST', credentials: 'same-origin',
+                headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken }
+              });
+              var payload = await readResponse(response);
+              showCredential(payload.data.credential);
+              feedback.textContent = 'Credential rotated.';
+            } catch (error) {
+              feedback.textContent = error.message;
+            } finally {
+              button.disabled = false;
+            }
+          });
+        });
+
+        document.querySelectorAll('.js-toggle-device').forEach(function (button) {
+          button.addEventListener('click', async function () {
+            button.disabled = true;
+            try {
+              var response = await fetch(button.dataset.url, {
+                method: 'PATCH', credentials: 'same-origin',
+                headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+                body: JSON.stringify({ status: button.dataset.status })
+              });
+              await readResponse(response);
+              window.location.reload();
+            } catch (error) {
+              feedback.textContent = error.message;
+              button.disabled = false;
+            }
+          });
+        });
+
+        document.getElementById('copyCredentialBtn')?.addEventListener('click', async function () {
+          try {
+            if (navigator.clipboard && window.isSecureContext) {
+              await navigator.clipboard.writeText(credentialValue.textContent);
+              feedback.textContent = 'Credential copied.';
+              return;
+            }
+
+            var selection = window.getSelection();
+            var range = document.createRange();
+            range.selectNodeContents(credentialValue);
+            selection.removeAllRanges();
+            selection.addRange(range);
+
+            if (document.execCommand('copy')) {
+              selection.removeAllRanges();
+              feedback.textContent = 'Credential copied.';
+            } else {
+              feedback.textContent = 'Credential selected. Copy it with Ctrl+C.';
+            }
+          } catch (error) {
+            feedback.textContent = 'Credential selected. Copy it with Ctrl+C.';
+          }
+        });
+        document.getElementById('closeCredentialDialog')?.addEventListener('click', function () {
+          credentialDialog.close();
+          window.location.reload();
+        });
+      })();
+
       (function () {
         var table = document.querySelector('.manage-table');
         table?.addEventListener('click', function (ev) {

@@ -12,23 +12,26 @@ use App\Services\RoomMapService;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Cache;
 
 class MapInteractionController extends Controller
 {
     public function buildings(RoomMapService $roomMapService): JsonResponse
     {
-        $classrooms = $this->itScopedClassrooms()->orderBy('building')->orderBy('name')->get();
-        $now = now();
+        $buildings = Cache::remember('api:map:buildings:v1', now()->addSeconds(15), function () use ($roomMapService): array {
+            $classrooms = $this->itScopedClassrooms()->orderBy('building')->orderBy('name')->get();
+            $now = now();
 
-        $buildings = $roomMapService->mapBuildingsWithCoordinates(
-            $classrooms,
-            $now->copy(),
-            $now->copy()->addHour(),
-            $now
-        );
+            return $roomMapService->mapBuildingsWithCoordinates(
+                $classrooms,
+                $now->copy(),
+                $now->copy()->addHour(),
+                $now
+            )->values()->all();
+        });
 
         return response()->json([
-            'data' => $buildings->values(),
+            'data' => $buildings,
         ]);
     }
 
@@ -86,6 +89,7 @@ class MapInteractionController extends Controller
         $reservations = $availabilityService->itScopedReservations()
             ->where('classroom_id', $classroom->id)
             ->whereIn('status', ['reserved', 'approved'])
+            ->where('end_at', '>', now())
             ->where('start_at', '<', $rangeEnd)
             ->where('end_at', '>', $rangeStart)
             ->orderBy('start_at')

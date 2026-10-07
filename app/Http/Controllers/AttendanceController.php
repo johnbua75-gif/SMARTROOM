@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\QuickStartAttendanceRequest;
 use App\Http\Requests\StartFromCardAttendanceRequest;
 use App\Http\Requests\StoreAttendanceRequest;
+use App\Http\Requests\StoreBulkAttendanceRecordsRequest;
 use App\Http\Requests\StoreRecordAttendanceRequest;
 use App\Models\AccessCard;
 use App\Models\AttendanceRecord;
@@ -17,6 +18,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Response;
@@ -269,7 +271,10 @@ class AttendanceController extends Controller
      */
     public function showQr($id)
     {
-        $session = AttendanceSession::find($id);
+        $session = AttendanceSession::query()
+            ->whereKey($id)
+            ->where('created_by', Auth::id())
+            ->first();
         if (! $session) {
             return redirect()->route('faculty.attendance')->with('error', 'Session not found');
         }
@@ -311,28 +316,33 @@ class AttendanceController extends Controller
 
     public function liveOverview(Request $request)
     {
-        $sessions = AttendanceSession::query()
-            ->where('created_by', Auth::id())
-            ->get(['id', 'status']);
+        $userId = $request->user()->id;
+        $overview = Cache::remember('faculty:attendance-overview:v1:'.$userId, now()->addSeconds(5), function () use ($userId): array {
+            $sessions = AttendanceSession::query()
+                ->where('created_by', $userId)
+                ->get(['id', 'status']);
 
-        $checkedIn = AttendanceRecord::query()
-            ->whereIn('attendance_session_id', $sessions->pluck('id'))
-            ->whereNotNull('time_in')
-            ->select('attendance_session_id')
-            ->selectRaw('COUNT(*) as count')
-            ->groupBy('attendance_session_id')
-            ->pluck('count', 'attendance_session_id');
+            $checkedIn = AttendanceRecord::query()
+                ->whereIn('attendance_session_id', $sessions->pluck('id'))
+                ->whereNotNull('time_in')
+                ->select('attendance_session_id')
+                ->selectRaw('COUNT(*) as count')
+                ->groupBy('attendance_session_id')
+                ->pluck('count', 'attendance_session_id');
 
-        return response()->json([
-            'success' => true,
-            'open_sessions' => $sessions->where('status', 'open')->count(),
-            'closed_sessions' => $sessions->where('status', 'closed')->count(),
-            'sessions' => $sessions->map(fn (AttendanceSession $session): array => [
-                'id' => $session->id,
-                'status' => $session->status,
-                'checked_in' => (int) ($checkedIn[$session->id] ?? 0),
-            ])->values(),
-        ])->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+            return [
+                'success' => true,
+                'open_sessions' => $sessions->where('status', 'open')->count(),
+                'closed_sessions' => $sessions->where('status', 'closed')->count(),
+                'sessions' => $sessions->map(fn (AttendanceSession $session): array => [
+                    'id' => $session->id,
+                    'status' => $session->status,
+                    'checked_in' => (int) ($checkedIn[$session->id] ?? 0),
+                ])->values()->all(),
+            ];
+        });
+
+        return response()->json($overview)->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
     }
 
     public function studentRoster(int $id)
@@ -434,7 +444,10 @@ class AttendanceController extends Controller
     {
         $request->validated();
 
-        $session = AttendanceSession::find($id);
+        $session = AttendanceSession::query()
+            ->whereKey($id)
+            ->where('created_by', Auth::id())
+            ->first();
         if (! $session) {
             return redirect()->back()->with('error', 'Session not found.');
         }
@@ -451,26 +464,23 @@ class AttendanceController extends Controller
     }
 
     // Accepts bulk JSON records payload: { records: [ { student_name, student_id_number, status, time_in, remarks }, ... ] }
-    public function storeRecordsBulk(Request $request, $id)
+    public function storeRecordsBulk(StoreBulkAttendanceRecordsRequest $request, $id)
     {
-        $session = AttendanceSession::find($id);
+        $session = AttendanceSession::query()
+            ->whereKey($id)
+            ->where('created_by', Auth::id())
+            ->first();
         if (! $session) {
             return response()->json(['success' => false, 'message' => 'Session not found.'], 404);
         }
 
-        $payload = $request->input('records');
-        if (! is_array($payload)) {
-            return response()->json(['success' => false, 'message' => 'Invalid payload.'], 400);
-        }
+        $payload = $request->validated()['records'];
 
         // Replace existing records for the session with provided ones
         DB::transaction(function () use ($payload, $session) {
             AttendanceRecord::where('attendance_session_id', $session->id)->delete();
             foreach ($payload as $r) {
                 $name = trim($r['student_name'] ?? '');
-                if ($name === '') {
-                    continue;
-                }
                 $status = $r['status'] ?? 'present';
                 $present = in_array($status, ['present', 'late']);
                 AttendanceRecord::create([
@@ -508,7 +518,11 @@ class AttendanceController extends Controller
 
     public function export($id)
     {
-        $session = AttendanceSession::with('records')->find($id);
+        $session = AttendanceSession::query()
+            ->with('records')
+            ->whereKey($id)
+            ->where('created_by', Auth::id())
+            ->first();
         if (! $session) {
             return redirect()->route('faculty.attendance')->with('error', 'Session not found.');
         }
@@ -895,14 +909,15 @@ class AttendanceController extends Controller
     public function searchStudents(Request $request)
     {
         $email = $request->query('email');
-        if (! $email || strlen($email) < 2) {
+        if (! is_string($email) || strlen(trim($email)) < 2) {
             return response()->json(['success' => false, 'students' => []]);
         }
+        $email = trim($email);
 
         try {
             // Search for users with matching email (typically students)
             $students = User::query()
-                ->where('email', 'ilike', '%'.$email.'%')
+                ->whereRaw('LOWER(email) LIKE ?', ['%'.strtolower($email).'%'])
                 ->where(function ($q) {
                     // Include users with role 'student' or no specific restriction
                     $q->where('role', 'student')->orWhereNull('role');

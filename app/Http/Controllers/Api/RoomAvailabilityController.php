@@ -11,6 +11,7 @@ use App\Support\RoomAvailabilityStatus;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class RoomAvailabilityController extends Controller
 {
@@ -73,42 +74,50 @@ class RoomAvailabilityController extends Controller
             ], 422);
         }
 
-        $classrooms = $availabilityService->itScopedClassrooms()
-            ->orderBy('building')
-            ->orderBy('name')
-            ->get();
+        $cacheInput = implode('|', [
+            $validated['start_at'] ?? 'current',
+            $validated['end_at'] ?? 'next-hour',
+        ]);
+        $responseData = Cache::remember('api:room-statuses:v1:'.hash('sha256', $cacheInput), now()->addSeconds(15), function () use ($availabilityService, $startAt, $endAt): array {
+            $classrooms = $availabilityService->itScopedClassrooms()
+                ->orderBy('building')
+                ->orderBy('name')
+                ->get();
 
-        $statuses = $availabilityService->buildRoomStatuses($classrooms, $startAt, $endAt, now())
-            ->keyBy('classroom_id');
+            $statuses = $availabilityService->buildRoomStatuses($classrooms, $startAt, $endAt, now())
+                ->keyBy('classroom_id');
 
-        $data = $classrooms->map(function (Classroom $classroom) use ($statuses): array {
-            $status = $statuses->get($classroom->id, [
-                'status' => RoomAvailabilityStatus::AVAILABLE,
-                'status_label' => 'Available',
-                'time_info' => 'Available all day',
-                'reason' => null,
-                'conflicts' => [],
-            ]);
+            $data = $classrooms->map(function (Classroom $classroom) use ($statuses): array {
+                $status = $statuses->get($classroom->id, [
+                    'status' => RoomAvailabilityStatus::AVAILABLE,
+                    'status_label' => 'Available',
+                    'time_info' => 'Available all day',
+                    'reason' => null,
+                    'conflicts' => [],
+                ]);
+
+                return [
+                    'classroom_id' => $classroom->id,
+                    'name' => $classroom->name,
+                    'building' => $classroom->building,
+                    'floor' => $classroom->floor,
+                    'status' => $status['status'],
+                    'status_label' => $status['status_label'],
+                    'time_info' => $status['time_info'],
+                    'reason' => $status['reason'],
+                    'conflicts' => $status['conflicts'],
+                ];
+            })->values();
 
             return [
-                'classroom_id' => $classroom->id,
-                'name' => $classroom->name,
-                'building' => $classroom->building,
-                'floor' => $classroom->floor,
-                'status' => $status['status'],
-                'status_label' => $status['status_label'],
-                'time_info' => $status['time_info'],
-                'reason' => $status['reason'],
-                'conflicts' => $status['conflicts'],
+                'data' => $data->all(),
+                'meta' => [
+                    'start_at' => $startAt->toIso8601String(),
+                    'end_at' => $endAt->toIso8601String(),
+                ],
             ];
-        })->values();
+        });
 
-        return response()->json([
-            'data' => $data,
-            'meta' => [
-                'start_at' => $startAt->toIso8601String(),
-                'end_at' => $endAt->toIso8601String(),
-            ],
-        ]);
+        return response()->json($responseData);
     }
 }

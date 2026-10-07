@@ -629,6 +629,8 @@ body {
           <tr>
             <th>Room</th>
             <th>Location</th>
+            <th>Access</th>
+            <th>Door device</th>
             <th>Occupancy</th>
             <th>Status</th>
             <th>Issue / Note</th>
@@ -639,10 +641,15 @@ body {
           @forelse($classrooms as $classroom)
             @php
               $roomStatus = $roomStatuses->get($classroom->id, ['status' => 'available', 'status_label' => 'Available', 'reason' => null]);
+              $activeDevice = $classroom->devices->firstWhere('status', 'active');
+              $onlineDevice = $classroom->devices->first(fn ($device) => $device->status === 'active' && $device->last_seen_at?->gt(now()->subMinutes(5)));
+              $deviceLabel = $classroom->access_mode !== 'esp32' ? 'Manual' : ($classroom->devices->isEmpty() ? 'Not installed' : ($onlineDevice ? 'Online' : ($activeDevice ? ($activeDevice->last_seen_at ? 'Offline' : 'Awaiting connection') : 'Disabled')));
             @endphp
             <tr>
               <td class="td-room">{{ $classroom->name }}</td>
               <td class="td-loc">{{ $classroom->building }}{{ $classroom->floor ? ' · '.$classroom->floor : '' }}</td>
+              <td>{{ $classroom->access_mode === 'esp32' ? 'ESP32-controlled' : 'Manual' }}</td>
+              <td>{{ $deviceLabel }}</td>
               <td style="width:180px;">
                 @php
                   $cap = (int) ($classroom->capacity ?? 0);
@@ -669,7 +676,7 @@ body {
             </tr>
           @empty
             <tr>
-              <td colspan="5" style="color:var(--text-secondary);padding:24px 20px;font-size:0.85rem;">No rooms yet. Click <strong>Add Room</strong> to get started.</td>
+              <td colspan="8" style="color:var(--text-secondary);padding:24px 20px;font-size:0.85rem;">No rooms yet. Click <strong>Add Room</strong> to get started.</td>
             </tr>
           @endforelse
         </tbody>
@@ -724,6 +731,14 @@ body {
           <option value="unavailable">Unavailable</option>
         </select>
       </label>
+      <label class="room-field">
+        <span class="room-label">Door access</span>
+        <select id="roomAccessMode" class="room-input" required>
+          <option value="manual" selected>Manual access</option>
+          <option value="esp32">ESP32-controlled</option>
+        </select>
+        <span class="room-hint">You can register a door device from this room after saving.</span>
+      </label>
       <label class="room-field" id="issueReasonWrap" style="display:none;">
         <span class="room-label">Issue Note</span>
         <textarea id="roomIssueReason" class="room-input room-textarea" placeholder="e.g., AC repair ongoing"></textarea>
@@ -749,6 +764,7 @@ body {
   const addRoomModal   = document.getElementById('addRoomModal');
   const addRoomForm    = document.getElementById('addRoomForm');
   const roomStatus     = document.getElementById('roomStatus');
+  const roomAccessMode = document.getElementById('roomAccessMode');
   const issueReasonWrap= document.getElementById('issueReasonWrap');
   const roomIssueReason= document.getElementById('roomIssueReason');
   const addRoomSubmitBtn=document.getElementById('addRoomSubmitBtn');
@@ -830,7 +846,7 @@ body {
           credentials: 'same-origin',
           method: 'POST',
           headers: { 'Content-Type':'application/json', 'Accept':'application/json', 'X-CSRF-TOKEN':"{{ csrf_token() }}" },
-          body: JSON.stringify({ name, building, floor: floor||null, capacity, status, unavailable_reason: reason||null, current_occupancy: 0 }),
+          body: JSON.stringify({ name, building, floor: floor||null, capacity, status, access_mode: roomAccessMode.value, unavailable_reason: reason||null, current_occupancy: 0 }),
         });
       } catch (networkErr) {
         console.error('Network error while creating room', networkErr);

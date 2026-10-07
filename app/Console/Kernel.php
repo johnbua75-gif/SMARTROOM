@@ -2,6 +2,7 @@
 
 namespace App\Console;
 
+use App\Console\Commands\CreateDevice;
 use App\Console\Commands\CreateDeviceToken;
 use App\Console\Commands\CreateTempReservation;
 use Illuminate\Console\Scheduling\Schedule;
@@ -15,6 +16,7 @@ class Kernel extends ConsoleKernel
      * @var array<int, class-string>
      */
     protected $commands = [
+        CreateDevice::class,
         CreateDeviceToken::class,
         CreateTempReservation::class,
     ];

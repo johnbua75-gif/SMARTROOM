@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\NotificationAdminController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminDataController;
 use App\Http\Controllers\AiRecommendationController;
@@ -37,12 +38,12 @@ Route::middleware('guest')->group(function (): void {
 
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
 
-Route::middleware('auth')->group(function (): void {
+Route::middleware(['auth', 'active'])->group(function (): void {
     Route::get('/password/change', [AuthController::class, 'showChangePasswordForm'])->name('password.change');
     Route::post('/password/change', [AuthController::class, 'changePassword'])->name('password.change.submit');
 });
 
-Route::middleware(['auth', 'password.changed', 'role:student'])->group(function (): void {
+Route::middleware(['auth', 'active', 'password.changed', 'role:student'])->group(function (): void {
     Route::get('/student/home', [StudentController::class, 'home'])->name('student.home');
     Route::get('/student/home/summary', [StudentController::class, 'homeSummary'])->name('student.home.summary');
     Route::get('/student/checkingRoom', [StudentController::class, 'checkingRoom'])->name('student.checkingRoom');
@@ -58,12 +59,12 @@ Route::middleware(['auth', 'password.changed', 'role:student'])->group(function 
     Route::get('/student/profile', [StudentController::class, 'profile'])->name('student.profile');
 });
 
-Route::middleware(['auth', 'password.changed'])->group(function (): void {
+Route::middleware(['auth', 'active', 'password.changed'])->group(function (): void {
     Route::post('/attendance/checkin/{token}', [AttendanceController::class, 'studentCheckin'])->name('attendance.checkin');
     Route::get('/attendance/checkin/{token}', [AttendanceController::class, 'showCheckin'])->name('attendance.checkin.show');
 });
 
-Route::middleware(['auth', 'password.changed', 'role:faculty'])->group(function (): void {
+Route::middleware(['auth', 'active', 'password.changed', 'role:faculty'])->group(function (): void {
     Route::get('/faculty_dashboard', [FacultyController::class, 'dashboard'])->name('faculty.dashboard');
 
     Route::get('/rooms', [FacultyController::class, 'rooms'])->name('faculty.rooms');
@@ -121,13 +122,18 @@ Route::middleware(['auth', 'password.changed', 'role:faculty'])->group(function 
     });
 });
 
-Route::middleware(['auth', 'password.changed', 'role:admin'])->group(function (): void {
+Route::middleware(['auth', 'active', 'password.changed', 'role:admin'])->group(function (): void {
     Route::get('/dashboard', [AdminController::class, 'users'])->name('dashboard');
     Route::get('/admin/dashboard', [AdminController::class, 'users'])->name('admin.dashboard');
+    Route::get('/admin/notifications/create', [NotificationAdminController::class, 'create'])->name('admin.notifications.create');
+    Route::post('/admin/notifications', [NotificationAdminController::class, 'store'])->name('admin.notifications.store');
 
     Route::get('/admin/classrooms', [ClassroomController::class, 'index'])->name('admin.classrooms');
     Route::get('/admin/classrooms/{id}', [ClassroomController::class, 'show'])->name('admin.classrooms.show');
     Route::post('/admin/classrooms/{classroom}/occupancy', [ClassroomController::class, 'updateOccupancy'])->name('admin.classrooms.occupancy');
+    Route::post('/admin/classrooms/{classroom}/devices', [ClassroomController::class, 'storeDevice'])->name('admin.classrooms.devices.store');
+    Route::post('/admin/classrooms/{classroom}/devices/{device}/credential', [ClassroomController::class, 'rotateDeviceCredential'])->name('admin.classrooms.devices.credential');
+    Route::patch('/admin/classrooms/{classroom}/devices/{device}/status', [ClassroomController::class, 'updateDeviceStatus'])->name('admin.classrooms.devices.status');
     Route::get('/admin/classrooms/{classroom}/qr', [ClassroomController::class, 'qr'])->name('admin.classrooms.qr');
     Route::post('/admin/classrooms', [ClassroomController::class, 'store'])->name('admin.classrooms.store');
     Route::match(['put', 'patch'], '/admin/classrooms/{classroom}', [ClassroomController::class, 'update'])->name('admin.classrooms.update');

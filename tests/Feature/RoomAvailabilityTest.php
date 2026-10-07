@@ -8,6 +8,7 @@ use App\Models\Schedule;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 
 use function Pest\Laravel\actingAs;
@@ -584,6 +585,45 @@ it('returns occupied only for current classes and available before future bookin
     expect($statuses->firstWhere('classroom_id', $reservedRoom->id)['time_info'])->toBe('Until 10:15 AM');
 });
 
+it('hides completed reservations from the student weekly room schedule', function () {
+    Carbon::setTestNow('2026-04-11 12:00:00');
+
+    $faculty = createFacultyUser();
+    $room = Classroom::create([
+        'name' => 'Past Reservation Room',
+        'building' => 'IT Building',
+        'capacity' => 30,
+    ]);
+
+    $completedReservation = Reservation::create([
+        'classroom_id' => $room->id,
+        'user_id' => $faculty->id,
+        'start_at' => '2026-04-11 09:00:00',
+        'end_at' => '2026-04-11 10:00:00',
+        'status' => 'approved',
+    ]);
+    $currentReservation = Reservation::create([
+        'classroom_id' => $room->id,
+        'user_id' => $faculty->id,
+        'start_at' => '2026-04-11 11:30:00',
+        'end_at' => '2026-04-11 12:30:00',
+        'status' => 'approved',
+    ]);
+    $upcomingReservation = Reservation::create([
+        'classroom_id' => $room->id,
+        'user_id' => $faculty->id,
+        'start_at' => '2026-04-11 13:00:00',
+        'end_at' => '2026-04-11 14:00:00',
+        'status' => 'approved',
+    ]);
+
+    getJson("/api/v1/map/rooms/{$room->id}/fixed-schedules?week_start=2026-04-06")
+        ->assertOk()
+        ->assertJsonMissing(['id' => $completedReservation->id])
+        ->assertJsonFragment(['id' => $currentReservation->id])
+        ->assertJsonFragment(['id' => $upcomingReservation->id]);
+});
+
 it('returns the faculty member upcoming reservations for the rooms screen', function () {
     $faculty = createFacultyUser();
     $classroom = Classroom::create([
@@ -715,6 +755,46 @@ it('reports a room as occupied when live occupancy is detected', function () {
         ->assertJsonPath('data.0.classroom_id', $classroom->id)
         ->assertJsonPath('data.0.status', 'occupied')
         ->assertJsonPath('data.0.status_label', 'Occupied');
+});
+
+it('reuses a room status snapshot briefly and refreshes it after expiration', function () {
+    Cache::flush();
+    Carbon::setTestNow('2026-04-11 10:00:00');
+
+    $faculty = createFacultyUser();
+    $classroom = Classroom::create([
+        'name' => 'Cached Room',
+        'building' => 'Information Technology Building',
+        'floor' => '1st Floor',
+        'capacity' => 30,
+    ]);
+    $course = Course::create([
+        'code' => 'IT-CACHE',
+        'title' => 'Room Status Cache',
+        'description' => 'Cache fixture',
+        'instructor_user_id' => $faculty->id,
+        'capacity' => 30,
+    ]);
+    $schedule = Schedule::create([
+        'classroom_id' => $classroom->id,
+        'course_id' => $course->id,
+        'start_at' => '2026-04-11 09:00:00',
+        'end_at' => '2026-04-11 11:00:00',
+        'status' => 'scheduled',
+        'day_of_week' => 0,
+        'enrolled' => 20,
+    ]);
+    $url = '/api/v1/room-statuses?start_at=2026-04-11T09%3A00%3A00&end_at=2026-04-11T11%3A00%3A00';
+
+    getJson($url)->assertOk()->assertJsonPath('data.0.status', 'occupied');
+
+    $schedule->update(['status' => 'cancelled']);
+
+    getJson($url)->assertOk()->assertJsonPath('data.0.status', 'occupied');
+
+    Carbon::setTestNow('2026-04-11 10:00:16');
+
+    getJson($url)->assertOk()->assertJsonPath('data.0.status', 'available');
 });
 
 it('allows reservations during the temporary all-day testing window', function () {

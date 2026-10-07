@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\EnsureDeviceAbility;
 use App\Http\Middleware\EnsurePasswordIsChanged;
+use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\EnsureUserRole;
 use App\Http\Middleware\TrackUserLastSeen;
 use Illuminate\Foundation\Application;
@@ -18,7 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->trustProxies(at: ['127.0.0.1', '::1']);
+        $middleware->trustProxies(at: '*');
 
         $middleware->web(append: [
             TrackUserLastSeen::class,
@@ -44,6 +45,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => EnsureUserRole::class,
             'password.changed' => EnsurePasswordIsChanged::class,
+            'active' => EnsureUserIsActive::class,
             'device.ability' => EnsureDeviceAbility::class,
         ]);
     })

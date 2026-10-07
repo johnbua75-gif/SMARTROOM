@@ -22,6 +22,7 @@ class ClassroomResource extends JsonResource
             'capacity' => $this->capacity,
             'current_occupancy' => $this->current_occupancy,
             'status' => $this->status,
+            'access_mode' => $this->access_mode,
             'rfid_status' => $this->rfid_status,
             'temperature' => $this->temperature,
             'last_accessed_at' => $this->last_accessed_at,

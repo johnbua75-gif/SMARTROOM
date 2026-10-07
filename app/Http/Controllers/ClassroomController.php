@@ -6,11 +6,14 @@ use App\Events\OccupancyUpdated;
 use App\Http\Requests\Api\StoreClassroomRequest;
 use App\Http\Requests\Api\UpdateClassroomRequest;
 use App\Models\Classroom;
+use App\Models\Device;
 use App\Services\RoomAvailabilityService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class ClassroomController extends Controller
 {
@@ -19,6 +22,7 @@ class ClassroomController extends Controller
         $filter = $request->query('filter', 'all');
 
         $query = Classroom::query()->with([
+            'devices',
             'schedules' => function ($q): void {
                 $q->with(['course.instructor'])->latest('start_at');
             },
@@ -47,6 +51,7 @@ class ClassroomController extends Controller
     {
         $classroom = Classroom::query()
             ->with([
+                'devices',
                 'schedules.course.instructor',
                 'accessLogs.user',
             ])
@@ -65,6 +70,9 @@ class ClassroomController extends Controller
         if (! in_array($payload['status'], ['maintenance', 'unavailable'], true)) {
             $payload['unavailable_reason'] = null;
         }
+
+        $payload['access_mode'] ??= ($payload['rfid_status'] ?? 'inactive') === 'active' ? 'esp32' : 'manual';
+        $payload['rfid_status'] = $payload['access_mode'] === 'esp32' ? 'active' : 'inactive';
 
         $classroom = Classroom::create($payload);
 
@@ -86,6 +94,12 @@ class ClassroomController extends Controller
             }
         }
 
+        if (array_key_exists('access_mode', $payload)) {
+            $payload['rfid_status'] = $payload['access_mode'] === 'esp32' ? 'active' : 'inactive';
+        } elseif (array_key_exists('rfid_status', $payload)) {
+            $payload['access_mode'] = $payload['rfid_status'] === 'active' ? 'esp32' : 'manual';
+        }
+
         $classroom->update($payload);
 
         if ($request->expectsJson()) {
@@ -93,6 +107,60 @@ class ClassroomController extends Controller
         }
 
         return redirect()->route('admin.classrooms.show', $classroom->id)->with('status', 'Classroom updated successfully.');
+    }
+
+    public function storeDevice(Request $request, Classroom $classroom): JsonResponse
+    {
+        abort_unless($classroom->access_mode === 'esp32', 422, 'Set this room to ESP32-controlled before registering a device.');
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255', 'unique:devices,name'],
+        ]);
+        $credential = Str::random(64);
+        $device = $classroom->devices()->create([
+            'name' => $validated['name'],
+            'status' => 'active',
+            'credential_hash' => hash('sha256', $credential),
+        ]);
+
+        return response()->json([
+            'message' => 'Device registered. Copy its credential now; it will not be shown again.',
+            'data' => [
+                'id' => $device->id,
+                'name' => $device->name,
+                'credential' => $credential,
+            ],
+        ], 201);
+    }
+
+    public function rotateDeviceCredential(Classroom $classroom, Device $device): JsonResponse
+    {
+        abort_unless((int) $device->classroom_id === (int) $classroom->id, 404);
+
+        $credential = Str::random(64);
+        $device->forceFill(['credential_hash' => hash('sha256', $credential)])->save();
+        PersonalAccessToken::query()->where('device_id', $device->id)->delete();
+
+        return response()->json([
+            'message' => 'Credential rotated. Copy the new value now; it will not be shown again.',
+            'data' => ['credential' => $credential],
+        ]);
+    }
+
+    public function updateDeviceStatus(Request $request, Classroom $classroom, Device $device): JsonResponse
+    {
+        abort_unless((int) $device->classroom_id === (int) $classroom->id, 404);
+
+        $validated = $request->validate([
+            'status' => ['required', 'string', 'in:active,inactive'],
+        ]);
+
+        $device->update($validated);
+
+        return response()->json([
+            'message' => $device->status === 'active' ? 'Device enabled.' : 'Device disabled.',
+            'data' => ['status' => $device->status],
+        ]);
     }
 
     public function destroy(Request $request, Classroom $classroom): RedirectResponse|JsonResponse

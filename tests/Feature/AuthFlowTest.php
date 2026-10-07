@@ -1,8 +1,10 @@
 <?php
 
 use App\Models\Course;
+use App\Models\Notification;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 
 use function Pest\Laravel\actingAs;
@@ -18,20 +20,33 @@ it('can sign up a new user', function () {
     $response = post('/signup', [
         'firstName' => 'Jane',
         'lastName' => 'Doe',
-        'email' => 'jane@example.com',
+        'email' => '22-ur-0967@psu.edu.ph',
         'password' => 'Passw0rd!',
         'password_confirmation' => 'Passw0rd!',
+        'role' => 'faculty',
         'terms' => 'on',
     ]);
 
     $response->assertRedirect(route('student.home'));
 
     assertDatabaseHas('users', [
-        'email' => 'jane@example.com',
+        'email' => '22-ur-0967@psu.edu.ph',
         'name' => 'Jane Doe',
+        'role' => 'student',
     ]);
 
     assertAuthenticated();
+});
+
+it('requires a campus email for student signup', function () {
+    post('/signup', [
+        'firstName' => 'Jane',
+        'lastName' => 'Doe',
+        'email' => 'jane@gmail.com',
+        'password' => 'Passw0rd!',
+        'password_confirmation' => 'Passw0rd!',
+        'terms' => 'on',
+    ])->assertSessionHasErrors('email');
 });
 
 it('can sign in an existing user', function () {
@@ -125,6 +140,7 @@ it('admin can reset a user password and force password change', function () {
         'email' => 'admin.reset@example.com',
         'password' => Hash::make('Passw0rd!'),
         'role' => 'admin',
+        'status' => 'active',
         'must_change_password' => false,
     ]);
 
@@ -184,18 +200,51 @@ it('admin can deactivate and reactivate a user', function () {
         'status' => 'active',
         'must_change_password' => false,
     ]);
+    $token = $user->createToken('deactivation-test');
 
     actingAs($admin)->patch('/admin/users/'.$user->id, [
         'status' => 'inactive',
     ])->assertRedirect();
 
     expect($user->refresh()->status)->toBe('inactive');
+    $this->assertDatabaseMissing('personal_access_tokens', ['id' => $token->accessToken->id]);
 
     actingAs($admin)->patch('/admin/users/'.$user->id, [
         'status' => 'active',
     ])->assertRedirect();
 
     expect($user->refresh()->status)->toBe('active');
+});
+
+it('ends an existing session when its account becomes inactive', function () {
+    $user = User::factory()->create([
+        'role' => 'student',
+        'status' => 'active',
+        'must_change_password' => false,
+    ]);
+
+    $this->actingAs($user)
+        ->get('/student/home')
+        ->assertOk();
+
+    $user->update(['status' => 'inactive']);
+
+    $this->get('/student/home')->assertForbidden();
+    $this->assertGuest();
+});
+
+it('blocks API token requests for inactive accounts', function () {
+    $user = User::factory()->create([
+        'role' => 'faculty',
+        'status' => 'active',
+        'must_change_password' => false,
+    ]);
+    $token = $user->createToken('inactive-account-test')->plainTextToken;
+    $user->update(['status' => 'inactive']);
+
+    $this->withToken($token)
+        ->getJson('/api/v1/classrooms')
+        ->assertForbidden();
 });
 
 it('prevents an admin from suspending their own account', function () {
@@ -296,4 +345,62 @@ it('shows faculty with assigned unscheduled subjects in admin schedule list', fu
         ->assertSee('Assigned Faculty')
         ->assertSee('1 Subject(s)')
         ->assertSee('Assigned Subject');
+});
+
+it('keeps cached faculty notifications isolated per user', function () {
+    Cache::flush();
+
+    $firstFaculty = User::factory()->create([
+        'role' => 'faculty',
+        'status' => 'active',
+        'must_change_password' => false,
+    ]);
+    $secondFaculty = User::factory()->create([
+        'role' => 'faculty',
+        'status' => 'active',
+        'must_change_password' => false,
+    ]);
+
+    Notification::create([
+        'type' => 'test',
+        'title' => 'First faculty notification',
+        'body' => 'Private to the first faculty account.',
+        'data' => [],
+        'user_id' => $firstFaculty->id,
+    ]);
+    Notification::create([
+        'type' => 'test',
+        'title' => 'Second faculty notification',
+        'body' => 'Private to the second faculty account.',
+        'data' => [],
+        'user_id' => $secondFaculty->id,
+    ]);
+
+    $this->actingAs($firstFaculty)
+        ->getJson('/faculty-notifications/data')
+        ->assertOk()
+        ->assertJsonPath('data.0.title', 'First faculty notification');
+
+    $this->actingAs($secondFaculty)
+        ->getJson('/faculty-notifications/data')
+        ->assertOk()
+        ->assertJsonPath('data.0.title', 'Second faculty notification');
+});
+
+it('does not expose RFID card controls to student accounts', function () {
+    $student = User::factory()->create([
+        'role' => 'student',
+        'status' => 'active',
+        'must_change_password' => false,
+    ]);
+
+    actingAs($student)
+        ->get('/student/profile')
+        ->assertOk()
+        ->assertDontSee('My RFID cards')
+        ->assertDontSee('Recent access attempts');
+
+    actingAs($student)
+        ->post('/student/access-cards/1/report-lost')
+        ->assertNotFound();
 });

@@ -8,7 +8,7 @@
         <div style="padding:8px;background:#eef9f1;border:1px solid #c7eed6;margin:8px 0;border-radius:6px">{{ session('success') }}</div>
     @endif
 
-    <form method="POST" action="{{ url('/admin/notifications') }}">
+    <form method="POST" action="{{ route('admin.notifications.store') }}">
         @csrf
         <div style="margin-bottom:12px">
             <label>Title</label><br>

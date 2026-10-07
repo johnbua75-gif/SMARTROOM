@@ -1,6 +1,7 @@
 *.log
 .DS_Store
 .env
+.env.local-migrate
 .env.backup
 .env.production
 .phpactor.json
@@ -19,6 +20,10 @@
 /storage/*.key
 /storage/pail
 /vendor
+/backups/
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# ESP32 firmware secrets (copy ESP32_SECRETS.example.h)
+ESP32_SECRETS.h

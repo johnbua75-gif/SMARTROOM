@@ -2,6 +2,19 @@
 $studentName = optional($student)->name ?? 'Student';
 $studentId = optional($student)->student_id ?? 'N/A';
 $initials = collect(explode(' ', $studentName))->filter()->map(fn ($word) => strtoupper($word[0]))->join('');
+$courseImageFor = static function ($course): array {
+  $title = strtolower($course->code.' '.$course->title);
+
+  return match (true) {
+    str_contains($title, 'path-fit'), str_contains($title, 'sports'), str_contains($title, 'dance'), str_contains($title, 'exercise'), str_contains($title, 'movement'), str_contains($title, 'rotc'), str_contains($title, 'cwts') => ['file' => 'sports.jpg', 'alt' => 'College students playing cricket at a campus sports event'],
+    str_contains($title, 'art appreciation'), str_contains($title, 'visual art'), str_contains($title, 'multimedia') => ['file' => 'arts.jpg', 'alt' => 'Art student working in a studio'],
+    str_contains($title, 'business'), str_contains($title, 'entrepreneur'), str_contains($title, 'technopreneur'), str_contains($title, 'accounting'), str_contains($title, 'commerce') => ['file' => 'business.jpg', 'alt' => 'Business students attending a university lecture'],
+    str_contains($title, 'mathematics'), str_contains($title, 'math'), str_contains($title, 'quantitative'), str_contains($title, 'statistics') => ['file' => 'mathematics.jpg', 'alt' => 'University mathematics lecture with equations on the board'],
+    str_contains($title, 'science'), str_contains($title, 'biology'), str_contains($title, 'chemistry'), str_contains($title, 'physics') => ['file' => 'science.jpg', 'alt' => 'Students working with science samples in a laboratory'],
+    str_contains($title, 'history'), str_contains($title, 'reading'), str_contains($title, 'ethics'), str_contains($title, 'communication'), str_contains($title, 'contemporary world'), str_contains($title, 'citizenship'), str_contains($title, 'personality'), str_contains($title, 'understanding the self'), str_contains($title, 'rizal'), str_contains($title, 'social and professional') => ['file' => 'humanities.jpg', 'alt' => 'Students studying in a university library'],
+    default => ['file' => 'computing.jpg', 'alt' => 'Computer laboratory at De La Salle University–Dasmariñas'],
+  };
+};
 @endphp
 <!DOCTYPE html>
 <html lang="en">
@@ -27,7 +40,7 @@ $initials = collect(explode(' ', $studentName))->filter()->map(fn ($word) => str
     .student-id i { color: #5870b8; font-size: 1rem; }
     .course-overview { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 24px; margin-bottom: 25px; padding: 24px 28px; overflow: hidden; position: relative; background: var(--course-navy); border-radius: 16px; box-shadow: 0 12px 28px rgba(11,22,64,.14); }
     .course-overview::after { content: ''; position: absolute; right: -46px; bottom: -80px; width: 230px; height: 180px; border: 1px solid rgba(245,197,24,.22); border-radius: 50%; transform: rotate(-18deg); }
-    .course-overview h2 { position: relative; z-index: 1; margin: 0 0 6px; color: #fff; font-size: 1.22rem; font-weight: 800; letter-spacing: -.02em; }
+    main.flex-grow-1 .course-overview h2 { position: relative; z-index: 1; margin: 0 0 6px; color: #fff; font-size: 1.22rem; font-weight: 800; letter-spacing: -.02em; }
     .course-overview p { position: relative; z-index: 1; max-width: 58ch; margin: 0; color: rgba(255,255,255,.68); font-size: .85rem; }
     .overview-stats { position: relative; z-index: 1; display: flex; align-items: center; gap: 24px; }
     .overview-stat { min-width: 75px; }
@@ -35,21 +48,23 @@ $initials = collect(explode(' ', $studentName))->filter()->map(fn ($word) => str
     .overview-stat span { display: block; margin-top: 5px; color: rgba(255,255,255,.62); font-size: .7rem; font-weight: 700; }
     .course-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
     .course-search-wrap { display: flex; align-items: center; flex: 1 1 520px; max-width: 650px; padding: 0 15px; background: #fff; border: 1px solid var(--course-border); border-radius: 10px; box-shadow: 0 3px 10px rgba(15,23,41,.035); }
-    .course-search-wrap i { color: #8290aa; font-size: 1rem; }
-    .course-search { min-width: 0; padding: 12px 10px; color: var(--course-ink); background: transparent; border: 0; box-shadow: none !important; }
+    .course-search-wrap:focus-within { border-color: #5870b8; box-shadow: 0 0 0 3px rgba(88,112,184,.15); }
+    .course-search-wrap i { flex: 0 0 auto; color: #8290aa; font-size: 1rem; }
+    .course-search { width: 100%; min-width: 0; min-height: 46px; padding: 12px 10px; color: var(--course-ink); background: transparent; border: 0; box-shadow: none !important; font-size: 1rem; }
     .course-search:focus { outline: none; }
     .course-filter { width: auto; min-width: 142px; padding: 11px 34px 11px 13px; color: var(--course-navy); background-color: #fff; border: 1px solid var(--course-border); border-radius: 10px; font-size: .82rem; font-weight: 700; }
     .course-count { color: var(--course-muted); font-size: .78rem; font-weight: 700; white-space: nowrap; }
     .course-card { position: relative; display: flex; flex-direction: column; height: 100%; overflow: hidden; background: #fff; border: 1px solid var(--course-border); border-radius: 14px; box-shadow: 0 4px 14px rgba(15,23,41,.045); transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
-    .course-card::before { content: ''; display: block; height: 4px; background: var(--course-gold); }
+    .course-card-image { width: 100%; height: 160px; flex: 0 0 160px; overflow: hidden; background: #e8edf4; }
+    .course-card-image img { display: block; width: 100%; height: 100%; object-fit: cover; }
     .course-card:hover { border-color: #cbd5eb; box-shadow: 0 12px 24px rgba(15,23,41,.09); transform: translateY(-3px); }
-    .course-card-body { display: flex; flex: 1; flex-direction: column; padding: 21px 22px 22px; }
-    .course-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 22px; }
+    .course-card-body { display: flex; flex: 1; flex-direction: column; padding: 18px 20px 20px; }
+    .course-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
     .course-code { color: var(--course-navy); font-size: .76rem; font-weight: 800; letter-spacing: .06em; }
-    .course-card h3 { min-height: 2.9rem; margin: 0 0 18px; color: var(--course-ink); font-size: 1.04rem; font-weight: 800; line-height: 1.4; letter-spacing: -.015em; }
+    .course-card h3 { min-height: 2.8rem; margin: 0 0 12px; color: var(--course-ink); font-size: 1.04rem; font-weight: 800; line-height: 1.35; letter-spacing: -.015em; }
     .course-meta { display: flex; align-items: flex-start; gap: 9px; min-height: 22px; color: var(--course-muted); font-size: .82rem; line-height: 1.45; }
     .course-meta i { flex: 0 0 16px; margin-top: 2px; color: #8090af; }
-    .course-description { display: -webkit-box; overflow: hidden; min-height: 42px; margin: 13px 0 24px; color: #8a96aa; font-size: .78rem; line-height: 1.55; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+    .course-description { display: -webkit-box; overflow: hidden; min-height: 2.6em; margin: 9px 0 18px; color: var(--course-muted); font-size: .8rem; line-height: 1.45; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
     .enrolled-badge { display: inline-flex; align-items: center; gap: 4px; padding: 5px 8px; color: var(--course-green); background: #eaf7f1; border: 1px solid #ccebdc; border-radius: 999px; font-size: .68rem; font-weight: 800; white-space: nowrap; }
     .course-actions { margin-top: auto; padding-top: 2px; }
     .btn-enroll, .btn-unenroll, .btn-outline-primary { width: 100%; padding: 10px 14px; border-radius: 8px; font-size: .8rem; font-weight: 800; transition: all .2s ease; }
@@ -65,6 +80,12 @@ $initials = collect(explode(' ', $studentName))->filter()->map(fn ($word) => str
     @media (max-width: 767.98px) {
       .courses-topbar, .course-toolbar { align-items: stretch; flex-direction: column; }
       .student-id, .course-search-wrap, .course-filter { max-width: none; width: 100%; }
+      .course-toolbar { gap: 10px; }
+      .course-search-wrap { flex: 0 0 auto; min-height: 48px; padding: 0 12px; }
+      .course-search { min-height: 46px; padding: 10px 8px; font-size: 16px; }
+      .course-toolbar > .d-flex { display: grid !important; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px !important; width: 100%; min-width: 0; }
+      .course-filter { min-width: 0; min-height: 44px; }
+      .course-count { font-variant-numeric: tabular-nums; }
       .course-overview { grid-template-columns: 1fr; padding: 21px; }
       .overview-stats { gap: 34px; }
     }
@@ -79,7 +100,7 @@ $initials = collect(explode(' ', $studentName))->filter()->map(fn ($word) => str
     <div class="courses-page">
       <header class="courses-topbar">
         <div>
-          <div class="courses-kicker">Academic workspace</div>
+          <div class="courses-kicker"></div>
           <h1 class="courses-title">Courses</h1>
           <p class="courses-intro">Build your semester schedule by enrolling in the subjects you need for attendance and class access.</p>
         </div>
@@ -107,7 +128,7 @@ $initials = collect(explode(' ', $studentName))->filter()->map(fn ($word) => str
     <div class="course-toolbar">
       <label class="course-search-wrap" for="course-search">
         <i class="bi bi-search" aria-hidden="true"></i>
-        <input type="search" id="course-search" class="course-search form-control" placeholder="Search by code, subject, or instructor" autocomplete="off">
+        <input type="search" id="course-search" class="course-search form-control" aria-label="Search courses by code, subject, or instructor" placeholder="Search by code, subject, or instructor" autocomplete="off">
       </label>
       <div class="d-flex align-items-center gap-3">
         <select id="course-filter" class="course-filter" aria-label="Filter courses">
@@ -122,8 +143,12 @@ $initials = collect(explode(' ', $studentName))->filter()->map(fn ($word) => str
     <div class="row g-3">
       @forelse ($courses as $course)
         @php($isEnrolled = in_array($course->id, $enrolledCourseIds, true))
+        @php($courseImage = $courseImageFor($course))
         <div class="col-md-6 col-xl-4 course-result" data-course-status="{{ $isEnrolled ? 'enrolled' : 'available' }}" data-course-search="{{ strtolower($course->code.' '.$course->title.' '.($course->instructor?->name ?? '')) }}">
           <article class="course-card">
+            <div class="course-card-image">
+              <img src="{{ asset('images/courses/'.$courseImage['file']) }}" alt="{{ $courseImage['alt'] }}" loading="lazy" decoding="async">
+            </div>
             <div class="course-card-body">
             <div class="course-card-head">
               <span class="course-code">{{ $course->code }}</span>

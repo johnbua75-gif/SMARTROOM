@@ -45,7 +45,11 @@ class ClassroomController extends Controller
 
     public function store(StoreClassroomRequest $request): ClassroomResource
     {
-        $classroom = Classroom::create($request->validated());
+        $payload = $request->validated();
+        $payload['access_mode'] ??= ($payload['rfid_status'] ?? 'inactive') === 'active' ? 'esp32' : 'manual';
+        $payload['rfid_status'] = $payload['access_mode'] === 'esp32' ? 'active' : 'inactive';
+
+        $classroom = Classroom::create($payload);
 
         return new ClassroomResource($classroom);
     }
@@ -63,7 +67,14 @@ class ClassroomController extends Controller
 
     public function update(UpdateClassroomRequest $request, Classroom $classroom): ClassroomResource
     {
-        $classroom->update($request->validated());
+        $payload = $request->validated();
+        if (array_key_exists('access_mode', $payload)) {
+            $payload['rfid_status'] = $payload['access_mode'] === 'esp32' ? 'active' : 'inactive';
+        } elseif (array_key_exists('rfid_status', $payload)) {
+            $payload['access_mode'] = $payload['rfid_status'] === 'active' ? 'esp32' : 'manual';
+        }
+
+        $classroom->update($payload);
 
         return new ClassroomResource($classroom->fresh());
     }

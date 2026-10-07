@@ -638,8 +638,8 @@ body { font-family: var(--font-body); background: var(--bg); color: var(--text);
 const SESSION_ID = {{ json_encode($session['id'] ?? '') }};
 const IS_OPEN    = {{ $isOpen ? 'true' : 'false' }};
 const CSRF       = document.querySelector('meta[name="csrf-token"]').content;
-const SAVE_URL   = '/attendance/sessions/' + SESSION_ID + '/records';
-const CLOSE_URL  = '/attendance/sessions/' + SESSION_ID + '/close';
+const SAVE_URL   = @json(route('faculty.attendance.record.bulk', $session['id']));
+const CLOSE_URL  = @json(route('faculty.attendance.close', $session['id']));
 
 // Flash messages passed from PHP — no Blade conditionals needed inside script
 const FLASH_SUCCESS = '{{ addslashes($flashSuccess) }}';

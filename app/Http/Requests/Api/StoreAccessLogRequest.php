@@ -18,7 +18,7 @@ class StoreAccessLogRequest extends FormRequest
     {
         return [
             'access_card_id' => ['nullable', 'integer', 'exists:access_cards,id'],
-            'classroom_id' => ['required', 'integer', 'exists:classrooms,id'],
+            'classroom_id' => [$this->attributes->has('device') ? 'nullable' : 'required', 'integer', 'exists:classrooms,id'],
             'user_id' => ['nullable', 'integer', 'exists:users,id'],
             'direction' => ['required', 'string', 'max:50'],
             'result' => ['required', 'string', 'max:50'],

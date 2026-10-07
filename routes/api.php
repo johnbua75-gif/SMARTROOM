@@ -10,9 +10,26 @@ use App\Http\Controllers\Api\ReservationController;
 use App\Http\Controllers\Api\RoomAvailabilityController;
 use App\Http\Controllers\Api\ScheduleController;
 use App\Http\Controllers\AttendanceController;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->middleware('throttle:60,1')->group(function (): void {
+
+    Route::prefix('device')->middleware('device.ability:device:access')->group(function (): void {
+        Route::get('access-cards', [AccessCardController::class, 'index']);
+        Route::post('access-logs', [AccessLogController::class, 'store']);
+        Route::get('reservations/check', [ReservationController::class, 'checkAccess']);
+        Route::post('heartbeat', static function (Request $request): JsonResponse {
+            $device = $request->attributes->get('device');
+
+            return response()->json([
+                'device_id' => $device->id,
+                'classroom_id' => $device->classroom_id,
+                'last_seen_at' => $device->last_seen_at?->toIso8601String(),
+            ]);
+        });
+    });
 
     // -- Public read-only endpoints (room availability data only, no PII) --
     Route::get('room-availability/check', [RoomAvailabilityController::class, 'check']);
@@ -23,29 +40,25 @@ Route::prefix('v1')->middleware('throttle:60,1')->group(function (): void {
     Route::get('map/rooms/{classroom}/status', [MapInteractionController::class, 'roomStatus']);
 
     // -- Authenticated endpoints (session cookie or Sanctum token) --
-    Route::middleware('auth:sanctum')->group(function (): void {
-        Route::apiResource('classrooms', ClassroomController::class);
-        Route::apiResource('courses', CourseController::class);
-        Route::apiResource('schedules', ScheduleController::class);
-        Route::get('schedules/reservation/temporary', [ScheduleController::class, 'getTemporarySchedulesByReservation']);
-        Route::get('access-cards', [AccessCardController::class, 'index'])
-            ->middleware('device.ability:device:access');
-        Route::get('access-cards/{access_card}', [AccessCardController::class, 'show'])
-            ->middleware('device.ability:device:access');
-        Route::apiResource('access-cards', AccessCardController::class)->except(['index', 'show']);
+    Route::middleware(['auth:sanctum', 'active'])->group(function (): void {
+        Route::apiResource('classrooms', ClassroomController::class)->only(['index', 'show']);
+        Route::apiResource('classrooms', ClassroomController::class)->except(['index', 'show'])->middleware('role:admin');
+        Route::apiResource('courses', CourseController::class)->only(['index', 'show']);
+        Route::apiResource('courses', CourseController::class)->except(['index', 'show'])->middleware('role:admin');
+        Route::apiResource('schedules', ScheduleController::class)->only(['index', 'show']);
+        Route::apiResource('schedules', ScheduleController::class)->except(['index', 'show'])->middleware('role:admin');
+        Route::get('schedules/reservation/temporary', [ScheduleController::class, 'getTemporarySchedulesByReservation'])->middleware('role:admin');
+        Route::apiResource('access-cards', AccessCardController::class)->middleware('role:admin');
+        Route::apiResource('access-logs', AccessLogController::class)->middleware('role:admin');
 
-        Route::post('access-logs', [AccessLogController::class, 'store'])
-            ->middleware('device.ability:device:access');
-        Route::apiResource('access-logs', AccessLogController::class)->except(['store']);
-
-        Route::post('enrollments', [EnrollmentController::class, 'store']);
-        Route::post('enrollments/bulk', [EnrollmentController::class, 'bulkStore']);
-        Route::delete('enrollments/{enrollment}', [EnrollmentController::class, 'destroy']);
+        Route::post('enrollments', [EnrollmentController::class, 'store'])->middleware('role:admin');
+        Route::post('enrollments/bulk', [EnrollmentController::class, 'bulkStore'])->middleware('role:admin');
+        Route::delete('enrollments/{enrollment}', [EnrollmentController::class, 'destroy'])->middleware('role:admin');
 
         Route::apiResource('reservations', ReservationController::class)->only(['store', 'update', 'destroy']);
-        Route::get('/reservations/check', [ReservationController::class, 'checkAccess'])
-            ->middleware('device.ability:device:access');
+        Route::get('/reservations/check', [ReservationController::class, 'checkAccess']);
     });
 });
 
-Route::middleware('auth:sanctum')->get('/students/search', [AttendanceController::class, 'searchStudents']);
+Route::middleware(['auth:sanctum', 'active', 'role:faculty'])
+    ->get('/students/search', [AttendanceController::class, 'searchStudents']);

@@ -19,6 +19,7 @@ class Classroom extends Model
         'current_occupancy',
         'status',
         'unavailable_reason',
+        'access_mode',
         'rfid_status',
         'temperature',
         'last_accessed_at',
@@ -47,6 +48,11 @@ class Classroom extends Model
     public function reservations(): HasMany
     {
         return $this->hasMany(Reservation::class);
+    }
+
+    public function devices(): HasMany
+    {
+        return $this->hasMany(Device::class);
     }
 
     public function authorizedUsers(): BelongsToMany

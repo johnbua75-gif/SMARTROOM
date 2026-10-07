@@ -81,8 +81,8 @@ $nav = [
       box-shadow: 0 1px 0 rgba(15,23,41,.02);
     }
     .student-home-hero-copy { position:relative; z-index:1; margin-bottom:24px; display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap; }
-    .student-home-hero h3 { color:#0f1729; font-size:1.6rem; margin-bottom:4px; }
-    .student-home-hero h3 span { color: var(--navy); }
+    .student-home-hero h1 { color:#0f1729; font-size:1.6rem; margin-bottom:4px; }
+    .student-home-hero h1 span { color: var(--navy); }
     .student-home-hero .hero-subtitle { color: var(--muted); font-size:.9rem; }
     .hero-id-chip {
       display:inline-flex; align-items:center; gap:8px;
@@ -105,9 +105,9 @@ $nav = [
       content:''; position:absolute; top:-26px; right:-22px; width:96px; height:96px; border-radius:50%;
       background: var(--tint, rgba(11,22,64,.05)); pointer-events:none;
     }
-    .stat-card[data-tone="amber"]  { -tint: rgba(245,197,24,.18); }
-    .stat-card[data-tone="navy"]   { -tint: rgba(11,22,64,.07); }
-    .stat-card[data-tone="green"]  { -tint: rgba(15,157,88,.14); }
+    .stat-card[data-tone="amber"]  { --tint: rgba(245,197,24,.18); }
+    .stat-card[data-tone="navy"]   { --tint: rgba(11,22,64,.07); }
+    .stat-card[data-tone="green"]  { --tint: rgba(15,157,88,.14); }
 
     .stat-icon-chip {
       width: 40px; height: 40px; border-radius: 11px;
@@ -169,12 +169,102 @@ $nav = [
     .notice-card { background: #fff; border-radius: 14px; border: 1px solid var(--panel-border); box-shadow: var(--panel-shadow); padding: 16px; }
     .notice-card .qa-icon { background:#e6f0fe; color:#1d4ed8; }
 
+    .student-notification-panel {
+      background: linear-gradient(135deg, #ffffff 0%, #f8faff 100%);
+      border: 1px solid var(--panel-border);
+      border-radius: 18px;
+      box-shadow: var(--panel-shadow);
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+    .student-notification-header {
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      padding: 18px 20px 14px; border-bottom: 1px solid var(--panel-border);
+    }
+    .student-notification-header h2 {
+      margin: 0; font-size: 1rem; color: #0f1729; font-family:'Plus Jakarta Sans',sans-serif;
+    }
+    .student-notification-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: #eef6ff; color: #1d4ed8; border: 1px solid #dbeafe; border-radius: 999px;
+      padding: 6px 10px; font-size: .72rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+    }
+    .student-notification-grid {
+      display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; padding: 18px 20px 20px;
+    }
+    .student-notification-item {
+      display: flex; gap: 12px; align-items: flex-start; padding: 14px 12px; border-radius: 14px;
+      background: #fff; border: 1px solid var(--panel-border); transition: all .2s ease;
+    }
+    .student-notification-item:hover { transform: translateY(-2px); border-color: #d9e1f4; box-shadow: 0 8px 20px rgba(15,23,41,.05); }
+    .student-notification-icon {
+      width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; background: #eef2ff; color: var(--navy); font-size: 1rem; flex-shrink: 0;
+    }
+    .student-notification-item[data-type="schedule"] .student-notification-icon { background: #fff1d8; color: #b7791f; }
+    .student-notification-item[data-type="room"] .student-notification-icon { background: #e0f2fe; color: #0f766e; }
+    .student-notification-item[data-type="attendance"] .student-notification-icon { background: #ecfdf5; color: #15803d; }
+    .student-notification-content { min-width: 0; }
+    .student-notification-title { font-size: .87rem; font-weight: 700; color: #111827; margin-bottom: 4px; }
+    .student-notification-body { font-size: .78rem; color: var(--muted); line-height: 1.6; }
+    .student-notification-meta {
+      display: inline-flex; align-items: center; margin-top: 8px; font-size: .68rem; color: var(--navy); font-weight: 700; letter-spacing: .02em;
+      background: #f3f7ff; border: 1px solid #dde7ff; border-radius: 999px; padding: 4px 8px;
+    }
+    .student-notification-item a { text-decoration: none; color: inherit; }
+    .student-notification-item[data-type="announcement"] .student-notification-icon { background: #eef6ff; color: #1d4ed8; }
+    .student-notification-empty { grid-column: 1 / -1; padding: 26px 20px; text-align: center; color: var(--muted); }
+    .student-notification-empty i { display: block; margin-bottom: 8px; font-size: 1.35rem; color: var(--muted-2); }
+
     .home-empty { padding: 2.4rem 1rem; text-align: center; color: var(--muted); }
     .home-empty-icon { width: 48px; height: 48px; margin: 0 auto 12px; display: grid; place-items: center; border-radius: 14px; background: #f5f6fa; color: var(--muted-2); font-size: 1.35rem; border: 1px solid var(--panel-border); }
 
     @media (max-width:768px) {
       .student-home-hero { margin:0 -16px 20px; padding:24px 16px; }
-      .student-home-hero-copy { align-items:flex-start; }
+      .student-home-hero-copy { align-items:flex-start; margin-bottom:16px; }
+      .student-home-stats > .row {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+        margin-inline: 0;
+      }
+      .student-home-stats > .row > .col-md-4 {
+        width: auto;
+        max-width: none;
+        min-width: 0;
+        flex: none;
+        padding: 0;
+      }
+      .student-home-stats .stat-card {
+        height: 100%;
+        min-height: 104px;
+        padding: 11px 9px;
+        border-radius: 11px;
+      }
+      .student-home-stats .stat-card::after {
+        top: -18px;
+        right: -17px;
+        width: 58px;
+        height: 58px;
+        opacity: .75;
+      }
+      .student-home-stats .stat-icon-chip {
+        width: 28px;
+        height: 28px;
+        margin-bottom: 8px;
+        border-radius: 8px;
+        font-size: .85rem;
+      }
+      .student-home-stats .stat-card .stat-value {
+        font-size: 1.3rem;
+      }
+      .student-home-stats .stat-card .stat-label {
+        min-height: 2.3em;
+        margin-top: 5px;
+        font-size: .75rem;
+        line-height: 1.15;
+      }
+      .student-notification-grid { grid-template-columns: 1fr; padding: 14px; }
+      .student-notification-header { padding: 16px; }
     }
     @media (max-width: 768px) { #sidebar { width: 100%; min-height: auto; } body > .d-flex { display: block !important; } main { padding: 1.25rem !important; } }
   </style>
@@ -190,10 +280,10 @@ $nav = [
 
   @include('frontend.student._sidebar')
 
-  <!- Main ->
+  <!-- Main -->
   <main class="flex-grow-1 p-4">
 
-    <!- Topbar ->
+    <!-- Topbar -->
     <div class="d-flex justify-content-between align-items-center mb-4">
       <div>
         <div class="home-topbar-title">Home</div>
@@ -205,7 +295,7 @@ $nav = [
     <section class="student-home-hero">
       <div class="student-home-hero-copy">
         <div>
-          <h3 class="fw-bold mb-0">Good morning, <span>{{ $firstName }}</span>!</h3>
+          <h1 class="fw-bold mb-0">Good morning, <span>{{ $firstName }}</span>!</h1>
           <p class="hero-subtitle mb-0">Here's your schedule for today</p>
         </div>
         <span class="hero-id-chip"><i class="bi bi-person-vcard"></i>{{ $studentId }}</span>
@@ -237,7 +327,51 @@ $nav = [
       </div>
     </section>
 
-    <!- Next Class Banner ->
+    <section class="student-notification-panel" aria-label="Student notifications">
+      <div class="student-notification-header">
+        <h2>Campus updates</h2>
+        <span class="student-notification-badge"><i class="bi bi-bell-fill"></i> {{ $studentNotifications->count() }} updates</span>
+      </div>
+      <div class="student-notification-grid">
+        @forelse ($studentNotifications as $notification)
+          @php
+            $notificationType = strtolower((string) $notification->type);
+            $notificationCategory = match (true) {
+              str_contains($notificationType, 'schedule'), str_contains($notificationType, 'class_cancel') => 'schedule',
+              str_contains($notificationType, 'room'), str_contains($notificationType, 'reservation') => 'room',
+              str_contains($notificationType, 'attendance') => 'attendance',
+              str_contains($notificationType, 'announcement') => 'announcement',
+              default => 'info',
+            };
+            $notificationIcon = match ($notificationCategory) {
+              'schedule' => str_contains($notificationType, 'cancel') ? 'bi-calendar-x' : 'bi-calendar3',
+              'room' => 'bi-door-open',
+              'attendance' => 'bi-clipboard-check',
+              'announcement' => 'bi-megaphone',
+              default => 'bi-info-circle',
+            };
+            $notificationLabel = ucfirst($notificationCategory === 'info' ? 'update' : $notificationCategory);
+          @endphp
+          <article class="student-notification-item" data-type="{{ $notificationCategory }}">
+            <div class="student-notification-icon"><i class="bi {{ $notificationIcon }}"></i></div>
+            <div class="student-notification-content">
+              <div class="student-notification-title">{{ $notification->title }}</div>
+              @if ($notification->body)
+                <div class="student-notification-body">{{ $notification->body }}</div>
+              @endif
+              <span class="student-notification-meta">{{ $notificationLabel }} · {{ $notification->created_at?->diffForHumans() }}</span>
+            </div>
+          </article>
+        @empty
+          <div class="student-notification-empty">
+            <i class="bi bi-bell-slash" aria-hidden="true"></i>
+            <div>No campus updates yet.</div>
+          </div>
+        @endforelse
+      </div>
+    </section>
+
+    <!-- Next Class Banner -->
     @if (!empty($todaySchedules) && $todaySchedules->count() > 0)
       @php
         $nextClass = $todaySchedules->first(fn($s) => \Carbon\Carbon::parse($s->start_at)->greaterThan(now()));
@@ -251,7 +385,7 @@ $nav = [
           <h3 class="fw-bold mb-1" style="color:var(--navy)">{{ $nextClass->course_code ?? 'Course' }}</h3>
           <p class="mb-3" style="color:var(--navy);opacity:.75">{{ $nextClass->block_section ?? 'N/A' }} • {{ $nextClass->faculty_name ?? 'Faculty' }}</p>
           <div class="d-flex gap-3 mb-3 small" style="color:var(--navy)">
-            <span><i class="bi bi-clock me-1"></i>{{ \Carbon\Carbon::parse($nextClass->start_at)->format('H:i A') }} - {{ \Carbon\Carbon::parse($nextClass->end_at ?? $nextClass->start_at)->format('H:i A') }}</span>
+            <span><i class="bi bi-clock me-1"></i>{{ \Carbon\Carbon::parse($nextClass->start_at)->format('g:i A') }} - {{ \Carbon\Carbon::parse($nextClass->end_at ?? $nextClass->start_at)->format('g:i A') }}</span>
             <span><i class="bi bi-geo-alt me-1"></i>{{ $nextClass->classroom_name ?? 'Room TBA' }}</span>
           </div>
           <div class="d-flex gap-2">
@@ -262,14 +396,14 @@ $nav = [
       @endif
     @endif
 
-    <!- Schedule + Quick Actions ->
+    <!-- Schedule + Quick Actions -->
     <div class="row g-4">
 
-      <!- Today's Schedule ->
+      <!-- Today's Schedule -->
       <div class="col-lg-7">
         <div class="bg-white rounded-4 p-4 border">
           <div class="d-flex justify-content-between align-items-center mb-3">
-            <h6 class="panel-title mb-0">Today's Schedule</h6>
+            <h2 class="panel-title mb-0">Today's Schedule</h2>
           </div>
           @php($todayRows = collect($todaySchedules ?? []))
           @forelse ($todayRows as $row)
@@ -302,13 +436,25 @@ $nav = [
         </div>
       </div>
 
-      <!- Quick Actions ->
+      <!-- Quick Actions -->
       <div class="col-lg-5">
-        <h6 class="panel-title mb-3">Quick Actions</h6>
+        <h2 class="panel-title mb-3">Quick Actions</h2>
 
         <a href="{{ route('student.checkingRoom') }}" class="qa-card mb-3 d-flex align-items-center gap-3" style="text-decoration: none; color: inherit;">
           <div class="qa-icon"><i class="bi bi-building"></i></div>
           <div><div class="fw-semibold small">Find Available Rooms</div><div class="text-muted" style="font-size:.75rem">Search for vacant classrooms</div></div>
+          <i class="bi bi-arrow-right qa-arrow"></i>
+        </a>
+
+        <a href="{{ route('student.courses') }}" class="qa-card mb-3 d-flex align-items-center gap-3" style="text-decoration: none; color: inherit;">
+          <div class="qa-icon"><i class="bi bi-journal-bookmark"></i></div>
+          <div><div class="fw-semibold small">Browse Courses</div><div class="text-muted" style="font-size:.75rem">Review available subjects</div></div>
+          <i class="bi bi-arrow-right qa-arrow"></i>
+        </a>
+
+        <a href="{{ route('student.attendance') }}" class="qa-card mb-3 d-flex align-items-center gap-3" style="text-decoration: none; color: inherit;">
+          <div class="qa-icon"><i class="bi bi-clipboard-check"></i></div>
+          <div><div class="fw-semibold small">Check Attendance</div><div class="text-muted" style="font-size:.75rem">View records or check in</div></div>
           <i class="bi bi-arrow-right qa-arrow"></i>
         </a>
 
@@ -323,7 +469,7 @@ $nav = [
         </div>
 
       </div>
-    </div><!- /row ->
+    </div><!-- /row -->
   </main>
 </div>
 <script>

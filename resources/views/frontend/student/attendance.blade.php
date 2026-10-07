@@ -15,52 +15,120 @@ $nav = [
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Attendance  -  Student Portal</title>
+  <title>My Attendance - Student Portal</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    :root { -gold: #f5c518; -navy: #0b1640; -ink: #111827; -muted: #6b7280; -line: #e5e7eb; }
-#sidebar { width: 230px; min-height: 100vh; background: #fff; border-right: 1px solid #e8eaf0; }
-    .brand-icon { background: var(--gold); border-radius: 10px; width: 42px; height: 42px; display:grid; place-items:center; }
-    .nav-link { color: #555; border-radius: 10px; padding: .55rem 1rem; font-weight: 500; }
-    .nav-link:hover, .nav-link.active { background: #F0F4FF; color: var(--navy); }
-    .nav-link.active::after { content:''; display:inline-block; width:7px; height:7px; background:var(--navy); border-radius:50%; margin-left:auto; }
-    .avatar { width:38px; height:38px; background:var(--navy); border-radius:50%; display:grid; place-items:center; color:#fff; font-weight:700; font-size:.85rem; }
-    
-    .stat-card { border-radius: 14px; border: 1px solid var(--line); background: #fff; box-shadow: var(--shadow-sm, 0 2px 6px rgba(15,23,41,.06)); }
-    .stat-card .fs-2 { font-weight: 700; color: var(--ink); letter-spacing: -0.01em; }
-    .stat-card .text-muted { color: var(--muted) !important; font-size: 0.875rem; }
-    
-    .attendance-table { border-radius: 14px; overflow: hidden; border: 1px solid var(--line); box-shadow: var(--shadow-sm, 0 2px 6px rgba(15,23,41,.06)); }
-    .attendance-table th { background: #f8f9fb; border-bottom: 1px solid var(--line); font-weight: 600; color: var(--muted); }
-    .attendance-table td { border-bottom: 1px solid var(--line); vertical-align: middle; }
-    .attendance-table tr:last-child td { border-bottom: none; }
-    .attendance-present { color: #059669; }
-    .attendance-absent { color: #dc2626; }
-    
-    .attendance-hero { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:24px; margin-bottom:24px; border-radius:12px; background:#fff; border: 1px solid var(--line); box-shadow: var(--shadow-sm, 0 2px 6px rgba(15,23,41,.06)); }
-    .attendance-hero-icon { width:48px; height:48px; display:grid; place-items:center; border-radius:8px; background:#f9fafb; border: 1px solid var(--line); color:var(--navy); font-size:1.25rem; flex-shrink:0; }
-    .attendance-hero-copy { display:flex; align-items:center; gap:16px; }
-    .attendance-hero-title { font-size:1.1rem; font-weight:700; letter-spacing: -0.01em; color: var(--ink); }
-    .attendance-hero-subtitle { margin-top:4px; color:var(--muted); font-size:0.875rem; }
-    .scan-qr-btn { display:inline-flex; align-items:center; gap:8px; border:1px solid var(--line); border-radius:8px; padding:10px 16px; background:#fff; color:var(--ink); font-weight:600; font-size:0.875rem; white-space:nowrap; transition: background 0.2s ease; }
-    .scan-qr-btn:hover { background:#f9fafb; }
-    
-    .scanner-modal { position:fixed; inset:0; z-index:3000; display:none; align-items:center; justify-content:center; padding:20px; background:rgba(17,24,39,.4); backdrop-filter:blur(4px); }
+    main.attendance-page { padding: 28px 32px 48px !important; font-family: 'DM Sans', sans-serif; }
+    .attendance-page-header { display:flex; align-items:flex-end; justify-content:space-between; gap:20px; padding:8px 0 22px; margin-bottom:24px; border-bottom:1px solid var(--student-border); }
+    .attendance-breadcrumb { display:flex; align-items:center; gap:8px; margin-bottom:10px; color:var(--student-muted); font-size:.76rem; font-weight:600; }
+    .attendance-breadcrumb a { color:var(--student-muted); text-decoration:none; }
+    .attendance-breadcrumb a:hover { color:var(--student-navy); text-decoration:underline; text-underline-offset:3px; }
+    .attendance-page-title { margin:0; color:var(--student-text); font-family:'Sora',sans-serif; font-size:1.85rem; font-weight:800; line-height:1.2; }
+    .attendance-page-subtitle { margin:6px 0 0; color:var(--student-muted); font-size:.9rem; }
+    .attendance-date { display:inline-flex; align-items:center; gap:8px; padding:9px 12px; border:1px solid var(--student-border); border-radius:8px; background:#fff; color:#475569; font-size:.78rem; font-weight:600; white-space:nowrap; }
+    .attendance-date i { color:var(--student-blue); }
+
+    .attendance-checkin-panel { display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:18px; padding:22px 24px; margin-bottom:26px; border:1px solid #d7dfef; border-radius:12px; background:#fff; box-shadow:0 4px 16px rgba(15,26,60,.045); }
+    .attendance-checkin-icon { width:48px; height:48px; display:grid; place-items:center; border-radius:10px; background:#eef2ff; color:var(--student-navy); font-size:1.25rem; }
+    .attendance-checkin-copy h2 { margin:0; color:var(--student-text); font-family:'Sora',sans-serif; font-size:1.02rem; font-weight:700; }
+    .attendance-checkin-copy p { margin:5px 0 0; color:var(--student-muted); font-size:.83rem; line-height:1.5; }
+    .scan-qr-btn { display:inline-flex; align-items:center; justify-content:center; gap:9px; min-height:44px; padding:0 18px; border:1px solid var(--student-navy); border-radius:8px; background:var(--student-navy); color:#fff; font-family:'DM Sans',sans-serif; font-size:.84rem; font-weight:700; white-space:nowrap; cursor:pointer; transition:background .18s ease,border-color .18s ease,transform .18s ease; }
+    .scan-qr-btn:hover { border-color:#1a2f80; background:#1a2f80; transform:translateY(-1px); }
+    .scan-qr-btn:focus-visible, .scanner-close:focus-visible { outline:3px solid rgba(37,99,235,.38); outline-offset:3px; }
+    .scan-qr-btn:disabled { opacity:.65; cursor:wait; transform:none; }
+
+    .attendance-summary { margin-bottom:26px; }
+    .attendance-section-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; }
+    .attendance-section-heading h2 { margin:0; color:var(--student-text); font-family:'Plus Jakarta Sans',sans-serif; font-size:1rem; font-weight:700; }
+    .attendance-live-label { display:inline-flex; align-items:center; gap:7px; color:#64748b; font-size:.73rem; font-weight:600; }
+    .attendance-live-dot { width:7px; height:7px; border-radius:50%; background:#16a36a; }
+    .attendance-summary-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
+    .attendance-stat { min-width:0; padding:17px 18px; border:1px solid var(--student-border); border-radius:10px; background:#fff; box-shadow:0 2px 8px rgba(15,23,42,.035); }
+    .attendance-stat-label { display:flex; align-items:center; gap:9px; color:#65738a; font-size:.78rem; font-weight:600; }
+    .attendance-stat-icon { width:32px; height:32px; display:grid; place-items:center; flex:0 0 32px; border-radius:8px; font-size:.9rem; }
+    .attendance-stat[data-tone="present"] .attendance-stat-icon { background:#e8f7ef; color:#137447; }
+    .attendance-stat[data-tone="absent"] .attendance-stat-icon { background:#fff0ef; color:#b42318; }
+    .attendance-stat[data-tone="rate"] .attendance-stat-icon { background:#fff6df; color:#946200; }
+    .attendance-stat-value { margin-top:14px; color:var(--student-text); font-family:'Sora',sans-serif; font-size:1.85rem; font-weight:800; line-height:1; }
+    .attendance-stat-note { margin-top:5px; color:#8793a6; font-size:.72rem; }
+
+    .attendance-history { overflow:hidden; border:1px solid var(--student-border); border-radius:11px; background:#fff; box-shadow:0 3px 12px rgba(15,23,42,.04); }
+    .attendance-history-header { display:flex; align-items:center; justify-content:space-between; gap:14px; padding:17px 20px; border-bottom:1px solid var(--student-border); }
+    .attendance-history-title { display:flex; align-items:center; gap:10px; }
+    .attendance-history-icon { width:34px; height:34px; display:grid; place-items:center; border-radius:8px; background:#eef2ff; color:var(--student-navy); }
+    .attendance-history-title h2 { margin:0; color:var(--student-text); font-family:'Sora',sans-serif; font-size:.95rem; font-weight:700; }
+    .attendance-history-subtitle { margin-top:2px; color:var(--student-muted); font-size:.73rem; }
+    .attendance-record-count { padding:5px 9px; border:1px solid var(--student-border); border-radius:6px; background:#f8fafc; color:#64748b; font-size:.7rem; font-weight:700; white-space:nowrap; }
+    .attendance-table-wrap { overflow-x:auto; }
+    .attendance-records { width:100%; border-collapse:collapse; }
+    .attendance-records thead { background:#f8fafc; }
+    .attendance-records th { padding:11px 18px; border-bottom:1px solid var(--student-border); color:#718096; font-size:.68rem; font-weight:700; text-align:left; text-transform:uppercase; }
+    .attendance-records th:first-child, .attendance-records td:first-child { padding-left:20px; }
+    .attendance-records th:last-child, .attendance-records td:last-child { padding-right:20px; }
+    .attendance-records td { padding:14px 18px; border-bottom:1px solid #edf0f5; color:#263348; font-size:.82rem; vertical-align:middle; }
+    .attendance-records tbody tr:last-child td { border-bottom:0; }
+    .attendance-records tbody tr:hover { background:#fafbfe; }
+    .attendance-course-cell { font-weight:600; }
+    .attendance-date-cell { color:#64748b !important; white-space:nowrap; }
+    .attendance-status { display:inline-flex; align-items:center; gap:7px; padding:5px 9px; border:1px solid transparent; border-radius:6px; font-size:.71rem; font-weight:700; white-space:nowrap; }
+    .attendance-status::before { content:''; width:6px; height:6px; border-radius:50%; background:currentColor; }
+    .attendance-status--present { border-color:#ccebd8; background:#edf8f1; color:#167647; }
+    .attendance-status--late { border-color:#f5dfaa; background:#fff7e5; color:#8a5b00; }
+    .attendance-status--absent { border-color:#f1d2d0; background:#fff3f2; color:#b42318; }
+    .attendance-empty { padding:40px 20px !important; color:var(--student-muted) !important; text-align:center; }
+    .attendance-empty i { display:block; margin-bottom:9px; color:#9aa6b8; font-size:1.3rem; }
+
+    .scanner-modal { position:fixed; inset:0; z-index:3000; display:none; align-items:center; justify-content:center; padding:20px; background:rgba(8,18,48,.62); backdrop-filter:blur(3px); }
     .scanner-modal.is-open { display:flex; }
-    .scanner-card { width:min(100%,460px); overflow:hidden; border:1px solid var(--line); border-radius:12px; background:#fff; box-shadow:0 4px 6px -1px rgba(0,0,0,.1), 0 2px 4px -1px rgba(0,0,0,.06); }
-    .scanner-head { display:flex; align-items:center; justify-content:space-between; padding:16px 24px; border-bottom:1px solid var(--line); }
-    .scanner-title { color:var(--ink); font-weight:700; }
-    .scanner-close { width:32px; height:32px; border:1px solid var(--line); border-radius:8px; background:#fff; color:var(--muted); transition: background 0.2s ease; display:grid; place-items:center; }
-    .scanner-close:hover { background: #f8f9fb; }
-    .scanner-body { padding:24px; text-align:center; }
-    #qr-reader { width:100%; max-width:360px; margin:0 auto; overflow:hidden; border:1px solid var(--line); border-radius:12px; }
-    .scanner-help { margin:16px 0 0; color:var(--muted); font-size:0.875rem; }
-    .scanner-status { min-height:24px; margin-top:12px; color:var(--navy); font-size:0.875rem; font-weight:600; }
-    
-    .badge { border-radius: 6px; font-weight: 500; }
-    
-    @media (max-width:640px) { .attendance-hero { align-items:flex-start; flex-direction:column; padding: 16px; } .scan-qr-btn { width:100%; justify-content:center; } }
+    .scanner-card { width:min(100%,460px); overflow:hidden; border:1px solid #dce3ef; border-radius:12px; background:#fff; box-shadow:0 20px 60px rgba(7,17,45,.28); }
+    .scanner-head { display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid var(--student-border); }
+    .scanner-title { color:var(--student-text); font-family:'Sora',sans-serif; font-size:.92rem; font-weight:700; }
+    .scanner-close { width:36px; height:36px; display:grid; place-items:center; border:1px solid var(--student-border); border-radius:8px; background:#fff; color:#64748b; cursor:pointer; }
+    .scanner-close:hover { background:#f1f5f9; color:var(--student-text); }
+    .scanner-body { padding:22px; text-align:center; }
+    #qr-reader { width:100%; max-width:360px; margin:0 auto; overflow:hidden; border:1px solid var(--student-border); border-radius:9px; }
+    .scanner-help { margin:14px 0 0; color:#64748b; font-size:.8rem; line-height:1.5; }
+    .scanner-status { min-height:24px; margin-top:12px; color:var(--student-navy); font-size:.82rem; font-weight:600; }
+
+    @media (max-width:768px) {
+      main.attendance-page { padding:20px 16px 32px !important; }
+      .attendance-page-header { align-items:flex-start; flex-direction:column; gap:12px; padding-top:4px; }
+      .attendance-date { align-self:flex-start; }
+      .attendance-checkin-panel { grid-template-columns:auto minmax(0,1fr); gap:12px; padding:17px; }
+      .scan-qr-btn { grid-column:1 / -1; width:100%; }
+      .attendance-summary-grid { gap:9px; }
+      .attendance-stat { padding:13px 12px; }
+      .attendance-stat-label { align-items:flex-start; flex-direction:column; gap:7px; font-size:.72rem; }
+      .attendance-stat-value { margin-top:10px; font-size:1.55rem; }
+      .attendance-stat-note { min-height:2em; font-size:.67rem; }
+      .attendance-history-header { padding:14px; }
+      .attendance-table-wrap { overflow:visible; }
+      .attendance-records, .attendance-records tbody { display:block; }
+      .attendance-records thead { position:absolute; width:1px; height:1px; padding:0; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+      .attendance-records tbody { display:grid; gap:9px; padding:10px; }
+      .attendance-records tbody tr { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; padding:11px 12px; border:1px solid #e8edf4; border-radius:8px; background:#fff; }
+      .attendance-records tbody tr:hover { background:#fff; }
+      .attendance-records td, .attendance-records td:first-child, .attendance-records td:last-child { padding:3px 0; border:0; }
+      .attendance-records td:first-child { grid-column:1 / -1; color:var(--student-text); font-size:.82rem; }
+      .attendance-records td:nth-child(2) { color:#64748b; font-size:.72rem; }
+      .attendance-records td:nth-child(3) { justify-self:end; }
+      .attendance-records td[data-label]::before { content:attr(data-label) ': '; margin-right:4px; color:#8995a7; font-size:.66rem; font-weight:700; text-transform:uppercase; }
+      .attendance-records td:first-child::before { display:block; margin-bottom:3px; }
+      .attendance-empty { display:block; padding:28px 12px !important; }
+    }
+
+    @media (max-width:360px) {
+      .attendance-summary-grid { grid-template-columns:1fr; }
+      .attendance-stat { display:grid; grid-template-columns:1fr auto; align-items:center; gap:4px 12px; }
+      .attendance-stat-label { grid-row:span 2; }
+      .attendance-stat-value { margin:0; text-align:right; }
+      .attendance-stat-note { min-height:0; margin:0; text-align:right; }
+      .attendance-page-title { font-size:1.55rem; }
+    }
   </style>
   <style>
     .is-summary-loading { color: transparent !important; min-width: 2.5rem; min-height: 2rem; border-radius: 6px; background: linear-gradient(90deg,#eef1f5 25%,#fff 50%,#eef1f5 75%); background-size: 200% 100%; animation: summarySkeleton 1.35s ease-in-out infinite; }
@@ -74,86 +142,112 @@ $nav = [
 
   @include('frontend.student._sidebar')
 
-  <!- Main ->
-  <main class="flex-grow-1 p-4">
+  <!-- Main -->
+  <main class="flex-grow-1 attendance-page">
+    <header class="attendance-page-header">
+      <div>
+        <nav class="attendance-breadcrumb" aria-label="Breadcrumb">
+          <a href="{{ route('student.home') }}">Home</a>
+          <i class="bi bi-chevron-right" aria-hidden="true"></i>
+          <span aria-current="page">Attendance</span>
+        </nav>
+        <h1 class="attendance-page-title">My attendance</h1>
+        <p class="attendance-page-subtitle">Review your class check-ins and attendance history.</p>
+      </div>
+      <time class="attendance-date" datetime="{{ now()->toDateString() }}">
+        <i class="bi bi-calendar3" aria-hidden="true"></i>
+        {{ now()->format('D, M j, Y') }}
+      </time>
+    </header>
 
-    <!- Topbar ->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <div><h5 class="fw-bold mb-0">My Attendance</h5><small class="text-muted">{{ now()->format('l, F j, Y') }}</small></div>
-      <a href="{{ route('student.home') }}" class="btn btn-warning fw-semibold"><i class="bi bi-house me-1"></i> Back to Home</a>
-    </div>
+    <section class="attendance-checkin-panel" aria-label="Attendance check-in">
+      <div class="attendance-checkin-icon" aria-hidden="true"><i class="bi bi-qr-code-scan"></i></div>
+      <div class="attendance-checkin-copy">
+        <h2>Check in to class</h2>
+        <p>Scan the session QR code displayed by your instructor.</p>
+      </div>
+      <button type="button" class="scan-qr-btn" id="openQrScanner">
+        <i class="bi bi-camera" aria-hidden="true"></i>
+        Scan QR code
+      </button>
+    </section>
 
-    <div class="attendance-hero">
-      <div class="attendance-hero-copy">
-        <div class="attendance-hero-icon"><i class="bi bi-qr-code-scan"></i></div>
-        <div>
-          <div class="attendance-hero-title">Check in to your class</div>
-          <div class="attendance-hero-subtitle">Scan the QR code shown by your instructor.</div>
+    <section class="attendance-summary" aria-label="Attendance summary">
+      <div class="attendance-section-heading">
+        <h2>Attendance summary</h2>
+        <span class="attendance-live-label"><span class="attendance-live-dot" aria-hidden="true"></span>Updates automatically</span>
+      </div>
+      <div class="attendance-summary-grid">
+        <div class="attendance-stat" data-tone="present">
+          <div class="attendance-stat-label"><span class="attendance-stat-icon"><i class="bi bi-check2" aria-hidden="true"></i></span>Classes attended</div>
+          <div class="attendance-stat-value" id="student-attended-count">{{ $totalAttended ?? 0 }}</div>
+          <div class="attendance-stat-note">Present and late check-ins</div>
+        </div>
+        <div class="attendance-stat" data-tone="absent">
+          <div class="attendance-stat-label"><span class="attendance-stat-icon"><i class="bi bi-x" aria-hidden="true"></i></span>Classes missed</div>
+          <div class="attendance-stat-value" id="student-absent-count">{{ $totalAbsent ?? 0 }}</div>
+          <div class="attendance-stat-note">Recorded as absent</div>
+        </div>
+        <div class="attendance-stat" data-tone="rate">
+          <div class="attendance-stat-label"><span class="attendance-stat-icon"><i class="bi bi-percent" aria-hidden="true"></i></span>Attendance rate</div>
+          <div class="attendance-stat-value" id="student-attendance-rate">{{ $attendanceRate ?? 0 }}%</div>
+          <div class="attendance-stat-note">Based on closed sessions</div>
         </div>
       </div>
-      <button type="button" class="scan-qr-btn" id="openQrScanner"><i class="bi bi-camera"></i> Scan Attendance QR</button>
-    </div>
+    </section>
 
-    <!- Attendance Stats ->
-    <div class="row g-3 mb-4">
-      <div class="col-md-4">
-        <div class="stat-card p-4">
-          <i class="bi bi-check-circle fs-4 text-success"></i>
-          <div class="fs-2 fw-bold mt-2" id="student-attended-count">{{ $totalAttended ?? 0 }}</div>
-          <div class="text-muted small">Classes Attended</div>
+    <section class="attendance-history" aria-labelledby="attendanceHistoryTitle">
+      <div class="attendance-history-header">
+        <div class="attendance-history-title">
+          <span class="attendance-history-icon" aria-hidden="true"><i class="bi bi-list-check"></i></span>
+          <div>
+            <h2 id="attendanceHistoryTitle">Attendance history</h2>
+            <div class="attendance-history-subtitle">Your recorded class sessions</div>
+          </div>
         </div>
+        <span class="attendance-record-count">{{ count($attendanceRecords ?? []) }} records</span>
       </div>
-      <div class="col-md-4">
-        <div class="stat-card p-4">
-          <i class="bi bi-x-circle fs-4 text-danger"></i>
-          <div class="fs-2 fw-bold mt-2" id="student-absent-count">{{ $totalAbsent ?? 0 }}</div>
-          <div class="text-muted small">Classes Missed</div>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="stat-card p-4">
-          <i class="bi bi-percent fs-4 text-warning"></i>
-          <div class="fs-2 fw-bold mt-2" id="student-attendance-rate">{{ $attendanceRate ?? 0 }}%</div>
-          <div class="text-muted small">Attendance Rate</div>
-        </div>
-      </div>
-    </div>
-
-    <!- Attendance Table ->
-    <div class="bg-white rounded-3 overflow-hidden border">
-      <table class="table mb-0">
+      <div class="attendance-table-wrap">
+      <table class="attendance-records">
         <thead class="table-light">
           <tr>
-            <th>Course</th>
-            <th>Date</th>
-            <th>Status</th>
+            <th scope="col">Course</th>
+            <th scope="col">Date</th>
+            <th scope="col">Status</th>
           </tr>
         </thead>
         <tbody>
           @forelse ($attendanceRecords ?? [] as $record)
             <tr>
-              <td>{{ $record->session?->course?->code ?? 'Course' }}{{ $record->session?->course?->title ? ' - '.$record->session->course->title : '' }}</td>
-              <td>{{ optional($record->session)->created_at?->format('M d, Y') ?? $record->created_at->format('M d, Y') }}</td>
+              <td class="attendance-course-cell" data-label="Course">{{ $record->session?->course?->code ?? 'Course' }}{{ $record->session?->course?->title ? ' - '.$record->session->course->title : '' }}</td>
+              <td class="attendance-date-cell" data-label="Date">{{ optional($record->session)->created_at?->format('M d, Y') ?? $record->created_at->format('M d, Y') }}</td>
               <td>
-                @if ($record->time_in)
-                  <span class="badge {{ strtolower((string) $record->status) === 'late' ? 'bg-warning text-dark' : 'bg-success' }}">
-                    {{ strtolower((string) $record->status) === 'late' ? 'Late' : 'Present' }}
+                @php
+                  $recordStatus = strtolower((string) $record->status);
+                  $isAttended = (bool) $record->present || in_array($recordStatus, ['present', 'late'], true);
+                  $statusClass = $recordStatus === 'late' ? 'late' : ($isAttended ? 'present' : 'absent');
+                @endphp
+                @if ($isAttended)
+                  <span class="attendance-status attendance-status--{{ $statusClass }}">
+                    {{ $recordStatus === 'late' ? 'Late' : 'Present' }}
                   </span>
                 @else
-                  <span class="badge bg-danger">Absent</span>
+                  <span class="attendance-status attendance-status--{{ $statusClass }}">Absent</span>
                 @endif
               </td>
             </tr>
           @empty
             <tr>
-              <td colspan="3" class="text-center text-muted py-4">
-                <i class="bi bi-inbox"></i> No attendance records found.
+              <td colspan="3" class="attendance-empty">
+                <i class="bi bi-calendar2-check" aria-hidden="true"></i>
+                No attendance records yet.
               </td>
             </tr>
           @endforelse
         </tbody>
       </table>
-    </div>
+      </div>
+    </section>
   </main>
 </div>
 <div class="scanner-modal" id="scannerModal" aria-hidden="true">
@@ -165,7 +259,7 @@ $nav = [
     <div class="scanner-body">
       <div id="qr-reader"></div>
       <p class="scanner-help">Allow camera access, then point your camera at the instructor's QR code.</p>
-      <div class="scanner-status" id="scannerStatus" role="status"></div>
+      <div class="scanner-status" id="scannerStatus" role="status" aria-live="polite"></div>
     </div>
   </div>
 </div>

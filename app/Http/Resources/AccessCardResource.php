@@ -14,6 +14,15 @@ class AccessCardResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        if ($request->attributes->has('device')) {
+            return [
+                'id' => $this->id,
+                'user_id' => $this->user_id,
+                'status' => $this->status,
+                'expires_at' => $this->expires_at,
+            ];
+        }
+
         return [
             'id' => $this->id,
             'user_id' => $this->user_id,

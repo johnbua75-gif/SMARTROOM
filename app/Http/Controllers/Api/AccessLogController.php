@@ -46,10 +46,11 @@ class AccessLogController extends Controller
     {
         $validated = $request->validated();
         $userId = $validated['user_id'] ?? null;
-        $classroomId = $validated['classroom_id'];
         $device = $request->attributes->get('device');
+        $classroomId = $device ? (int) $device->classroom_id : (int) $validated['classroom_id'];
+        $validated['classroom_id'] = $classroomId;
 
-        if ($device && (int) $device->classroom_id !== (int) $classroomId) {
+        if ($device && $request->filled('classroom_id') && (int) $device->classroom_id !== (int) $request->input('classroom_id')) {
             abort(403, 'Device is not registered for this classroom.');
         }
         $now = now();
@@ -99,6 +100,16 @@ class AccessLogController extends Controller
             $validated['reason'] = $validated['reason'] ?? 'Access card is inactive or expired';
         }
 
+        if ($device && $validated['result'] === 'granted' && ! $card) {
+            $validated['result'] = 'denied';
+            $validated['reason'] = $validated['reason'] ?? 'Device grant did not include a recognized access card';
+        }
+
+        if ($card && $card->user()->where('status', 'active')->doesntExist()) {
+            $validated['result'] = 'denied';
+            $validated['reason'] = $validated['reason'] ?? 'Cardholder account is inactive';
+        }
+
         $accessedAt = Carbon::parse($validated['accessed_at'])->setTimezone(config('app.timezone'));
 
         // A granted event must correspond to either an active reservation or an official class.
@@ -117,7 +128,14 @@ class AccessLogController extends Controller
                 ->whereTime('start_at', '<=', $accessedAt->format('H:i:s'))
                 ->whereTime('end_at', '>=', $accessedAt->format('H:i:s'))
                 ->whereHas('course', function ($courseQuery) use ($userId): void {
-                    $courseQuery->where('instructor_user_id', $userId);
+                    $courseQuery->where('instructor_user_id', $userId)
+                        ->orWhereHas('enrollments', function ($enrollmentQuery) use ($userId): void {
+                            $enrollmentQuery->where('status', 'active')
+                                ->whereHas('student', function ($studentQuery) use ($userId): void {
+                                    $studentQuery->where('user_id', $userId)
+                                        ->where('status', 'active');
+                                });
+                        });
                 })
                 ->exists();
 

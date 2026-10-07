@@ -6,6 +6,7 @@ use App\Models\AttendanceRecord;
 use App\Models\Classroom;
 use App\Models\Course;
 use App\Models\Enrollment;
+use App\Models\Notification;
 use App\Models\Schedule;
 use App\Models\Student;
 use App\Services\RoomAvailabilityService;
@@ -14,6 +15,7 @@ use Carbon\CarbonInterface;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
 class StudentController extends Controller
@@ -68,48 +70,62 @@ class StudentController extends Controller
             ->where('status', 'available')
             ->count();
 
+        $studentNotifications = Notification::query()
+            ->where(function ($query) use ($user): void {
+                $query->whereNull('user_id')->orWhere('user_id', $user->id);
+            })
+            ->latest()
+            ->orderByDesc('id')
+            ->limit(6)
+            ->get();
+
         // Pass data to view
-        return view('frontend.student.home', compact('student', 'todaySchedules', 'todayClassesCount', 'nextClassTime', 'availableRoomsCount'));
+        return view('frontend.student.home', compact('student', 'todaySchedules', 'todayClassesCount', 'nextClassTime', 'availableRoomsCount', 'studentNotifications'));
     }
 
     public function homeSummary(RoomAvailabilityService $availabilityService): JsonResponse
     {
-        $student = Student::query()->where('user_id', Auth::id())->firstOrFail();
-        $enrolledCourseIds = $student->courses()->pluck('courses.id');
-        $todaySchedules = Schedule::query()
-            ->whereIn('course_id', $enrolledCourseIds)
-            ->whereNotNull('start_at')
-            ->whereDate('start_at', today())
-            ->orderBy('start_at')
-            ->get(['start_at']);
+        $userId = Auth::id();
+        $summary = Cache::remember('student:home-summary:v1:'.$userId, now()->addSeconds(15), function () use ($userId, $availabilityService): array {
+            $student = Student::query()->where('user_id', $userId)->firstOrFail();
+            $enrolledCourseIds = $student->courses()->pluck('courses.id');
+            $todaySchedules = Schedule::query()
+                ->whereIn('course_id', $enrolledCourseIds)
+                ->whereNotNull('start_at')
+                ->whereDate('start_at', today())
+                ->orderBy('start_at')
+                ->get(['start_at']);
 
-        $nextClass = $todaySchedules->first(
-            fn (Schedule $schedule): bool => $schedule->start_at?->greaterThan(now()) ?? false
-        );
-        $classrooms = Classroom::query()->get();
-        $availableRoomsCount = $availabilityService
-            ->buildRoomStatuses($classrooms, now(), now()->copy()->addHour())
-            ->where('status', 'available')
-            ->count();
+            $nextClass = $todaySchedules->first(
+                fn (Schedule $schedule): bool => $schedule->start_at?->greaterThan(now()) ?? false
+            );
+            $classrooms = Classroom::query()->get();
+            $availableRoomsCount = $availabilityService
+                ->buildRoomStatuses($classrooms, now(), now()->copy()->addHour())
+                ->where('status', 'available')
+                ->count();
 
-        $records = AttendanceRecord::query()
-            ->where(function ($query) use ($student): void {
-                $query->where('student_id', $student->id)
-                    ->orWhere('student_id_number', $student->student_id);
-            })
-            ->whereHas('session', fn ($query) => $query->where('status', 'closed'))
-            ->get(['time_in']);
-        $attended = $records->whereNotNull('time_in')->count();
-        $total = $records->count();
+            $records = AttendanceRecord::query()
+                ->where(function ($query) use ($student): void {
+                    $query->where('student_id', $student->id)
+                        ->orWhere('student_id_number', $student->student_id);
+                })
+                ->whereHas('session', fn ($query) => $query->where('status', 'closed'))
+                ->get(['time_in']);
+            $attended = $records->whereNotNull('time_in')->count();
+            $total = $records->count();
 
-        return response()->json([
-            'success' => true,
-            'today_classes' => $todaySchedules->count(),
-            'next_class' => $nextClass?->start_at?->format('g:i A') ?? 'N/A',
-            'available_rooms' => $availableRoomsCount,
-            'attended' => $attended,
-            'attendance_rate' => $total > 0 ? round(($attended / $total) * 100, 1) : 0,
-        ])->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+            return [
+                'success' => true,
+                'today_classes' => $todaySchedules->count(),
+                'next_class' => $nextClass?->start_at?->format('g:i A') ?? 'N/A',
+                'available_rooms' => $availableRoomsCount,
+                'attended' => $attended,
+                'attendance_rate' => $total > 0 ? round(($attended / $total) * 100, 1) : 0,
+            ];
+        });
+
+        return response()->json($summary)->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
     }
 
     /**
@@ -304,8 +320,11 @@ class StudentController extends Controller
             ->orderBy('created_at', 'desc')->get();
 
         // Calculate stats
-        $totalAttended = $attendanceRecords->whereNotNull('time_in')->count();
-        $totalAbsent = $attendanceRecords->filter(fn ($record): bool => is_null($record->time_in) && strtolower((string) $record->status) === 'absent'
+        $totalAttended = $attendanceRecords->filter(fn (AttendanceRecord $record): bool => (bool) $record->present
+            || in_array(strtolower((string) $record->status), ['present', 'late'], true)
+        )->count();
+        $totalAbsent = $attendanceRecords->filter(fn (AttendanceRecord $record): bool => ! $record->present
+            && strtolower((string) $record->status) === 'absent'
         )->count();
         $totalRecords = $attendanceRecords->count();
         $attendanceRate = $totalRecords > 0 ? round(($totalAttended / $totalRecords) * 100, 1) : 0;
@@ -324,8 +343,11 @@ class StudentController extends Controller
             ->whereHas('session', fn ($query) => $query->where('status', 'closed'))
             ->get(['status', 'present', 'time_in']);
 
-        $totalAttended = $records->whereNotNull('time_in')->count();
-        $totalAbsent = $records->filter(fn ($record): bool => is_null($record->time_in) && $record->status === 'absent'
+        $totalAttended = $records->filter(fn (AttendanceRecord $record): bool => (bool) $record->present
+            || in_array(strtolower((string) $record->status), ['present', 'late'], true)
+        )->count();
+        $totalAbsent = $records->filter(fn (AttendanceRecord $record): bool => ! $record->present
+            && strtolower((string) $record->status) === 'absent'
         )->count();
         $totalRecords = $records->count();
 

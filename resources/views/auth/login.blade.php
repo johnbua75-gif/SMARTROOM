@@ -415,6 +415,7 @@
         .forgot-password:hover { background-size: 100% 1px; }
 
         .btn-row { display: flex; gap: 12px; margin-bottom: 18px; }
+        .signup-note { margin: -8px 0 16px; color: rgba(255,255,255,0.72); font-size: 0.78rem; line-height: 1.45; }
 
         .login-button, .signup-button {
             flex: 1;
@@ -451,7 +452,7 @@
 
         .login-button:hover { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(245,197,24,0.32); }
 
-        .signup-button { background: var(--navy-light); color: var(--white); font-weight: 600; }
+        .signup-button { padding-right: 8px; padding-left: 8px; background: var(--navy-light); color: var(--white); font-size: 0.85rem; font-weight: 600; }
         .signup-button:hover { background: #2239a0; transform: translateY(-2px); box-shadow: 0 10px 26px rgba(0,0,0,0.3); }
 
         .login-button:active, .signup-button:active { transform: scale(0.97); }
@@ -469,18 +470,6 @@
             animation: spin 0.7s linear infinite;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
-
-        .isolate-link {
-            display: none;
-            margin-bottom: 16px;
-            align-items: center;
-            gap: 6px;
-            font-size: 0.82rem;
-            color: var(--gold-pale);
-            text-decoration: none;
-            font-weight: 500;
-        }
-        .isolate-link:hover { text-decoration: underline; }
 
         :focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 
@@ -582,12 +571,9 @@
 
                 <div class="btn-row rise" style="--i:6">
                     <button type="submit" class="login-button" id="loginButton">Sign In</button>
-                    <button type="button" id="signupButton" class="signup-button" data-signup-url="{{ route('auth.signup') }}">Create Account</button>
+                    <button type="button" id="signupButton" class="signup-button" aria-describedby="signupNote" data-signup-url="{{ route('auth.signup') }}">Create Account</button>
                 </div>
-
-                <a id="isolatedTabLink" class="isolate-link" href="#" target="_blank" rel="noopener noreferrer">
-                    Open isolated tab for another account
-                </a>
+                <p class="signup-note rise" id="signupNote" style="--i:7">Sign up is for Student only. Faculty accounts are created by an administrator.</p>
 
             </form>
         </div>
@@ -602,7 +588,6 @@
         const loginButton = document.getElementById('loginButton');
         const loginCard = document.querySelector('.login-card');
         const signupButton = document.getElementById('signupButton');
-        const isolatedTabLink = document.getElementById('isolatedTabLink');
 
         const eyeOpen = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
         const eyeOff = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l18 18"></path><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"></path><path d="M9.9 4.2A10.8 10.8 0 0 1 12 5c6.5 0 10 7 10 7a18.3 18.3 0 0 1-3.1 3.9"></path><path d="M6.2 6.2C3.5 8.2 2 12 2 12s3.5 7 10 7a10.8 10.8 0 0 0 3.1-.5"></path></svg>';
@@ -644,15 +629,6 @@
                 const url = signupButton.getAttribute('data-signup-url');
                 if (url) window.location.href = url;
             });
-        }
-
-        if (isolatedTabLink) {
-            const host = window.location.hostname;
-            const alternateHost = host === '127.0.0.1' ? 'localhost' : host === 'localhost' ? '127.0.0.1' : '';
-            if (alternateHost) {
-                isolatedTabLink.href = `${window.location.protocol}//${alternateHost}:${window.location.port || '8000'}${window.location.pathname}`;
-                isolatedTabLink.style.display = 'inline-flex';
-            }
         }
 
         if (loginForm && emailInput && passwordInput) {

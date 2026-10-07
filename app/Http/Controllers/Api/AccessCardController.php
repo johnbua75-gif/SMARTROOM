@@ -14,6 +14,11 @@ class AccessCardController extends Controller
 {
     public function index(Request $request)
     {
+        $device = $request->attributes->get('device');
+        if ($device && ! $request->filled('rfid_uid')) {
+            abort(422, 'A scanned RFID UID is required for device lookup.');
+        }
+
         $query = AccessCard::query()->with(['user', 'classroom']);
 
         if ($request->filled('status')) {
@@ -66,7 +71,9 @@ class AccessCardController extends Controller
             });
         }
 
-        $cards = $query->latest('id')->paginate($request->integer('per_page', 20));
+        $cards = $device
+            ? $query->latest('id')->limit(1)->get()
+            : $query->latest('id')->paginate($request->integer('per_page', 20));
 
         return AccessCardResource::collection($cards);
     }

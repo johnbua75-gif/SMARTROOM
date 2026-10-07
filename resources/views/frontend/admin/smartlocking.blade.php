@@ -359,6 +359,7 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
 .rfid-status-badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,0.7); flex-shrink: 0; }
 .badge-active  { background: #22c55e; color: #fff; }
 .badge-pending { background: #f97316; color: #fff; }
+.badge-inactive { background: #64748b; color: #fff; }
 
 .rfid-number-label { font-size: 0.58rem; font-weight: 600; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 3px; position: relative; z-index: 1; }
 .rfid-number { font-size: 1.2rem; font-weight: 700; color: #fff; letter-spacing: 0.16em; margin-bottom: 16px; font-family: 'Courier New', monospace; position: relative; z-index: 1; }
@@ -390,12 +391,22 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
   background: #fff; color: var(--red); border: 1.5px solid #fecaca; transition: all 0.18s;
 }
 .btn-deactivate:hover { background: var(--red-bg); }
+.btn-activate {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 7px;
+  padding: 9px; border-radius: 9px; cursor: pointer;
+  font-size: 0.82rem; font-weight: 700; font-family: 'Inter', sans-serif;
+  background: #fff; color: #15803d; border: 1.5px solid #86efac; transition: all 0.18s;
+}
+.btn-activate:hover { background: #f0fdf4; }
+.btn-activate:disabled,
+.btn-deactivate:disabled { cursor: wait; opacity: 0.65; }
 
 /* ASSIGNED ROOMS */
 .ic-rooms { padding: 14px 20px 18px; }
 .ic-rooms-title { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px; }
 .ic-rooms-title i { font-size: 0.72rem; }
 .room-name-label { font-size: 0.88rem; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+.access-policy-note { margin: 0 0 10px; color: var(--text-secondary); font-size: 0.76rem; line-height: 1.45; }
 .room-sched-table { width: 100%; border-collapse: collapse; }
 .room-sched-table tr { border-bottom: 1px solid #f3f4f6; }
 .room-sched-table tr:last-child { border-bottom: none; }
@@ -403,6 +414,7 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
 .room-sched-table .td-day  { color: var(--text-secondary); width: 80px; }
 .room-sched-table .td-time { color: var(--text-secondary); width: 100px; }
 .room-sched-table .td-subj { color: #3b5bdb; font-weight: 600; text-align: right; }
+.room-sched-table .td-room { display: block; margin-top: 2px; color: var(--text-secondary); font-size: 0.68rem; font-weight: 500; }
 
 /* ANIMATIONS */
 @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
@@ -528,7 +540,7 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
         <div class="card-modal-header">
           <div>
             <h3 id="addCardTitle">Add RFID Access Card</h3>
-            <p>Assign a card to an instructor and room.</p>
+            <p>Register a card for an instructor.</p>
           </div>
           <button type="button" class="modal-close" id="closeAddCardModal" aria-label="Close"><i class="fas fa-xmark"></i></button>
         </div>
@@ -551,19 +563,9 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
               @endforeach
             </select>
           </label>
-          <div class="card-form-grid">
-            <label>Assigned room
-              <select name="classroom_id">
-                <option value="">No room assignment</option>
-                @foreach(($classrooms ?? []) as $classroom)
-                  <option value="{{ $classroom->id }}">{{ $classroom->name }}{{ $classroom->building ? ' · '.$classroom->building : '' }}</option>
-                @endforeach
-              </select>
-            </label>
-            <label>Expires on
-              <input type="date" name="expires_at">
-            </label>
-          </div>
+          <label>Expires on
+            <input type="date" name="expires_at">
+          </label>
           <label>Status
             <select name="status">
               <option value="active">Active</option>
@@ -601,11 +603,11 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
       <div class="stat-tile tile-purple">
         <div class="stat-tile-top">
           <div>
-            <div class="stat-tile-label">Assigned Rooms</div>
+            <div class="stat-tile-label">Scheduled Rooms</div>
           </div>
           <div class="stat-tile-icon-wrap"><i class="fas fa-school"></i></div>
         </div>
-        <div class="stat-tile-val">{{ $stats['assigned_rooms'] ?? 0 }}</div>
+        <div class="stat-tile-val">{{ $stats['scheduled_rooms'] ?? 0 }}</div>
       </div>
       <div class="stat-tile tile-orange">
         <div class="stat-tile-top">
@@ -621,6 +623,7 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
       <div class="cards-grid">
         @foreach(($cards ?? []) as $card)
           @php
+            $cardIsActive = ($card['status'] ?? 'active') === 'active';
             $statusClass = match($card['status'] ?? 'active') {
                 'pending' => 'badge-pending',
                 'inactive' => 'badge-inactive',
@@ -673,24 +676,33 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
 
             <div class="ic-actions">
               <a class="btn-reissue" href="{{ route('smartlocking.show', $card['id']) }}"><i class="fas fa-eye"></i> View Details</a>
-              <button class="btn-deactivate js-deactivate-card" data-card-id="{{ $card['id'] }}"><i class="fas fa-circle-xmark"></i> Deactivate</button>
+              <button
+                type="button"
+                class="{{ $cardIsActive ? 'btn-deactivate' : 'btn-activate' }} js-toggle-card"
+                data-card-id="{{ $card['id'] }}"
+                data-next-status="{{ $cardIsActive ? 'inactive' : 'active' }}"
+                data-action-label="{{ $cardIsActive ? 'Deactivate' : 'Activate' }}"
+              >
+                <i class="fas {{ $cardIsActive ? 'fa-circle-xmark' : 'fa-circle-check' }}" aria-hidden="true"></i>
+                {{ $cardIsActive ? 'Deactivate' : 'Activate' }}
+              </button>
             </div>
 
             <div class="ic-rooms">
-              <div class="ic-rooms-title"><i class="fas fa-door-open"></i> Assigned Rooms &amp; Schedule</div>
-              <div class="room-name-label">{{ $card['room'] }}</div>
+              <div class="ic-rooms-title"><i class="fas fa-door-open"></i> Reservation &amp; Class Access</div>
+              <p class="access-policy-note">This card works at any door where its owner has an active reservation or official class schedule.</p>
               <table class="room-sched-table">
                 @forelse(($card['schedule'] ?? []) as $row)
                   <tr>
                     <td class="td-day">{{ $row['day'] }}</td>
                     <td class="td-time">{{ str_replace('-', ' - ', $row['time']) }}</td>
-                    <td class="td-subj">{{ $row['subject'] }}</td>
+                    <td class="td-subj">{{ $row['subject'] }}<small class="td-room">{{ $row['room'] }}</small></td>
                   </tr>
                 @empty
                   <tr>
                     <td class="td-day">-</td>
                     <td class="td-time">No schedule assigned</td>
-                    <td class="td-subj">-</td>
+                    <td class="td-subj">An active room reservation can still grant access.</td>
                   </tr>
                 @endforelse
               </table>
@@ -745,6 +757,18 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
             </div>
           </div>
           <div class="settings-section is-hidden" data-settings-content="notifications">
+            <h3>Lost RFID cards</h3>
+            @forelse($lostCardReports as $report)
+              <div class="setting-row">
+                <div>
+                  <strong>{{ $report->title }}</strong>
+                  <span>{{ $report->body }} · {{ $report->created_at?->diffForHumans() }}</span>
+                </div>
+                <span class="chip {{ $report->read_at ? '' : 'bad' }}">{{ $report->read_at ? 'Reviewed' : 'Needs review' }}</span>
+              </div>
+            @empty
+              <p>No lost-card reports.</p>
+            @endforelse
             <h3>Notifications</h3>
             <p>Choose which SmartDoor events should notify administrators.</p>
             <div class="setting-row"><div><strong>Denied access alerts</strong><span>Notify admins when a card is rejected.</span></div><label class="switch"><input type="checkbox" name="denied_alerts" checked><span class="switch-slider"></span></label></div>
@@ -870,33 +894,43 @@ if (new URLSearchParams(window.location.search).get('tab') === 'settings') {
   setActiveTab('settings');
 }
 
-document.querySelectorAll('.js-deactivate-card').forEach((button) => {
+document.querySelectorAll('.js-toggle-card').forEach((button) => {
   button.addEventListener('click', async (event) => {
     event.preventDefault();
 
     const cardId = button.getAttribute('data-card-id');
-    if (!cardId) return;
+    const nextStatus = button.getAttribute('data-next-status');
+    const actionLabel = button.getAttribute('data-action-label');
+    if (!cardId || !['active', 'inactive'].includes(nextStatus)) return;
 
-    const shouldDeactivate = confirm('Deactivate this RFID card?');
-    if (!shouldDeactivate) return;
+    if (!confirm(`${actionLabel} this RFID card?`)) return;
 
-    const response = await fetch(`/admin/access-cards/${cardId}`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'X-CSRF-TOKEN': "{{ csrf_token() }}",
-      },
-      body: JSON.stringify({ status: 'inactive' }),
-    });
+    const originalContent = button.innerHTML;
+    button.disabled = true;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Saving...';
 
-    if (!response.ok) {
-      const errorBody = await response.json().catch(() => ({}));
-      showToast(errorBody?.message || 'Failed to deactivate card.', 'error');
-      return;
+    try {
+      const response = await fetch(`/admin/access-cards/${cardId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-CSRF-TOKEN': "{{ csrf_token() }}",
+        },
+        body: JSON.stringify({ status: nextStatus }),
+      });
+
+      if (!response.ok) {
+        const errorBody = await response.json().catch(() => ({}));
+        throw new Error(errorBody?.message || `Failed to ${actionLabel.toLowerCase()} card.`);
+      }
+
+      window.location.reload();
+    } catch (error) {
+      showToast(error.message || `Failed to ${actionLabel.toLowerCase()} card.`, 'error');
+      button.disabled = false;
+      button.innerHTML = originalContent;
     }
-
-    window.location.reload();
   });
 });
 

@@ -205,3 +205,104 @@ it('allows an enrolled student to check in through the QR route', function () {
         ->assertJsonPath('attended', 1)
         ->assertJsonPath('attendance_rate', 100);
 });
+
+it('counts manually marked present and late records without a check-in time', function () {
+    $studentUser = User::create([
+        'name' => 'Manual Attendance Student',
+        'email' => 'manual-attendance-student@example.com',
+        'password' => Hash::make('Password123!'),
+        'role' => 'student',
+        'must_change_password' => false,
+    ]);
+    $student = Student::create([
+        'user_id' => $studentUser->id,
+        'name' => $studentUser->name,
+        'email' => $studentUser->email,
+        'student_id' => 'STU-10003',
+        'status' => 'active',
+    ]);
+    $faculty = User::create([
+        'name' => 'Manual Attendance Faculty',
+        'email' => 'manual-attendance-faculty@example.com',
+        'password' => Hash::make('Password123!'),
+        'role' => 'faculty',
+        'must_change_password' => false,
+    ]);
+    $session = AttendanceSession::create([
+        'date' => now()->toDateString(),
+        'status' => 'closed',
+        'created_by' => $faculty->id,
+        'token' => 'MANUAL-ATTENDANCE-TEST',
+    ]);
+
+    AttendanceRecord::create([
+        'attendance_session_id' => $session->id,
+        'student_id' => $student->id,
+        'student_id_number' => $student->student_id,
+        'student_name' => $student->name,
+        'status' => 'present',
+        'present' => true,
+        'time_in' => null,
+    ]);
+    AttendanceRecord::create([
+        'attendance_session_id' => $session->id,
+        'student_id' => $student->id,
+        'student_id_number' => $student->student_id,
+        'student_name' => $student->name,
+        'status' => 'late',
+        'present' => true,
+        'time_in' => null,
+    ]);
+    AttendanceRecord::create([
+        'attendance_session_id' => $session->id,
+        'student_id' => $student->id,
+        'student_id_number' => $student->student_id,
+        'student_name' => $student->name,
+        'status' => 'absent',
+        'present' => false,
+        'time_in' => null,
+    ]);
+
+    actingAs($studentUser);
+
+    $this->get('/student/attendance')
+        ->assertSuccessful()
+        ->assertSee('My attendance')
+        ->assertSee('Scan QR code')
+        ->assertSee('Attendance history')
+        ->assertSee('id="openQrScanner"', false)
+        ->assertSee('id="student-attendance-rate"', false)
+        ->assertSee('id="qr-reader"', false)
+        ->assertViewHas('totalAttended', 2)
+        ->assertViewHas('totalAbsent', 1)
+        ->assertViewHas('attendanceRate', 66.7)
+        ->assertSee('Late')
+        ->assertSee('Present')
+        ->assertSee('Absent');
+
+    getJson('/student/attendance/summary')
+        ->assertSuccessful()
+        ->assertJsonPath('attended', 2)
+        ->assertJsonPath('absent', 1)
+        ->assertJsonPath('rate', 66.7);
+});
+
+it('restricts the student directory search to faculty accounts', function () {
+    $student = User::factory()->create([
+        'role' => 'student',
+        'email' => 'directory-target@psu.edu.ph',
+    ]);
+    $anotherStudent = User::factory()->create(['role' => 'student']);
+    $faculty = User::factory()->create(['role' => 'faculty']);
+
+    actingAs($anotherStudent);
+
+    getJson('/api/students/search?email=DIRECTORY-TARGET')
+        ->assertForbidden();
+
+    actingAs($faculty);
+
+    getJson('/api/students/search?email=DIRECTORY-TARGET')
+        ->assertSuccessful()
+        ->assertJsonPath('students.0.email', $student->email);
+});

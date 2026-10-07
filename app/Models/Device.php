@@ -15,6 +15,11 @@ class Device extends Model
         'classroom_id',
         'status',
         'last_seen_at',
+        'credential_hash',
+    ];
+
+    protected $hidden = [
+        'credential_hash',
     ];
 
     protected $casts = [

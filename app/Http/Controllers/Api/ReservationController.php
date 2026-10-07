@@ -9,6 +9,7 @@ use App\Http\Requests\Api\UpdateReservationRequest;
 use App\Models\AccessCard;
 use App\Models\Reservation;
 use App\Models\Schedule;
+use App\Models\User;
 use App\Services\RoomAvailabilityService;
 use Carbon\Carbon;
 use Illuminate\Http\Exceptions\HttpResponseException;
@@ -224,10 +225,19 @@ class ReservationController extends Controller
         $now = now();
         $graceMinutes = 0;
         $userId = $request->integer('user_id');
-        $classroomId = $request->integer('classroom_id');
         $device = $request->attributes->get('device');
+        $classroomId = $device ? (int) $device->classroom_id : $request->integer('classroom_id');
 
-        if ($device && (int) $device->classroom_id !== $classroomId) {
+        $person = User::query()->find($userId);
+        if (! $person || $person->status !== 'active') {
+            return response()->json([
+                'allowed' => false,
+                'message' => 'Access denied',
+                'reason' => 'User account is inactive',
+            ], 403);
+        }
+
+        if ($device && $request->filled('classroom_id') && (int) $device->classroom_id !== $request->integer('classroom_id')) {
             return response()->json([
                 'allowed' => false,
                 'message' => 'Access denied',
@@ -288,6 +298,14 @@ class ReservationController extends Controller
                 ], 403);
             }
 
+            if ($card->user()->where('status', 'active')->doesntExist()) {
+                return response()->json([
+                    'allowed' => false,
+                    'message' => 'Access denied',
+                    'reason' => 'Cardholder account is inactive',
+                ], 403);
+            }
+
             if ((int) $card->user_id !== (int) $userId) {
                 return response()->json([
                     'allowed' => false,
@@ -323,7 +341,14 @@ class ReservationController extends Controller
             ->whereTime('start_at', '<=', $now->format('H:i:s'))
             ->whereTime('end_at', '>=', $now->format('H:i:s'))
             ->whereHas('course', function ($courseQuery) use ($userId): void {
-                $courseQuery->where('instructor_user_id', $userId);
+                $courseQuery->where('instructor_user_id', $userId)
+                    ->orWhereHas('enrollments', function ($enrollmentQuery) use ($userId): void {
+                        $enrollmentQuery->where('status', 'active')
+                            ->whereHas('student', function ($studentQuery) use ($userId): void {
+                                $studentQuery->where('user_id', $userId)
+                                    ->where('status', 'active');
+                            });
+                    });
             })
             ->with('course')
             ->first();

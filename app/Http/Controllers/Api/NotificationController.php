@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Notification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class NotificationController extends Controller
 {
@@ -12,23 +13,24 @@ class NotificationController extends Controller
     {
         $userId = $request->user()->id;
 
-        $items = Notification::where(function ($q) use ($userId) {
-            $q->whereNull('user_id')->orWhere('user_id', $userId);
-        })
-            ->orderBy('created_at', 'desc')
-            ->limit(50)
-            ->get()
-            ->map(function (Notification $n) {
-                return [
-                    'id' => $n->id,
-                    'type' => $n->type,
-                    'title' => $n->title,
-                    'body' => $n->body,
-                    'data' => $n->data,
-                    'read_at' => $n->read_at?->toIso8601String(),
-                    'created_at' => $n->created_at->toIso8601String(),
-                ];
-            });
+        $items = Cache::remember('faculty:notifications:v1:'.$userId, now()->addSeconds(5), function () use ($userId): array {
+            return Notification::query()->where(function ($query) use ($userId): void {
+                $query->whereNull('user_id')->orWhere('user_id', $userId);
+            })
+                ->orderByDesc('created_at')
+                ->limit(50)
+                ->get()
+                ->map(fn (Notification $notification): array => [
+                    'id' => $notification->id,
+                    'type' => $notification->type,
+                    'title' => $notification->title,
+                    'body' => $notification->body,
+                    'data' => $notification->data,
+                    'read_at' => $notification->read_at?->toIso8601String(),
+                    'created_at' => $notification->created_at->toIso8601String(),
+                ])
+                ->all();
+        });
 
         return response()->json(['data' => $items]);
     }
@@ -47,6 +49,7 @@ class NotificationController extends Controller
 
         $n->read_at = now();
         $n->save();
+        Cache::forget('faculty:notifications:v1:'.$userId);
 
         return response()->json(['message' => 'Marked read', 'data' => [
             'id' => $n->id,
@@ -61,6 +64,7 @@ class NotificationController extends Controller
         $affected = Notification::where(function ($q) use ($userId) {
             $q->whereNull('user_id')->orWhere('user_id', $userId);
         })->whereNull('read_at')->update(['read_at' => now()]);
+        Cache::forget('faculty:notifications:v1:'.$userId);
 
         return response()->json(['message' => 'Marked all read', 'affected' => $affected]);
     }

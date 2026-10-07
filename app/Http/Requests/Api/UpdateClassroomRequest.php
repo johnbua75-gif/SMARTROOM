@@ -24,7 +24,8 @@ class UpdateClassroomRequest extends FormRequest
             'current_occupancy' => ['sometimes', 'integer', 'min:0'],
             'status' => ['sometimes', 'string', 'in:available,occupied,reserved,maintenance,unavailable'],
             'unavailable_reason' => ['nullable', 'string', 'max:255', 'required_if:status,maintenance,unavailable'],
-            'rfid_status' => ['sometimes', 'string', 'max:50'],
+            'access_mode' => ['sometimes', 'string', 'in:manual,esp32'],
+            'rfid_status' => ['sometimes', 'string', 'in:active,inactive'], // door access: active = ESP32, inactive = manual
             'temperature' => ['nullable', 'numeric'],
             'last_accessed_at' => ['nullable', 'date'],
         ];

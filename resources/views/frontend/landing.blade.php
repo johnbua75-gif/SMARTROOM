@@ -411,7 +411,8 @@ section { position: relative; z-index: 2; }
   gap: 12px;
 }
 .footer-bottom-brand { display: flex; align-items: center; gap: 12px; }
-.footer-bottom-logo { width: 32px; height: 32px; background: var(--gold); border-radius: 9px; display: flex; align-items: center; justify-content: center; }
+.footer-bottom-logo { width: 40px; height: 40px; flex: 0 0 40px; display: flex; align-items: center; justify-content: center; }
+.footer-bottom-logo img { width: 40px; height: 40px; display: block; object-fit: contain; }
 .footer-bottom-name { font-family: 'Sora', sans-serif; font-weight: 700; font-size: 0.95rem; color: #fff; }
 .footer-bottom-name span { color: var(--gold); }
 .footer-copy { font-size: 0.74rem; color: rgba(255,255,255,0.28); }
@@ -436,11 +437,14 @@ section { position: relative; z-index: 2; }
   .nav-hamburger { display: flex; }
   .problem-grid { grid-template-columns: 1fr; }
   .features-grid { grid-template-columns: 1fr; }
-  .steps { grid-template-columns: 1fr 1fr; }
+  .features-section::before { max-width: 100%; }
+  .steps { grid-template-columns: 1fr 1fr; column-gap: 24px; }
   .stats-strip { gap: 0; }
   .stat-item { padding: 8px 20px; }
   .stat-divider { display: none; }
-  .footer-top { grid-template-columns: 1fr 1fr; gap: 28px; }
+  .footer-top { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px; }
+  .footer-top > .footer-col:last-child { grid-column: 1 / -1; }
+  .footer-email-input { min-width: 0; }
   .footer-bottom { flex-direction: column; text-align: center; }
   .footer-legal { flex-wrap: wrap; justify-content: center; }
 }
@@ -931,8 +935,8 @@ section { position: relative; z-index: 2; }
   <!-- BOTTOM BAR -->
   <div class="footer-bottom">
     <div class="footer-bottom-brand">
-      <div class="footer-bottom-logo" style="background:none;padding:0;">
-        <img src="{{ asset('images/PSU.png') }}" alt="PSU Logo" style="width:32px; height:32px; display:block; border-radius:50%; background:#fff; object-fit:cover; box-shadow:0 2px 8px rgba(0,0,0,0.08);" />
+      <div class="footer-bottom-logo">
+        <img src="{{ asset('images/main-logo-psu.png') }}" alt="Pangasinan State University seal" />
       </div>
       <span class="footer-bottom-name" style="color:#fff; font-weight:400;">Pangasinan State University</span>
     </div>

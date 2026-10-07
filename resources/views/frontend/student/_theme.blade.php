@@ -285,6 +285,23 @@
   }
 
   .student-sidebar-toggle:hover { background: var(--student-gold); color: var(--student-navy); }
+  .student-mobile-toggle {
+    display: none;
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
+    align-items: center;
+    justify-content: center;
+    margin: auto 12px auto 0;
+    border: 1px solid rgba(245, 197, 24, .5);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, .06);
+    color: var(--student-gold);
+    font-size: 1.3rem;
+    cursor: pointer;
+  }
+  .student-mobile-toggle:focus-visible { outline: 2px solid var(--student-gold); outline-offset: 2px; }
+  .student-sidebar-menu { display: contents; }
   body.student-sidebar-collapsed #sidebar.student-sidebar { width: 72px !important; flex-basis: 72px; }
   body.student-sidebar-collapsed main.flex-grow-1 { margin-left: 72px; }
   body.student-sidebar-collapsed #sidebar.student-sidebar .sidebar-logo { justify-content: center; padding-left: 12px; padding-right: 12px; }
@@ -368,7 +385,7 @@
     color: var(--student-muted) !important;
   }
 
-  main.flex-grow-1 > .d-flex.justify-content-between.align-items-center.mb-4:not(.page-top) {
+  main.flex-grow-1 > .d-flex.justify-content-between.align-items-center.mb-4:not(.page-top):not(.campus-banner) {
     display: none !important;
   }
 
@@ -431,16 +448,129 @@
 
     #sidebar.student-sidebar {
       position: relative;
+      display: flex;
+      flex-direction: column;
       width: 100% !important;
       height: auto;
       min-height: auto;
+      overflow: hidden;
+      border-right: 0 !important;
     }
 
     .student-sidebar-toggle { display: none; }
+    .student-mobile-toggle { display: inline-flex; }
+    #sidebar.student-sidebar .student-mobile-toggle {
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      z-index: 3;
+      margin: 0;
+    }
     body.student-sidebar-collapsed main.flex-grow-1 { margin-left: 0; }
+
+    body.student-sidebar-collapsed #sidebar.student-sidebar {
+      width: 100% !important;
+      flex-basis: auto;
+    }
+
+    body.student-sidebar-collapsed #sidebar.student-sidebar .logo-text,
+    body.student-sidebar-collapsed #sidebar.student-sidebar .user-widget-info {
+      display: block;
+    }
+
+    body.student-sidebar-collapsed #sidebar.student-sidebar .sidebar-logo {
+      justify-content: flex-start;
+      padding: 12px 16px 8px;
+    }
+
+    body.student-sidebar-collapsed #sidebar.student-sidebar .sidebar-nav a {
+      justify-content: center;
+      flex-direction: column;
+      padding: 6px 8px;
+      font-size: .68rem;
+    }
+
+    body.student-sidebar-collapsed #sidebar.student-sidebar .sidebar-logout-btn {
+      justify-content: flex-start;
+      padding: 8px 10px;
+      font-size: .82rem;
+    }
+
+    #sidebar.student-sidebar::after {
+      display: none;
+    }
+
+    #sidebar.student-sidebar .sidebar-logo {
+      padding: 12px 64px 8px 16px;
+      margin-bottom: 0;
+      border-bottom: 0;
+    }
+
+    #sidebar.student-sidebar .student-sidebar-menu {
+      display: none;
+    }
+
+    #sidebar.student-sidebar.is-open .student-sidebar-menu {
+      display: block;
+    }
+
+    #sidebar.student-sidebar .nav-section-label {
+      display: none;
+    }
+
+    #sidebar.student-sidebar .sidebar-nav {
+      display: block;
+      width: auto;
+      padding: 0 12px 8px;
+      overflow: visible;
+    }
+
+    #sidebar.student-sidebar .sidebar-nav li {
+      margin: 0;
+    }
+
+    #sidebar.student-sidebar .sidebar-nav a {
+      min-height: 44px;
+      flex-direction: row;
+      justify-content: flex-start;
+      gap: 11px;
+      padding: 6px 12px;
+      font-size: .88rem;
+      line-height: normal;
+    }
+
+    #sidebar.student-sidebar .sidebar-nav a.active::before {
+      top: 20%;
+      right: auto;
+      bottom: 20%;
+      left: 0;
+      width: 3px;
+      height: auto;
+      border-radius: 0 2px 2px 0;
+    }
+
+    #sidebar.student-sidebar .sidebar-nav a .nav-icon {
+      width: 26px;
+      height: 26px;
+    }
 
     #sidebar.student-sidebar .sidebar-footer {
       position: relative;
+      display: block;
+      padding: 8px 12px 10px;
+    }
+
+    #sidebar.student-sidebar .user-widget {
+      min-width: 0;
+      margin-bottom: 8px;
+      padding: 8px 10px;
+      background: rgba(255, 255, 255, .05);
+    }
+
+    #sidebar.student-sidebar .sidebar-logout-btn {
+      width: 100%;
+      padding: 8px 10px;
+      white-space: nowrap;
     }
 
     main.flex-grow-1 {

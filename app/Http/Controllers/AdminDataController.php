@@ -214,6 +214,10 @@ class AdminDataController extends Controller
 
         $user->update($validated);
 
+        if (isset($validated['status']) && $validated['status'] !== 'active') {
+            $user->tokens()->delete();
+        }
+
         if ($request->expectsJson()) {
             return response()->json(['message' => 'User updated successfully.', 'data' => $user->fresh()]);
         }

@@ -38,7 +38,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            overflow: hidden;
+            overflow-x: hidden;
+            overflow-y: auto;
         }
 
         body::before {
@@ -480,11 +481,12 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="email">E-mail Address</label>
+                    <label for="email">University Email</label>
                     <div class="input-wrap">
-                        <input type="email" id="email" name="email" placeholder="you@example.com" value="{{ old('email') }}" required>
+                        <input type="email" id="email" name="email" placeholder="22-ur-0967@psu.edu.ph" value="{{ old('email') }}" required>
                         <span class="input-icon">✓</span>
                     </div>
+                    <small style="display:block;margin-top:6px;color:rgba(255,255,255,0.55);">Use your official campus email ending with <strong>@psu.edu.ph</strong>.</small>
                     <div class="error-message" id="emailError"></div>
                 </div>
 
@@ -570,7 +572,7 @@
                 document.getElementById('email').classList.add('error');
                 hasError = true;
             } else if (!isValidEmail(email)) {
-                showError('emailError', 'Please enter a valid email');
+                showError('emailError', 'Use your official PSU email ending in @psu.edu.ph');
                 document.getElementById('email').classList.add('error');
                 hasError = true;
             }
@@ -607,7 +609,7 @@
             el.style.display = 'block';
         }
 
-        function isValidEmail(email) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email); }
+        function isValidEmail(email) { return /^[^\s@]+@psu\.edu\.ph$/i.test(email); }
 
         function isValidPassword(password) {
             return password.length >= 8 && /[A-Z]/.test(password) && /[0-9]/.test(password) && /[!@#$%^&*(),.?":{}|<>]/.test(password);

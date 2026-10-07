@@ -16,6 +16,11 @@
     </div>
   </a>
 
+  <button type="button" class="student-mobile-toggle" aria-controls="student-sidebar-menu" aria-expanded="false" aria-label="Open student navigation">
+    <i class="bi bi-list" aria-hidden="true"></i>
+  </button>
+
+  <div id="student-sidebar-menu" class="student-sidebar-menu">
   <span class="nav-section-label">Main</span>
   <ul class="sidebar-nav">
     <li>
@@ -65,11 +70,41 @@
       </button>
     </form>
   </div>
+  </div>
 </aside>
 <script>
 (function () {
   const sidebar = document.getElementById('sidebar');
-  if (!sidebar || document.querySelector('.student-sidebar-toggle')) return;
+  if (!sidebar) return;
+
+  const mobileToggle = sidebar.querySelector('.student-mobile-toggle');
+  const mobileViewport = window.matchMedia('(max-width: 768px)');
+
+  function setMobileMenuOpen(isOpen) {
+    sidebar.classList.toggle('is-open', isOpen);
+    mobileToggle.setAttribute('aria-expanded', String(isOpen));
+    mobileToggle.setAttribute('aria-label', isOpen ? 'Close student navigation' : 'Open student navigation');
+    mobileToggle.querySelector('i').className = isOpen ? 'bi bi-x-lg' : 'bi bi-list';
+  }
+
+  mobileToggle.addEventListener('click', function () {
+    setMobileMenuOpen(!sidebar.classList.contains('is-open'));
+  });
+
+  document.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape' && sidebar.classList.contains('is-open')) {
+      setMobileMenuOpen(false);
+      mobileToggle.focus();
+    }
+  });
+
+  mobileViewport.addEventListener('change', function (event) {
+    if (!event.matches) {
+      setMobileMenuOpen(false);
+    }
+  });
+
+  if (document.querySelector('.student-sidebar-toggle')) return;
   const toggle = document.createElement('button');
   toggle.type = 'button';
   toggle.className = 'student-sidebar-toggle';
@@ -77,7 +112,9 @@
   toggle.innerHTML = '<i class="bi bi-chevron-left" aria-hidden="true"></i>';
   sidebar.appendChild(toggle);
 
-  if (window.localStorage.getItem('studentSidebarCollapsed') === '1') {
+  const desktopViewport = window.matchMedia('(min-width: 769px)');
+
+  if (desktopViewport.matches && window.localStorage.getItem('studentSidebarCollapsed') === '1') {
     document.body.classList.add('student-sidebar-collapsed');
   }
 
@@ -85,6 +122,11 @@
     const collapsed = document.body.classList.toggle('student-sidebar-collapsed');
     window.localStorage.setItem('studentSidebarCollapsed', collapsed ? '1' : '0');
     toggle.setAttribute('aria-label', collapsed ? 'Expand sidebar' : 'Minimize sidebar');
+  });
+
+  desktopViewport.addEventListener('change', function (event) {
+    const shouldCollapse = event.matches && window.localStorage.getItem('studentSidebarCollapsed') === '1';
+    document.body.classList.toggle('student-sidebar-collapsed', shouldCollapse);
   });
 })();
 </script>
