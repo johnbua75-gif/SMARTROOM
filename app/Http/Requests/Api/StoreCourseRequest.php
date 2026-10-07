@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Api;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreCourseRequest extends FormRequest
 {
@@ -20,7 +21,11 @@ class StoreCourseRequest extends FormRequest
             'code' => ['required', 'string', 'max:255', 'unique:courses,code'],
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'instructor_user_id' => ['required', 'integer', 'exists:users,id'],
+            'instructor_user_id' => [
+                'required',
+                'integer',
+                Rule::exists('users', 'id')->where('role', 'faculty')->where('status', 'active'),
+            ],
             'classroom_id' => ['nullable', 'integer', 'exists:classrooms,id'],
             'capacity' => ['nullable', 'integer', 'min:0'],
         ];

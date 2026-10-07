@@ -50,7 +50,7 @@
     </ul>
     <div class="sidebar-footer"><div class="user-widget"><div class="user-avatar">{{ htmlspecialchars($facultyInitials) }}</div><div class="user-widget-info"><div class="user-widget-name">{{ htmlspecialchars($facultyName) }}</div><div class="user-widget-role">{{ htmlspecialchars($facultyDept) }}</div></div></div><form method="POST" action="{{ url('/logout') }}">@csrf<button type="submit" class="sidebar-logout-btn"><i class="fas fa-arrow-right-from-bracket"></i>Sign Out</button></form></div>
 </aside>
-<main class="main">
+<main class="main" data-notifications-url="{{ route('faculty.notifications.data') }}">
     <header class="page-header"><div class="eyebrow">Faculty workspace</div><h1 class="page-title">Notifications</h1><p class="page-subtitle">Review enrollment requests and stay up to date with room, schedule, and attendance updates.</p></header>
     @if (session('success'))<div role="status" style="max-width:960px;margin:0 0 18px;padding:12px 16px;border:1px solid #bfe3d2;border-radius:10px;color:#126c4b;background:#edfaf3;font-size:.84rem;font-weight:600">{{ session('success') }}</div>@endif
     <section class="notifications-panel" aria-labelledby="notificationsTitle">
@@ -61,7 +61,7 @@
             <div class="notification-list">
                 @foreach ($notifications as $notification)
                     @php($enrollmentRequest = $pendingEnrollmentRequests->get((int) data_get($notification->data, 'enrollment_id')))
-                    <article class="notification-item {{ $notification->read_at ? '' : 'unread' }}">
+                    <article class="notification-item {{ $notification->read_at ? '' : 'unread' }}" data-notification-id="{{ $notification->id }}">
                         <span class="notification-dot" aria-hidden="true"></span>
                         <div class="notification-content">
                             <div class="notification-title">{{ $notification->title }}</div>
@@ -93,5 +93,37 @@
         @endif
     </section>
 </main>
+<script>
+(() => {
+    const endpoint = document.querySelector('[data-notifications-url]').dataset.notificationsUrl;
+    const notificationItems = Array.from(document.querySelectorAll('[data-notification-id]'));
+    const newestSeenId = notificationItems.reduce((latest, item) => {
+        return Math.max(latest, Number(item.dataset.notificationId) || 0);
+    }, 0);
+
+    async function refreshWhenNotificationsChange() {
+        try {
+            const response = await fetch(endpoint, {
+                headers: { Accept: 'application/json' },
+                credentials: 'same-origin',
+                cache: 'no-store',
+            });
+
+            if (!response.ok) return;
+
+            const payload = await response.json();
+            const newestId = (payload.data || []).reduce((latest, item) => {
+                return Math.max(latest, Number(item.id) || 0);
+            }, 0);
+
+            if (newestId > newestSeenId) window.location.reload();
+        } catch {
+            // Leave the current notification list visible if polling is temporarily unavailable.
+        }
+    }
+
+    window.setInterval(refreshWhenNotificationsChange, 10000);
+})();
+</script>
 </body>
 </html>

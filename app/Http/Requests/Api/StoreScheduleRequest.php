@@ -6,6 +6,7 @@ use App\Models\Course;
 use App\Services\RoomAvailabilityService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreScheduleRequest extends FormRequest
 {
@@ -28,7 +29,11 @@ class StoreScheduleRequest extends FormRequest
         return [
             'classroom_id' => ['required', 'integer', 'exists:classrooms,id'],
             'course_id' => ['required', 'integer', 'exists:courses,id'],
-            'instructor_user_id' => ['nullable', 'integer', 'exists:users,id'],
+            'instructor_user_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('users', 'id')->where('role', 'faculty')->where('status', 'active'),
+            ],
             'start_at' => ['required_without:semester_start', 'date'],
             'end_at' => ['required_without:semester_start', 'date', 'after:start_at'],
             'repeat_until' => ['nullable', 'date', 'after_or_equal:start_at'],

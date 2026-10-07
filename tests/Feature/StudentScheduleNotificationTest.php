@@ -1,6 +1,7 @@
 <?php
 
 use App\Events\NewNotification;
+use App\Models\Course;
 use App\Models\Notification;
 use App\Models\User;
 use Illuminate\Broadcasting\Channel;
@@ -118,4 +119,45 @@ it('keeps campus-wide announcements on the public notifications channel', functi
         ->and($channels[0])->toBeInstanceOf(Channel::class)
         ->and($channels[0])->not->toBeInstanceOf(PrivateChannel::class)
         ->and($channels[0]->name)->toBe('notifications');
+});
+
+it('notifies the assigned faculty when a course is assigned or reassigned', function () {
+    $admin = User::factory()->create(['role' => 'admin', 'status' => 'active']);
+    $faculty = User::factory()->create(['role' => 'faculty', 'status' => 'active']);
+    $replacementFaculty = User::factory()->create(['role' => 'faculty', 'status' => 'active']);
+    $course = Course::create([
+        'code' => 'ASSIGNMENT-LIVE-101',
+        'title' => 'Assignment Notification Test',
+    ]);
+
+    $this->actingAs($admin)
+        ->put(route('admin.courses.update', $course), ['instructor_user_id' => $faculty->id])
+        ->assertRedirect();
+
+    $firstNotification = Notification::query()
+        ->where('type', 'course_assignment')
+        ->where('user_id', $faculty->id)
+        ->firstOrFail();
+
+    expect($firstNotification->data)->toMatchArray([
+        'course_id' => $course->id,
+        'course_code' => $course->code,
+    ]);
+
+    $this->put(route('admin.courses.update', $course), ['title' => 'Updated Course Title'])
+        ->assertRedirect();
+    expect(Notification::query()->where('type', 'course_assignment')->count())->toBe(1);
+
+    $this->put(route('admin.courses.update', $course), ['instructor_user_id' => $replacementFaculty->id])
+        ->assertRedirect();
+
+    expect(Notification::query()->where('type', 'course_assignment')->where('user_id', $replacementFaculty->id)->count())->toBe(1);
+
+    $this->actingAs($replacementFaculty)
+        ->get(route('faculty.notifications'))
+        ->assertSuccessful()
+        ->assertSee('ASSIGNMENT-LIVE-101')
+        ->assertSee('Updated Course Title')
+        ->assertSee(route('faculty.notifications.data'), false)
+        ->assertSee('setInterval', false);
 });
