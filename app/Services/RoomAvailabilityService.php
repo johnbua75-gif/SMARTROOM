@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Classroom;
 use App\Models\Reservation;
 use App\Models\Schedule;
+use App\Models\User;
 use App\Support\DepartmentScope;
 use App\Support\RoomAvailabilityStatus;
 use Carbon\CarbonInterface;
@@ -105,6 +106,32 @@ class RoomAvailabilityService
         }
 
         return $classroom;
+    }
+
+    public function hasInstructorScheduleConflict(
+        int $instructorUserId,
+        CarbonInterface $startAt,
+        CarbonInterface $endAt,
+        ?int $ignoreScheduleId = null,
+        bool $forUpdateLock = false
+    ): bool {
+        if ($forUpdateLock) {
+            User::query()->whereKey($instructorUserId)->lockForUpdate()->first();
+        }
+
+        $query = Schedule::query()
+            ->whereIn('status', self::ACTIVE_SCHEDULE_STATUSES)
+            ->where('start_at', '<', $endAt)
+            ->where('end_at', '>', $startAt)
+            ->whereHas('course', function (Builder $courseQuery) use ($instructorUserId): void {
+                $courseQuery->where('instructor_user_id', $instructorUserId);
+            });
+
+        if ($ignoreScheduleId !== null) {
+            $query->where('id', '!=', $ignoreScheduleId);
+        }
+
+        return $query->exists();
     }
 
     /**

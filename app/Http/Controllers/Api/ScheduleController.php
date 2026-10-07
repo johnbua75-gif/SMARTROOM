@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\StoreScheduleRequest;
 use App\Http\Requests\Api\UpdateScheduleRequest;
 use App\Http\Resources\ScheduleResource;
+use App\Models\Course;
 use App\Models\Reservation;
 use App\Models\Schedule;
 use App\Services\RoomAvailabilityService;
@@ -64,6 +65,10 @@ class ScheduleController extends Controller
         }
 
         $schedule = DB::transaction(function () use ($payload, $availabilityService): Schedule {
+            $course = Course::query()
+                ->lockForUpdate()
+                ->findOrFail((int) $payload['course_id']);
+
             $conflict = $availabilityService->checkOfficialScheduleConflict(
                 (int) $payload['classroom_id'],
                 Carbon::parse($payload['start_at']),
@@ -75,6 +80,22 @@ class ScheduleController extends Controller
             if ($conflict['has_conflict']) {
                 throw ValidationException::withMessages([
                     'classroom_id' => ['Official schedule conflict: room is already occupied by another official schedule at selected time.'],
+                ]);
+            }
+
+            if (
+                $course->instructor_user_id
+                && in_array((string) ($payload['status'] ?? 'scheduled'), ['scheduled', 'ongoing'], true)
+                && $availabilityService->hasInstructorScheduleConflict(
+                    (int) $course->instructor_user_id,
+                    Carbon::parse($payload['start_at']),
+                    Carbon::parse($payload['end_at']),
+                    null,
+                    true
+                )
+            ) {
+                throw ValidationException::withMessages([
+                    'course_id' => ['The assigned faculty member already has another class scheduled during this time.'],
                 ]);
             }
 

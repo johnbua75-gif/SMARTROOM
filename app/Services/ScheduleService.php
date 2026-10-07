@@ -160,22 +160,12 @@ class ScheduleService
                     ]);
                 }
 
-                $instructorConflict = Schedule::query()
-                    ->whereIn('status', ['scheduled', 'ongoing'])
-                    ->where('start_at', '<', $occurrence['end_at'])
-                    ->where('end_at', '>', $occurrence['start_at'])
-                    ->whereHas('course', function ($query) use ($user): void {
-                        $query->where('instructor_user_id', $user->id);
-                    })
-                    ->exists();
-
-                if ($instructorConflict) {
-                    throw ValidationException::withMessages([
-                        'day1_start' => [
-                            'You already have another class scheduled during '.$occurrence['start_at']->format('M d, Y g:i A').'.',
-                        ],
-                    ]);
-                }
+                $this->ensureInstructorAvailable(
+                    (int) $user->id,
+                    $occurrence['start_at'],
+                    $occurrence['end_at'],
+                    'day1_start'
+                );
             }
 
             $now = now();
@@ -233,24 +223,12 @@ class ScheduleService
     {
         unset($payload['year_level']);
 
-        if (isset($payload['instructor_user_id'], $payload['course_id']) && $payload['instructor_user_id'] !== null) {
-            $course = Course::find((int) $payload['course_id']);
-            if ($course && (int) $course->instructor_user_id !== (int) $payload['instructor_user_id']) {
-                $course->instructor_user_id = (int) $payload['instructor_user_id'];
-                $course->save();
-            }
-        }
-
-        if (isset($payload['classroom_id'], $payload['course_id'])) {
-            Course::query()
-                ->whereKey((int) $payload['course_id'])
-                ->update(['classroom_id' => (int) $payload['classroom_id']]);
-        }
-
         $hasSemesterPattern = isset($payload['semester_start'], $payload['semester_end'])
             && isset($payload['day1'], $payload['day1_start'], $payload['day1_end'], $payload['day2'], $payload['day2_start'], $payload['day2_end']);
 
         if (isset($payload['semester_start']) && ! $hasSemesterPattern) {
+            DB::transaction(fn () => $this->applyCourseAssignment($payload));
+
             return [
                 'type' => 'partial',
                 'message' => 'Subject and room assignment saved. Add day and time details later to create room schedules.',
@@ -299,6 +277,7 @@ class ScheduleService
             });
 
             DB::transaction(function () use ($occurrences, $payload): void {
+                $course = $this->applyCourseAssignment($payload);
                 $seriesId = (string) Str::uuid();
                 foreach ($occurrences as $occurrence) {
                     $scheduleConflict = $this->availabilityService->checkOfficialScheduleConflict(
@@ -327,6 +306,15 @@ class ScheduleService
                         throw ValidationException::withMessages([
                             'classroom_id' => ['Reservation conflict on '.$occurrence['start_at']->format('M d, Y g:i A').'. Room is already reserved.'],
                         ]);
+                    }
+
+                    if (in_array((string) ($payload['status'] ?? 'scheduled'), ['scheduled', 'ongoing'], true)) {
+                        $this->ensureInstructorAvailable(
+                            $course->instructor_user_id,
+                            $occurrence['start_at'],
+                            $occurrence['end_at'],
+                            'instructor_user_id'
+                        );
                     }
                 }
 
@@ -370,6 +358,7 @@ class ScheduleService
         $basePayload['series_id'] = $seriesId;
 
         $createdSchedules = DB::transaction(function () use ($basePayload, $startAt, $endAt, $repeatUntil) {
+            $course = $this->applyCourseAssignment($basePayload);
             $created = collect();
 
             $occurrenceStart = $startAt->copy();
@@ -404,6 +393,15 @@ class ScheduleService
                     ]);
                 }
 
+                if (in_array((string) ($basePayload['status'] ?? 'scheduled'), ['scheduled', 'ongoing'], true)) {
+                    $this->ensureInstructorAvailable(
+                        $course->instructor_user_id,
+                        $occurrenceStart,
+                        $occurrenceEnd,
+                        'instructor_user_id'
+                    );
+                }
+
                 $occurrencePayload = $basePayload;
                 $occurrencePayload['start_at'] = $occurrenceStart->copy();
                 $occurrencePayload['end_at'] = $occurrenceEnd->copy();
@@ -427,6 +425,48 @@ class ScheduleService
             'created_count' => $createdSchedules->count(),
             'schedule' => $createdSchedules->first(),
         ];
+    }
+
+    private function applyCourseAssignment(array $payload): Course
+    {
+        $course = Course::query()
+            ->lockForUpdate()
+            ->findOrFail((int) $payload['course_id']);
+
+        if (array_key_exists('instructor_user_id', $payload) && $payload['instructor_user_id'] !== null) {
+            $course->instructor_user_id = (int) $payload['instructor_user_id'];
+        }
+
+        if (isset($payload['classroom_id'])) {
+            $course->classroom_id = (int) $payload['classroom_id'];
+        }
+
+        $course->save();
+
+        return $course;
+    }
+
+    private function ensureInstructorAvailable(
+        ?int $instructorUserId,
+        Carbon $startAt,
+        Carbon $endAt,
+        string $errorKey
+    ): void {
+        if (! $instructorUserId || ! $this->availabilityService->hasInstructorScheduleConflict(
+            $instructorUserId,
+            $startAt,
+            $endAt,
+            null,
+            true
+        )) {
+            return;
+        }
+
+        throw ValidationException::withMessages([
+            $errorKey => [
+                'Selected faculty member already has another class scheduled during '.$startAt->format('M d, Y g:i A').'.',
+            ],
+        ]);
     }
 
     public function updateSchedule(Schedule $schedule, array $payload, bool $applyToSeries): array
