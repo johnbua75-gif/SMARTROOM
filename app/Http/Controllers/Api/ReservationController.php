@@ -15,6 +15,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class ReservationController extends Controller
 {
@@ -212,13 +213,6 @@ class ReservationController extends Controller
 
     public function checkAccess(CheckAccessReservationRequest $request): JsonResponse
     {
-        // Debug log - shows incoming rfid_uid when ESP32 calls this endpoint
-        \Log::debug('reservations/check called', [
-            'user_id' => $request->input('user_id'),
-            'classroom_id' => $request->input('classroom_id'),
-            'rfid_uid' => $request->input('rfid_uid', '(none)'),
-            'server_time' => now()->toIso8601String(),
-        ]);
         $request->validated();
 
         // App timezone is Asia/Manila - now() is already in Manila time
@@ -230,6 +224,7 @@ class ReservationController extends Controller
 
         $person = User::query()->find($userId);
         if (! $person || $person->status !== 'active') {
+            $this->logDeniedDoorAccess($request, 'User account is inactive');
             return response()->json([
                 'allowed' => false,
                 'message' => 'Access denied',
@@ -238,6 +233,7 @@ class ReservationController extends Controller
         }
 
         if ($device && $request->filled('classroom_id') && (int) $device->classroom_id !== $request->integer('classroom_id')) {
+            $this->logDeniedDoorAccess($request, 'Device is not registered for this classroom');
             return response()->json([
                 'allowed' => false,
                 'message' => 'Access denied',
@@ -283,6 +279,7 @@ class ReservationController extends Controller
             $card = $cardQuery->first();
 
             if (! $card) {
+                $this->logDeniedDoorAccess($request, 'Access card not recognized');
                 return response()->json([
                     'allowed' => false,
                     'message' => 'Access denied',
@@ -291,6 +288,7 @@ class ReservationController extends Controller
             }
 
             if ((string) $card->status !== 'active' || ($card->expires_at && $card->expires_at->isPast())) {
+                $this->logDeniedDoorAccess($request, 'Access card is inactive or expired');
                 return response()->json([
                     'allowed' => false,
                     'message' => 'Access denied',
@@ -299,6 +297,7 @@ class ReservationController extends Controller
             }
 
             if ($card->user()->where('status', 'active')->doesntExist()) {
+                $this->logDeniedDoorAccess($request, 'Cardholder account is inactive');
                 return response()->json([
                     'allowed' => false,
                     'message' => 'Access denied',
@@ -307,6 +306,7 @@ class ReservationController extends Controller
             }
 
             if ((int) $card->user_id !== (int) $userId) {
+                $this->logDeniedDoorAccess($request, 'Scanned card does not belong to the claimed user');
                 return response()->json([
                     'allowed' => false,
                     'message' => 'Access denied',
@@ -376,6 +376,7 @@ class ReservationController extends Controller
             ->first();
 
         if (! $anyReservation) {
+            $this->logDeniedDoorAccess($request, 'No active reservation or class schedule is valid at this time.');
             return response()->json([
                 'allowed' => false,
                 'message' => 'No schedule',
@@ -390,11 +391,28 @@ class ReservationController extends Controller
             $reason = 'Reservation time has expired. Reserved until: '.$anyReservation->end_at->format('Y-m-d H:i');
         }
 
+        $this->logDeniedDoorAccess($request, $reason);
+
         return response()->json([
             'allowed' => false,
             'message' => 'Access denied',
             'reason' => $reason,
             'server_time' => $now->toIso8601String(),
         ], 403);
+    }
+
+    private function logDeniedDoorAccess(CheckAccessReservationRequest $request, string $reason): void
+    {
+        $device = $request->attributes->get('device');
+        $normalizedUid = AccessCard::normalizeRfidUid((string) $request->input('rfid_uid', ''));
+
+        Log::warning('Door access denied', [
+            'user_id' => $request->integer('user_id'),
+            'classroom_id' => $device?->classroom_id ?? $request->integer('classroom_id'),
+            'rfid_uid_suffix' => $normalizedUid === '' ? null : substr($normalizedUid, -4),
+            'server_time' => now()->toIso8601String(),
+            'timezone' => config('app.timezone'),
+            'reason' => $reason,
+        ]);
     }
 }

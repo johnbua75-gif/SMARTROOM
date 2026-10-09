@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Laravel\Sanctum\Sanctum;
 
@@ -159,6 +160,41 @@ it('rejects use of a door token for a different classroom', function () {
         ->getJson('/api/v1/reservations/check?user_id='.$user->id.'&classroom_id=41&rfid_uid=AA%3ABB%3ACC%3ADD')
         ->assertForbidden()
         ->assertJsonStructure(['message']);
+});
+
+it('logs denied door access with only the normalized RFID suffix', function () {
+    $classroom = createDoorTestClassroom(41);
+    $user = User::factory()->create(['status' => 'active']);
+    $card = AccessCard::create([
+        'user_id' => $user->id,
+        'classroom_id' => $classroom->id,
+        'card_number' => 'DOOR-41-LOG-CARD',
+        'rfid_uid' => 'AA:BB:CC:DD',
+        'status' => 'active',
+    ]);
+    $service = User::factory()->create(['role' => 'service', 'status' => 'active']);
+    $token = createDoorTestToken($service, ['reservations:check', 'door:41']);
+
+    Log::spy();
+
+    $this->withToken($token)
+        ->getJson('/api/v1/reservations/check?user_id='.$user->id.'&classroom_id=41&rfid_uid='.$card->rfid_uid)
+        ->assertOk()
+        ->assertJsonPath('allowed', false)
+        ->assertJsonPath('message', 'No schedule');
+
+    Log::shouldHaveReceived('warning')
+        ->once()
+        ->withArgs(function (string $message, array $context) use ($classroom, $user): bool {
+            return $message === 'Door access denied'
+                && $context['user_id'] === $user->id
+                && $context['classroom_id'] === $classroom->id
+                && $context['rfid_uid_suffix'] === 'CCDD'
+                && $context['timezone'] === config('app.timezone')
+                && $context['reason'] === 'No active reservation or class schedule is valid at this time.'
+                && isset($context['server_time'])
+                && ! array_key_exists('rfid_uid', $context);
+        });
 });
 
 it('keeps the device heartbeat available through the scoped Sanctum token', function () {
