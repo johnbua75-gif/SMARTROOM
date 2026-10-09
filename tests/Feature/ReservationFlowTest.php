@@ -110,7 +110,7 @@ it('rejects reservation where end_at is before start_at', function () {
         ->assertJsonValidationErrors(['end_at']);
 });
 
-it('rejects reservations that start in the past', function () {
+it('allows reservations that started in the past but are still active', function () {
     Carbon::setTestNow('2026-06-15 08:00:00');
 
     $faculty = makeFaculty();
@@ -120,11 +120,29 @@ it('rejects reservations that start in the past', function () {
 
     postJson('/api/v1/reservations', [
         'classroom_id' => $room->id,
-        'start_at' => '2026-06-14 09:00:00',
-        'end_at' => '2026-06-14 10:00:00',
+        'start_at' => '2026-06-15 07:45:00',
+        'end_at' => '2026-06-15 08:15:00',
+    ])
+        ->assertCreated();
+
+    expect(Reservation::firstOrFail()->status)->toBe('approved');
+});
+
+it('rejects reservations that have already ended', function () {
+    Carbon::setTestNow('2026-06-15 08:00:00');
+
+    $faculty = makeFaculty();
+    $room = makeRoom();
+
+    actingAs($faculty);
+
+    postJson('/api/v1/reservations', [
+        'classroom_id' => $room->id,
+        'start_at' => '2026-06-15 07:00:00',
+        'end_at' => '2026-06-15 07:45:00',
     ])
         ->assertUnprocessable()
-        ->assertJsonValidationErrors(['start_at']);
+        ->assertJsonValidationErrors(['end_at']);
 
     expect(Reservation::query()->exists())->toBeFalse();
 });
