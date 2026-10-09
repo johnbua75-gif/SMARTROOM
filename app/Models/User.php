@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -56,6 +57,13 @@ class User extends Authenticatable
         'must_change_password' => 'boolean',
         'last_seen_at' => 'datetime',
     ];
+
+    public function scopeEligibleRfidCardholders(Builder $query): Builder
+    {
+        return $query
+            ->where('role', 'faculty')
+            ->where('status', 'active');
+    }
 
     public function courses(): HasMany
     {

@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Api;
 
+use App\Models\AccessCard;
+use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreAccessCardRequest extends FormRequest
@@ -17,8 +19,13 @@ class StoreAccessCardRequest extends FormRequest
             return;
         }
 
-        $rfidUid = trim((string) $this->input('rfid_uid'));
-        $rfidUid = preg_replace('/^rfid[-_\s]?/i', '', $rfidUid) ?? $rfidUid;
+        $inputUid = (string) $this->input('rfid_uid');
+        if (! AccessCard::isValidRfidUid($inputUid)) {
+            return;
+        }
+
+        $normalizedUid = AccessCard::normalizeRfidUid($inputUid);
+        $rfidUid = implode(':', str_split($normalizedUid, 2));
 
         $this->merge(['rfid_uid' => $rfidUid]);
     }
@@ -29,10 +36,32 @@ class StoreAccessCardRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'user_id' => ['required', 'integer', 'exists:users,id'],
+            'user_id' => [
+                'required',
+                'integer',
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if (! User::query()->eligibleRfidCardholders()->whereKey($value)->exists()) {
+                        $fail('The selected cardholder must be an active faculty member.');
+                    }
+                },
+            ],
             'classroom_id' => ['nullable', 'integer', 'exists:classrooms,id'],
             'card_number' => ['required', 'string', 'max:255', 'unique:access_cards,card_number'],
-            'rfid_uid' => ['required', 'string', 'max:255', 'unique:access_cards,rfid_uid'],
+            'rfid_uid' => [
+                'required',
+                'string',
+                'max:255',
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if (! AccessCard::isValidRfidUid((string) $value)) {
+                        $fail('The RFID UID must contain 4, 7, or 10 hexadecimal bytes.');
+                    }
+                },
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if (AccessCard::query()->whereNormalizedRfidUid((string) $value)->exists()) {
+                        $fail('The RFID UID has already been taken.');
+                    }
+                },
+            ],
             'status' => ['nullable', 'string', 'max:50'],
             'expires_at' => ['nullable', 'date'],
             'last_accessed_at' => ['nullable', 'date'],

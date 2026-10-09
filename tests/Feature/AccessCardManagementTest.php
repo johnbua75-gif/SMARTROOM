@@ -8,6 +8,7 @@ use App\Models\Schedule;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 use function Pest\Laravel\actingAs;
 
@@ -54,7 +55,180 @@ it('allows an admin to create an RFID access card', function () {
         ->assertCreated()
         ->assertJsonPath('data.card_number', 'CARD-0002');
 
-    expect(AccessCard::query()->where('rfid_uid', 'A1B2C3D4')->exists())->toBeTrue();
+    expect(AccessCard::query()->where('rfid_uid', 'A1:B2:C3:D4')->exists())->toBeTrue();
+});
+
+it('shows only active faculty in the cardholder dropdown', function () {
+    $admin = User::factory()->create(['role' => 'admin', 'status' => 'active']);
+    $faculty = User::factory()->create([
+        'name' => 'Eligible Instructor',
+        'role' => 'faculty',
+        'status' => 'active',
+    ]);
+    $inactiveFaculty = User::factory()->create([
+        'name' => 'Inactive Instructor',
+        'role' => 'faculty',
+        'status' => 'inactive',
+    ]);
+    $student = User::factory()->create([
+        'name' => 'Student Must Not Appear',
+        'role' => 'student',
+        'status' => 'active',
+    ]);
+
+    actingAs($admin)
+        ->get(route('admin.smartlocking'))
+        ->assertOk()
+        ->assertSee('Eligible Instructor')
+        ->assertDontSee('Inactive Instructor')
+        ->assertDontSee('Student Must Not Appear');
+
+    expect(User::query()->eligibleRfidCardholders()->pluck('id')->all())
+        ->toContain($faculty->id)
+        ->not->toContain($inactiveFaculty->id, $student->id);
+});
+
+it('rejects students and other ineligible users when creating access cards', function (string $role, string $status) {
+    $admin = User::factory()->create(['role' => 'admin', 'status' => 'active']);
+    $ineligibleUser = User::factory()->create(['role' => $role, 'status' => $status]);
+
+    actingAs($admin)
+        ->postJson(route('admin.access-cards.store'), [
+            'user_id' => $ineligibleUser->id,
+            'card_number' => 'INELIGIBLE-'.strtoupper($role),
+            'rfid_uid' => 'A1:B2:C3:D4',
+            'status' => 'active',
+        ])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['user_id'])
+        ->assertJsonPath('errors.user_id.0', 'The selected cardholder must be an active faculty member.');
+})->with([
+    'student' => ['student', 'active'],
+    'admin' => ['admin', 'active'],
+    'service' => ['service', 'active'],
+    'inactive faculty' => ['faculty', 'inactive'],
+]);
+
+it('rejects ineligible users when updating an access card', function () {
+    $admin = User::factory()->create(['role' => 'admin', 'status' => 'active']);
+    $instructor = User::factory()->create(['role' => 'faculty', 'status' => 'active']);
+    $student = User::factory()->create(['role' => 'student', 'status' => 'active']);
+    $card = AccessCard::create([
+        'user_id' => $instructor->id,
+        'card_number' => 'UPDATE-ELIGIBILITY',
+        'rfid_uid' => 'A1:B2:C3:D4',
+        'status' => 'active',
+    ]);
+
+    actingAs($admin)
+        ->patchJson(route('admin.access-cards.update', $card), ['user_id' => $student->id])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['user_id'])
+        ->assertJsonPath('errors.user_id.0', 'The selected cardholder must be an active faculty member.');
+});
+
+it('accepts only supported hexadecimal RFID UID lengths', function (string $uid) {
+    $admin = User::factory()->create(['role' => 'admin', 'status' => 'active']);
+    $instructor = User::factory()->create(['role' => 'faculty', 'status' => 'active']);
+
+    actingAs($admin)
+        ->postJson(route('admin.access-cards.store'), [
+            'user_id' => $instructor->id,
+            'card_number' => 'INVALID-UID',
+            'rfid_uid' => $uid,
+            'status' => 'active',
+        ])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['rfid_uid']);
+})->with([
+    'too short' => 'A1:B2:C3',
+    'unsupported byte count' => 'A1:B2:C3:D4:E5',
+    'too long' => 'A1:B2:C3:D4:E5:F6',
+    'invalid characters' => 'A1:B2:C3:G4',
+    'empty RFID prefix' => 'RFID-',
+]);
+
+it('normalizes accepted UID variants and rejects duplicates across formats', function () {
+    expect(AccessCard::normalizeRfidUid('rfid-87:3e:d2:06'))->toBe('873ED206')
+        ->and(AccessCard::normalizeRfidUid('RFID_87-3E-D2-06'))->toBe('873ED206')
+        ->and(AccessCard::normalizeRfidUid(' 87 3e d2 06 '))->toBe('873ED206');
+
+    $admin = User::factory()->create(['role' => 'admin', 'status' => 'active']);
+    $instructor = User::factory()->create(['role' => 'faculty', 'status' => 'active']);
+
+    actingAs($admin)
+        ->postJson(route('admin.access-cards.store'), [
+            'user_id' => $instructor->id,
+            'card_number' => 'CANONICAL-UID',
+            'rfid_uid' => 'rfid-87:3e:d2:06',
+            'status' => 'active',
+        ])
+        ->assertCreated()
+        ->assertJsonPath('data.rfid_uid', '87:3E:D2:06');
+
+    foreach (['RFID_87-3E-D2-06', ' 87 3e d2 06 '] as $duplicateUid) {
+        actingAs($admin)
+            ->postJson(route('admin.access-cards.store'), [
+                'user_id' => $instructor->id,
+                'card_number' => 'DUPLICATE-'.md5($duplicateUid),
+                'rfid_uid' => $duplicateUid,
+                'status' => 'active',
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['rfid_uid']);
+    }
+});
+
+it('protects card management pages and store routes from guests and non-admin users', function () {
+    $guestPageResponse = $this->get(route('admin.smartlocking'));
+    $guestPageResponse->assertRedirect(route('auth.login'));
+
+    $guestStoreResponse = $this->postJson(route('admin.access-cards.store'), []);
+    $guestStoreResponse->assertUnauthorized();
+
+    foreach (['student', 'faculty'] as $role) {
+        $user = User::factory()->create(['role' => $role, 'status' => 'active']);
+
+        actingAs($user)
+            ->get(route('admin.smartlocking'))
+            ->assertForbidden();
+
+        actingAs($user)
+            ->postJson(route('admin.access-cards.store'), [])
+            ->assertForbidden();
+    }
+});
+
+it('finds a card created through the admin flow with the ESP32 lookup contract', function () {
+    $admin = User::factory()->create(['role' => 'admin', 'status' => 'active']);
+    $instructor = User::factory()->create(['role' => 'faculty', 'status' => 'active']);
+
+    $createdCard = actingAs($admin)
+        ->postJson(route('admin.access-cards.store'), [
+            'user_id' => $instructor->id,
+            'card_number' => 'ESP32-CONTRACT-CARD',
+            'rfid_uid' => 'RFID_87-3E-D2-06',
+            'status' => 'active',
+        ])
+        ->assertCreated()
+        ->assertJsonPath('data.rfid_uid', '87:3E:D2:06')
+        ->json('data');
+
+    $deviceUser = User::factory()->create(['role' => 'service', 'status' => 'active']);
+    $token = $deviceUser->createToken('test-door-41', ['access-cards:read', 'door:41']);
+    Auth::forgetGuards();
+
+    $response = $this->withToken($token->plainTextToken)
+        ->getJson('/api/v1/access-cards?rfid_uid=87%3A3E%3AD2%3A06')
+        ->assertOk()
+        ->assertJsonCount(1, 'data');
+
+    expect($response->json('data.0'))->toMatchArray([
+        'id' => $createdCard['id'],
+        'user_id' => $instructor->id,
+        'rfid_uid' => '87:3E:D2:06',
+        'status' => 'active',
+    ]);
 });
 
 it('rejects duplicate card numbers and RFID UIDs', function () {

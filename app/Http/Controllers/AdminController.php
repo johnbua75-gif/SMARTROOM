@@ -101,8 +101,7 @@ class AdminController extends Controller
                 ->limit(20)
                 ->get(['id', 'title', 'body', 'read_at', 'created_at']),
             'instructors' => User::query()
-                ->where('role', 'faculty')
-                ->where('status', 'active')
+                ->eligibleRfidCardholders()
                 ->orderBy('name')
                 ->get(['id', 'name', 'department']),
             'classrooms' => Classroom::query()

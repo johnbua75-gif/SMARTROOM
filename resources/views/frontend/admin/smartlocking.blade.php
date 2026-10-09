@@ -551,7 +551,7 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
               <input name="card_number" required maxlength="255" placeholder="CARD-0002">
             </label>
             <label>RFID UID
-              <input name="rfid_uid" required maxlength="255" placeholder="87:3E:D2:06">
+              <input name="rfid_uid" required maxlength="255" placeholder="87:3E:D2:06" autocomplete="off">
               <small style="color:var(--text-secondary);font-size:.68rem;font-weight:500;">Use the reader UID only. Do not include RFID-.</small>
             </label>
           </div>
@@ -947,12 +947,19 @@ function closeAddCardModal() {
 
 document.getElementById('openAddCardModal').addEventListener('click', () => {
   addCardModal.classList.add('is-open');
-  addCardForm.querySelector('[name="card_number"]').focus();
+  addCardForm.querySelector('[name="rfid_uid"]').focus();
 });
 document.getElementById('closeAddCardModal').addEventListener('click', closeAddCardModal);
 document.getElementById('cancelAddCard').addEventListener('click', closeAddCardModal);
 addCardModal.addEventListener('click', (event) => {
   if (event.target === addCardModal) closeAddCardModal();
+});
+
+addCardForm.querySelector('[name="rfid_uid"]').addEventListener('keydown', (event) => {
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    addCardForm.requestSubmit();
+  }
 });
 
 addCardForm.addEventListener('submit', async (event) => {
