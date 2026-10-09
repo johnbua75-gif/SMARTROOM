@@ -77,23 +77,12 @@ class ReservationController extends Controller
                 ], 422));
             }
 
-            // Auto-approve reservations created by faculty users so they can immediately access
-            $status = 'reserved';
-            try {
-                $user = $request->user();
-                if ($user && isset($user->role) && $user->role === 'faculty') {
-                    $status = 'approved';
-                }
-            } catch (\Throwable $e) {
-                // ignore - default to reserved
-            }
-
             $reservation = Reservation::create([
                 'classroom_id' => $payload['classroom_id'],
                 'user_id' => $request->user()->id,
                 'start_at' => $startAt,
                 'end_at' => $endAt,
-                'status' => $status,
+                'status' => 'approved',
                 'notes' => $payload['notes'] ?? null,
             ]);
 
