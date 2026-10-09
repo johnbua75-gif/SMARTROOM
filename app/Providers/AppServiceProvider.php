@@ -11,9 +11,11 @@ use App\Policies\ReservationPolicy;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
+use Symfony\Component\Mailer\Bridge\Brevo\Transport\BrevoApiTransport;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -30,6 +32,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Mail::extend('brevo', static function (array $config): BrevoApiTransport {
+            return new BrevoApiTransport((string) $config['api_key']);
+        });
+
         RateLimiter::for('api', static function (Request $request): Limit {
             $bearerToken = $request->bearerToken();
 

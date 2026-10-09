@@ -20,6 +20,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Throwable;
@@ -69,7 +70,27 @@ class AdminDataController extends Controller
             ));
             $emailSent = true;
         } catch (Throwable $exception) {
-            report($exception);
+            $exceptionMessage = $exception->getMessage();
+            $apiKey = (string) config('mail.mailers.brevo.api_key');
+
+            if ($tempPassword !== '') {
+                $exceptionMessage = str_replace($tempPassword, '[redacted]', $exceptionMessage);
+            }
+
+            if ($apiKey !== '') {
+                $exceptionMessage = str_replace($apiKey, '[redacted]', $exceptionMessage);
+            }
+
+            $exceptionMessage = preg_replace(
+                '/((?:api[-_ ]?key|password|token|secret)\s*[:=]\s*)\S+/i',
+                '$1[redacted]',
+                $exceptionMessage,
+            ) ?? 'Mail transport failed.';
+
+            Log::error('Failed to send temporary password email.', [
+                'exception' => $exception::class,
+                'message' => $exceptionMessage,
+            ]);
         }
 
         if ($request->expectsJson()) {
@@ -86,7 +107,7 @@ class AdminDataController extends Controller
             return redirect()->route('admin.users')->with('status', 'User created successfully. Temporary password sent by email.');
         }
 
-        return redirect()->route('admin.users')->with('warning', 'User created, but email sending failed. Please verify SMTP settings and manually reset password if needed.');
+        return redirect()->route('admin.users')->with('warning', 'User created, but email sending failed. Please verify Brevo email settings and manually reset password if needed.');
     }
 
     public function storeCourse(StoreCourseRequest $request): RedirectResponse|JsonResponse

@@ -43,21 +43,13 @@ services:
       - key: FILESYSTEM_DISK
         value: local
       - key: MAIL_MAILER
-        value: smtp
-      - key: MAIL_HOST
-        sync: false
-      - key: MAIL_PORT
-        value: "587"
-      - key: MAIL_SCHEME
-        value: smtp
-      - key: MAIL_USERNAME
-        sync: false
-      - key: MAIL_PASSWORD
+        value: brevo
+      - key: BREVO_API_KEY
         sync: false
       - key: MAIL_FROM_ADDRESS
         sync: false
       - key: MAIL_FROM_NAME
-        value: SMARTROOM
+        sync: false
       - key: SMARTROOM_ALLOW_SIGNUP
         value: "true"
       - key: SESSION_SECURE_COOKIE
