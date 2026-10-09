@@ -474,6 +474,89 @@ it('denies ESP32 access when reservation has expired', function () {
         ->assertJsonPath('allowed', false);
 });
 
+it('allows a scoped service token to check access with a matching RFID card', function () {
+    Carbon::setTestNow('2026-06-15 09:30:00');
+
+    $faculty = makeFaculty(['status' => 'active']);
+    $room = makeRoom();
+    $card = AccessCard::create([
+        'user_id' => $faculty->id,
+        'classroom_id' => $room->id,
+        'card_number' => 'CARD-DOOR-41',
+        'rfid_uid' => 'AA:BB:CC:DD',
+        'status' => 'active',
+    ]);
+
+    Reservation::create([
+        'classroom_id' => $room->id,
+        'user_id' => $faculty->id,
+        'start_at' => '2026-06-15 09:00:00',
+        'end_at' => '2026-06-15 10:00:00',
+        'status' => 'approved',
+    ]);
+
+    $service = makeFaculty(['role' => 'service', 'status' => 'active']);
+    $token = $service->createToken('door-test', ['reservations:check', 'door:'.$room->id])->plainTextToken;
+
+    $this->withToken($token)
+        ->getJson('/api/v1/reservations/check?user_id='.$faculty->id.'&classroom_id='.$room->id.'&rfid_uid='.$card->rfid_uid)
+        ->assertOk()
+        ->assertJsonPath('allowed', true);
+});
+
+it('rejects a scoped service token reservation check without card credentials', function () {
+    $faculty = makeFaculty(['status' => 'active']);
+    $room = makeRoom();
+    $service = makeFaculty(['role' => 'service', 'status' => 'active']);
+    $token = $service->createToken('door-test', ['reservations:check', 'door:'.$room->id])->plainTextToken;
+
+    $this->withToken($token)
+        ->getJson('/api/v1/reservations/check?user_id='.$faculty->id.'&classroom_id='.$room->id)
+        ->assertForbidden();
+});
+
+it('rejects a scoped service token reservation check for another classroom', function () {
+    $faculty = makeFaculty(['status' => 'active']);
+    $authorizedRoom = makeRoom();
+    $otherRoom = makeRoom();
+    $card = AccessCard::create([
+        'user_id' => $faculty->id,
+        'classroom_id' => $otherRoom->id,
+        'card_number' => 'CARD-OTHER-ROOM',
+        'rfid_uid' => 'AA:BB:CC:DE',
+        'status' => 'active',
+    ]);
+    $service = makeFaculty(['role' => 'service', 'status' => 'active']);
+    $token = $service->createToken('door-test', ['reservations:check', 'door:'.$authorizedRoom->id])->plainTextToken;
+
+    $this->withToken($token)
+        ->getJson('/api/v1/reservations/check?user_id='.$faculty->id.'&classroom_id='.$otherRoom->id.'&rfid_uid='.$card->rfid_uid)
+        ->assertForbidden();
+});
+
+it('denies a scoped service token when the RFID belongs to a different claimed user', function () {
+    Carbon::setTestNow('2026-06-15 09:30:00');
+
+    $cardOwner = makeFaculty(['status' => 'active']);
+    $claimedUser = makeFaculty(['status' => 'active']);
+    $room = makeRoom();
+    $card = AccessCard::create([
+        'user_id' => $cardOwner->id,
+        'classroom_id' => $room->id,
+        'card_number' => 'CARD-WRONG-OWNER',
+        'rfid_uid' => 'AA:BB:CC:DF',
+        'status' => 'active',
+    ]);
+    $service = makeFaculty(['role' => 'service', 'status' => 'active']);
+    $token = $service->createToken('door-test', ['reservations:check', 'door:'.$room->id])->plainTextToken;
+
+    $this->withToken($token)
+        ->getJson('/api/v1/reservations/check?user_id='.$claimedUser->id.'&classroom_id='.$room->id.'&rfid_uid='.$card->rfid_uid)
+        ->assertOk()
+        ->assertJsonPath('allowed', false)
+        ->assertJsonPath('reason', 'Scanned card does not belong to the claimed user');
+});
+
 it('does not allow users to probe another users access status without card credentials', function () {
     Carbon::setTestNow('2026-06-15 09:30:00');
 

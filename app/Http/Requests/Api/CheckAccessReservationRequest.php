@@ -8,6 +8,10 @@ class CheckAccessReservationRequest extends FormRequest
 {
     public function authorize(): bool
     {
+        if ($this->attributes->get('door_api') === true) {
+            return $this->filled('access_card_id') || $this->filled('rfid_uid');
+        }
+
         if ($this->attributes->has('device')) {
             return $this->filled('access_card_id') || $this->filled('rfid_uid');
         }
@@ -26,12 +30,13 @@ class CheckAccessReservationRequest extends FormRequest
     public function rules(): array
     {
         $isDeviceRequest = $this->attributes->has('device');
+        $isDoorRequest = $this->attributes->get('door_api') === true || $isDeviceRequest;
 
         return [
             'user_id' => ['required', 'integer', 'exists:users,id'],
-            'classroom_id' => [$this->attributes->has('device') ? 'nullable' : 'required', 'integer', 'exists:classrooms,id'],
-            'access_card_id' => [$isDeviceRequest ? 'required_without:rfid_uid' : 'nullable', 'integer', 'exists:access_cards,id'],
-            'rfid_uid' => [$isDeviceRequest ? 'required_without:access_card_id' : 'nullable', 'string', 'max:255'],
+            'classroom_id' => [$isDeviceRequest ? 'nullable' : 'required', 'integer', 'exists:classrooms,id'],
+            'access_card_id' => [$isDoorRequest ? 'required_without:rfid_uid' : 'sometimes', 'nullable', 'integer', 'exists:access_cards,id'],
+            'rfid_uid' => [$isDoorRequest ? 'required_without:access_card_id' : 'sometimes', 'nullable', 'string', 'max:255'],
         ];
     }
 }
