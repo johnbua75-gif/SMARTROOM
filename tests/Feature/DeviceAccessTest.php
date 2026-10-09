@@ -366,6 +366,34 @@ it('returns only the card fields needed by a device', function () {
         ->assertJsonMissingPath('data.0.user.email');
 });
 
+it('returns the matched inactive card status to the authorized door device', function () {
+    $classroom = Classroom::create([
+        'name' => 'Inactive Card Room',
+        'building' => 'Main Building',
+        'access_mode' => 'esp32',
+    ]);
+    $user = User::factory()->create(['role' => 'faculty', 'status' => 'active']);
+    $card = AccessCard::create([
+        'user_id' => $user->id,
+        'card_number' => 'DEVICE-INACTIVE-CARD',
+        'rfid_uid' => 'A1:B2:C3:D5',
+        'status' => 'inactive',
+    ]);
+    $credential = str_repeat('d', 64);
+    Device::create([
+        'name' => 'Inactive Card Door',
+        'classroom_id' => $classroom->id,
+        'status' => 'active',
+        'credential_hash' => hash('sha256', $credential),
+    ]);
+
+    $this->withToken($credential)
+        ->getJson('/api/v1/device/access-cards?rfid_uid=A1%3AB2%3AC3%3AD5')
+        ->assertOk()
+        ->assertJsonPath('data.0.id', $card->id)
+        ->assertJsonPath('data.0.status', 'inactive');
+});
+
 it('saves the selected room access mode and keeps legacy RFID state in sync', function () {
     $admin = User::factory()->create([
         'role' => 'admin',

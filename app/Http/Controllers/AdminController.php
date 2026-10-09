@@ -62,6 +62,7 @@ class AdminController extends Controller
         return view('frontend.admin.smartlocking', [
             'stats' => $stats,
             'cards' => $cardViewData,
+            'latestAccessLogId' => (int) (AccessLog::query()->max('id') ?? 0),
             'lostCardReports' => Notification::query()
                 ->where('user_id', auth()->id())
                 ->where('type', 'rfid_card_lost')
@@ -76,6 +77,39 @@ class AdminController extends Controller
                 ->orderBy('name')
                 ->get(['id', 'name', 'building']),
         ]);
+    }
+
+    public function liveAccessLogs(Request $request): JsonResponse
+    {
+        if (! $request->exists('since_id')) {
+            return response()->json([
+                'data' => [],
+                'latest_id' => (int) (AccessLog::query()->max('id') ?? 0),
+            ]);
+        }
+
+        $logs = AccessLog::query()
+            ->with(['user', 'classroom', 'accessCard'])
+            ->where('id', '>', max(0, $request->integer('since_id')))
+            ->orderBy('id')
+            ->limit(100)
+            ->get()
+            ->map(fn (AccessLog $log): array => [
+                'id' => $log->id,
+                'user_id' => $log->user_id,
+                'user_name' => $log->user?->name ?? 'Unknown User',
+                'classroom_id' => $log->classroom_id,
+                'classroom_name' => $log->classroom?->name ?? 'Unknown Room',
+                'rfid_uid' => $log->accessCard?->rfid_uid ?? data_get($log->metadata, 'rfid_uid', 'N/A'),
+                'method' => strtoupper((string) data_get($log->metadata, 'method', 'RFID')),
+                'result' => strtolower((string) $log->result),
+                'reason' => $log->reason,
+                'direction' => $log->direction,
+                'accessed_at' => $log->accessed_at?->toIso8601String(),
+            ])
+            ->all();
+
+        return response()->json(['data' => $logs]);
     }
 
     public function smartlockingDetail(int $id): View
@@ -206,6 +240,7 @@ class AdminController extends Controller
     public function accessLogs(): View
     {
         $today = Carbon::today();
+        $classrooms = Classroom::query()->orderBy('id')->get(['id', 'name']);
 
         $query = AccessLog::query()
             ->with(['user', 'classroom', 'accessCard'])
@@ -245,6 +280,7 @@ class AdminController extends Controller
 
             return [
                 'id' => $log->id,
+                'classroom_id' => (int) $log->classroom_id,
                 'name' => $log->user?->name ?? 'Unknown User',
                 'dept' => $log->user?->department ?? 'N/A',
                 'avatar' => '',
@@ -255,6 +291,7 @@ class AdminController extends Controller
                 'dur' => is_numeric($duration) ? (int) $duration : null,
                 'method' => in_array($method, ['RFID', 'PIN'], true) ? $method : 'RFID',
                 'status' => $status,
+                'reason' => $log->reason,
                 'date' => $log->accessed_at?->format('M d, Y') ?? now()->format('M d, Y'),
             ];
         })->all();
@@ -298,6 +335,8 @@ class AdminController extends Controller
                 'avg_duration' => $avgDuration,
             ],
             'logs' => $logs,
+            'latestAccessLogId' => (int) (AccessLog::query()->max('id') ?? 0),
+            'classrooms' => $classrooms,
             'can_export_pptx' => extension_loaded('zip'),
             'roomActivity' => $roomActivity->map(function (array $item) use ($roomMax): array {
                 $pct = (int) round(($item['events'] / $roomMax) * 100);

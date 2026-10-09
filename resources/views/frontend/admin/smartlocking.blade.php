@@ -712,6 +712,8 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
       </div>
     </div>
 
+    @include('frontend.admin.partials.live-access-feed', ['sinceId' => $latestAccessLogId ?? 0])
+
     <section class="settings-panel" id="settingsView" aria-labelledby="settingsHeading">
       <div class="settings-layout">
         <nav class="settings-nav" aria-label="Settings sections">

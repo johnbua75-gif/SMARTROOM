@@ -540,12 +540,11 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
     <!-- Controls Bar -->
     <div class="controls-bar">
       <div class="controls-left">
-        <select class="filter-select">
-          <option>All Rooms</option>
-          <option>CS Lab 301</option>
-          <option>Engineering Lab 401</option>
-          <option>Business Room 203</option>
-          <option>Math Room 105</option>
+        <select id="classroomFilter" class="filter-select" aria-label="Filter by door" onchange="filterLogs()">
+          <option value="">All Doors</option>
+          @foreach ($classrooms as $classroom)
+            <option value="{{ $classroom->id }}">Door {{ $classroom->id }} — {{ $classroom->name }}</option>
+          @endforeach
         </select>
         <select class="filter-select">
           <option>All Instructors</option>
@@ -583,13 +582,13 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
           <h2>Access Event Log</h2>
           <p>Showing {{ count($logs ?? []) }} of {{ $stats['total_today'] ?? count($logs ?? []) }} events today</p>
         </div>
-        <div class="live-badge"><div class="live-dot"></div> LIVE</div>
+        <div class="live-badge"><div class="live-dot"></div> LIVE <span id="accessLogsLastUpdated">Connecting</span></div>
       </div>
       <table class="log-table">
         <thead>
           <tr>
             <th>#</th>
-            <th>Instructor</th>
+            <th>User</th>
             <th>Room</th>
             <th>RFID Tag</th>
             <th>Time In</th>
@@ -736,6 +735,13 @@ const exportBaseUrl = '<?= htmlspecialchars(url('/admin/accessLogs/export')) ?>'
 let filteredLogs = [...logs];
 let currentPage = 1;
 const logsPerPage = 10;
+const recentLiveLogIds = new Set();
+
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, character => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;',
+  })[character]);
+}
 
 function statusBadge(s) {
   const map = { granted:'status-granted', denied:'status-denied', timeout:'status-timeout' };
@@ -759,26 +765,26 @@ function renderTable(data) {
   currentPage = Math.min(currentPage, totalPages);
   const pageRows = data.slice((currentPage - 1) * logsPerPage, currentPage * logsPerPage);
   tbody.innerHTML = pageRows.map(l => `
-    <tr>
+    <tr class="${recentLiveLogIds.has(Number(l.id)) ? 'access-log-live-highlight' : ''}">
       <td style="color:var(--text-light);font-size:0.78rem;font-weight:600;">#${String(l.id).padStart(3,'0')}</td>
       <td>
         <div class="instr-cell">
           ${l.avatar
-            ? `<img class="instr-avatar" src="${l.avatar}" alt="${l.name}">`
-            : `<div class="instr-avatar" style="display:flex;align-items:center;justify-content:center;background:#e2e8f0;color:#475569;font-size:0.7rem;font-weight:700;">${(l.name || 'U').split(' ').filter(Boolean).slice(0,2).map((p)=>p[0]).join('').toUpperCase()}</div>`}
+            ? `<img class="instr-avatar" src="${escapeHtml(l.avatar)}" alt="${escapeHtml(l.name)}">`
+            : `<div class="instr-avatar" style="display:flex;align-items:center;justify-content:center;background:#e2e8f0;color:#475569;font-size:0.7rem;font-weight:700;">${escapeHtml((l.name || 'U').split(' ').filter(Boolean).slice(0,2).map((p)=>p[0]).join('').toUpperCase())}</div>`}
           <div>
-            <div class="instr-name">${l.name}</div>
-            <div class="instr-dept">${l.dept}</div>
+            <div class="instr-name">${escapeHtml(l.name)}</div>
+            <div class="instr-dept">${escapeHtml(l.dept)}</div>
           </div>
         </div>
       </td>
-      <td><span class="room-chip"><i class="fas fa-door-open"></i> ${l.room}</span></td>
-      <td><span class="rfid-mono">${l.rfid}</span></td>
-      <td><div class="time-val">${l.timeIn}</div><div class="date-val">${l.date || ''}</div></td>
-      <td><div class="time-val">${l.timeOut}</div>${l.timeOut !== '—' ? `<div class="date-val">${l.date || ''}</div>` : ''}</td>
+      <td><span class="room-chip"><i class="fas fa-door-open"></i> Door ${escapeHtml(l.classroom_id)} — ${escapeHtml(l.room)}</span></td>
+      <td><span class="rfid-mono">${escapeHtml(l.rfid)}</span></td>
+      <td><div class="time-val">${escapeHtml(l.timeIn)}</div><div class="date-val">${escapeHtml(l.date || '')}</div></td>
+      <td><div class="time-val">${escapeHtml(l.timeOut)}</div>${l.timeOut !== '—' ? `<div class="date-val">${escapeHtml(l.date || '')}</div>` : ''}</td>
       <td>${durBar(l.dur)}</td>
       <td>${methodBadge(l.method)}</td>
-      <td>${statusBadge(l.status)}</td>
+      <td>${statusBadge(l.status)}${l.reason ? `<div class="live-log-reason">${escapeHtml(l.reason)}</div>` : ''}</td>
       <td><button class="btn-view-detail" onclick="openModal(${l.id})"><i class="fas fa-eye"></i></button></td>
     </tr>
   `).join('');
@@ -791,15 +797,47 @@ function renderTable(data) {
 
 function filterLogs() {
   const q = document.getElementById('logSearch').value.toLowerCase();
+  const classroomId = document.getElementById('classroomFilter').value;
   filteredLogs = logs.filter(l =>
-    l.name.toLowerCase().includes(q) ||
-    l.room.toLowerCase().includes(q) ||
-    l.rfid.toLowerCase().includes(q) ||
-    l.dept.toLowerCase().includes(q)
+    (!classroomId || String(l.classroom_id) === classroomId) &&
+    (
+      l.name.toLowerCase().includes(q) ||
+      l.room.toLowerCase().includes(q) ||
+      String(l.classroom_id).includes(q) ||
+      l.rfid.toLowerCase().includes(q) ||
+      l.dept.toLowerCase().includes(q)
+    )
   );
   currentPage = 1;
   renderTable(filteredLogs);
 }
+
+window.handleNewAdminAccessLogs = function (newLogs) {
+  newLogs.forEach((entry) => {
+    if (logs.some((log) => Number(log.id) === Number(entry.id))) return;
+    const accessedAt = entry.accessed_at ? new Date(entry.accessed_at) : new Date();
+    const log = {
+      id: Number(entry.id),
+      classroom_id: Number(entry.classroom_id),
+      name: entry.user_name || 'Unknown User',
+      dept: 'N/A',
+      avatar: '',
+      room: entry.classroom_name || 'Unknown Room',
+      rfid: entry.rfid_uid || 'N/A',
+      timeIn: entry.direction === 'entry' ? accessedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--',
+      timeOut: entry.direction === 'exit' ? accessedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—',
+      dur: null,
+      method: ['RFID', 'PIN'].includes(entry.method) ? entry.method : 'RFID',
+      status: ['granted', 'denied', 'timeout'].includes(entry.result) ? entry.result : 'denied',
+      reason: entry.reason || '',
+      date: accessedAt.toLocaleDateString([], { month: 'short', day: '2-digit', year: 'numeric' }),
+    };
+    logs.unshift(log);
+    recentLiveLogIds.add(log.id);
+    window.setTimeout(() => recentLiveLogIds.delete(log.id), 2200);
+  });
+  filterLogs();
+};
 
 document.querySelector('[data-page-action="previous"]').addEventListener('click', () => { if (currentPage > 1) { currentPage--; renderTable(filteredLogs); } });
 document.querySelector('[data-page-action="next"]').addEventListener('click', () => { if (currentPage < Math.ceil(filteredLogs.length / logsPerPage)) { currentPage++; renderTable(filteredLogs); } });
@@ -889,5 +927,6 @@ function goToRFID() {
 renderTable(logs);
 syncExportButtonLabel();
 </script>
+@include('frontend.admin.partials.live-access-feed', ['sinceId' => $latestAccessLogId ?? 0])
 </body>
 </html>

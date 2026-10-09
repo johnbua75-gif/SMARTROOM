@@ -71,6 +71,7 @@ Route::middleware(['auth', 'active', 'password.changed', 'role:faculty'])->group
     Route::get('/rfid-verification', [FacultyController::class, 'rfidVerification'])->name('faculty.rfid.verification');
     Route::get('/faculty-notifications', [FacultyController::class, 'notifications'])->name('faculty.notifications');
     Route::get('/faculty-notifications/data', [NotificationController::class, 'index'])->name('faculty.notifications.data');
+    Route::get('/faculty-notifications/rfid', [NotificationController::class, 'rfidSince'])->name('faculty.notifications.rfid');
     Route::post('/faculty/enrollment-requests/{enrollment}/approve', [FacultyController::class, 'approveEnrollmentRequest'])->name('faculty.enrollment-requests.approve');
     Route::post('/faculty/enrollment-requests/{enrollment}/reject', [FacultyController::class, 'rejectEnrollmentRequest'])->name('faculty.enrollment-requests.reject');
 
@@ -172,6 +173,7 @@ Route::middleware(['auth', 'active', 'password.changed', 'role:admin'])->group(f
 
     // Access Logs screen
     Route::get('/admin/accessLogs', [AdminController::class, 'accessLogs'])->name('accessLogs');
+    Route::get('/admin/access-logs/live', [AdminController::class, 'liveAccessLogs'])->name('admin.access-logs.live');
     Route::get('/admin/accessLogs/export/{format}', [AdminController::class, 'exportAccessLogs'])->name('admin.accessLogs.export');
     Route::get('/admin/accessLogs/export/csv', [AdminController::class, 'exportAccessLogsCsv'])->name('admin.accessLogs.export.csv');
 

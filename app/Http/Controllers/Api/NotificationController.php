@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Notification;
+use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
@@ -36,6 +38,59 @@ class NotificationController extends Controller
                 ])
                 ->all();
         });
+
+        return response()->json(['data' => $items]);
+    }
+
+    public function rfidSince(Request $request): JsonResponse
+    {
+        $userId = $request->user()->id;
+        $query = Notification::query()
+            ->where('user_id', $userId)
+            ->whereIn('type', ['rfid_access_granted', 'rfid_access_denied']);
+
+        if (! $request->exists('since_id')) {
+            $latestId = (int) ($query->max('id') ?? 0);
+            $items = [];
+            if ($request->filled('loaded_at')) {
+                $loadedAt = Carbon::parse($request->string('loaded_at'))->startOfSecond();
+                $items = (clone $query)->where('created_at', '>=', $loadedAt)
+                    ->orderBy('id')
+                    ->limit(100)
+                    ->get()
+                    ->map(fn (Notification $notification): array => [
+                        'id' => $notification->id,
+                        'user_id' => $notification->user_id,
+                        'type' => $notification->type,
+                        'title' => $notification->title,
+                        'body' => $notification->body,
+                        'data' => $notification->data,
+                        'created_at' => $notification->created_at?->toIso8601String(),
+                    ])
+                    ->all();
+            }
+
+            return response()->json([
+                'data' => $items,
+                'latest_id' => max($latestId, (int) collect($items)->max('id')),
+            ]);
+        }
+
+        $sinceId = max(0, $request->integer('since_id'));
+        $items = $query->where('id', '>', $sinceId)
+            ->orderBy('id')
+            ->limit(100)
+            ->get()
+            ->map(fn (Notification $notification): array => [
+                'id' => $notification->id,
+                'user_id' => $notification->user_id,
+                'type' => $notification->type,
+                'title' => $notification->title,
+                'body' => $notification->body,
+                'data' => $notification->data,
+                'created_at' => $notification->created_at?->toIso8601String(),
+            ])
+            ->all();
 
         return response()->json(['data' => $items]);
     }
