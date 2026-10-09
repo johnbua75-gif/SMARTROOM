@@ -430,7 +430,7 @@
         }
     </style>
 </head>
-<body>
+<body class="@yield('body-class')">
     <div class="container">
         <!- Sidebar ->
         <div class="sidebar">

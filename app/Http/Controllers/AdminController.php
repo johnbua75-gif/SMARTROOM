@@ -162,7 +162,7 @@ class AdminController extends Controller
             'cardNumber' => $cardModel->card_number,
             'rfid' => $cardModel->rfid_uid,
             'status' => strtolower((string) $cardModel->status),
-            'expiryDate' => optional($cardModel->expires_at)?->toDateString() ?? now()->toDateString(),
+            'expiryDate' => optional($cardModel->expires_at)?->toDateString(),
             'lastAccess' => $lastLog?->accessed_at?->format('M d, Y H:i') ?? 'No recent access',
             'lastAccessRoom' => $lastLog?->classroom?->name ?? 'N/A',
             'totalAccess' => $cardModel->accessLogs->count(),
@@ -171,7 +171,9 @@ class AdminController extends Controller
                 return [
                     'date' => $entry->accessed_at?->format('M d, Y H:i') ?? 'N/A',
                     'room' => $entry->classroom?->name ?? 'Unknown',
-                    'status' => $entry->direction === 'exit' ? 'Exit' : 'Entry',
+                    'direction' => $entry->direction === 'exit' ? 'Exit' : 'Entry',
+                    'result' => ucfirst(strtolower((string) $entry->result)),
+                    'reason' => $entry->reason,
                 ];
             })->all(),
             'schedule' => $schedule->all(),

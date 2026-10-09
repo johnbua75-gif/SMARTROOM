@@ -1,12 +1,20 @@
 @extends('layouts.app')
 
+@section('body-class', 'smartlocking-detail-page')
+
 @section('content')
 <div class="smartlocking-detail-container">
-    <!-- Header -->
+    <div class="detail-toolbar">
+        <a class="detail-back-link" href="{{ route('smartlocking.index') }}">
+            <i class="fas fa-arrow-left" aria-hidden="true"></i>
+            <span>All RFID cards</span>
+        </a>
+    </div>
+
     <div class="detail-header">
         <div class="header-content">
             <h1>{{ $card['name'] }}</h1>
-            <p class="subtitle">{{ $card['department'] }} • Card ID: {{ $card['cardNumber'] }}</p>
+            <p class="subtitle">{{ $card['department'] }} <span aria-hidden="true">·</span> Card ID: {{ $card['cardNumber'] }}</p>
         </div>
         <div class="header-actions">
             <span class="status-badge status-{{ $card['status'] }}">
@@ -17,7 +25,6 @@
 
     <!-- Main Grid -->
     <div class="detail-grid">
-        <!-- Left Column: Card Information -->
         <div class="info-section">
             <h2>Card Information</h2>
             
@@ -48,11 +55,10 @@
 
             <div class="info-block">
                 <label>Expiry Date</label>
-                <p>{{ date('F d, Y', strtotime($card['expiryDate'])) }}</p>
+                <p>{{ $card['expiryDate'] ? date('F d, Y', strtotime($card['expiryDate'])) : 'No expiry date' }}</p>
             </div>
         </div>
 
-        <!-- Right Column: Access Statistics -->
         <div class="stats-section">
             <h2>Access Statistics</h2>
             
@@ -69,9 +75,11 @@
 
             <div class="info-block">
                 <label>Last Access</label>
-                <p>{{ $card['lastAccess'] }} at {{ $card['lastAccessRoom'] }}</p>
+                <p class="last-access-value">
+                    <i class="fas fa-clock" aria-hidden="true"></i>
+                    <span>{{ $card['lastAccess'] }}<span class="last-access-room">{{ $card['lastAccessRoom'] }}</span></span>
+                </p>
             </div>
-
         </div>
     </div>
 
@@ -84,7 +92,7 @@
                 @foreach($card['authorizedRooms'] as $room)
                     <div class="room-item">
                         <div class="room-icon">
-                            <i class=\"fas fa-building\"></i>
+                            <i class="fas fa-building" aria-hidden="true"></i>
                         </div>
                         <div class="room-info">
                             <h4>{{ $room['room'] }}</h4>
@@ -93,6 +101,8 @@
                     </div>
                 @endforeach
             </div>
+        @else
+            <p class="detail-empty-state">No user-level room permissions are recorded. Door access is still checked against active reservations and class schedules.</p>
         @endif
     </div>
 
@@ -109,6 +119,8 @@
                     </div>
                 @endforeach
             </div>
+        @else
+            <p class="detail-empty-state">No class schedule is currently associated with this cardholder.</p>
         @endif
     </div>
 
@@ -119,18 +131,20 @@
             <div class="log-list">
                 @foreach($card['accessLog'] as $entry)
                     <div class="log-item">
-                        <div class="log-date">📅 {{ $entry['date'] }}</div>
-                        <div class="log-room">🚪 {{ $entry['room'] }}</div>
+                        <div class="log-date"><i class="fas fa-clock" aria-hidden="true"></i>{{ $entry['date'] }}</div>
+                        <div class="log-room"><i class="fas fa-door-open" aria-hidden="true"></i>{{ $entry['room'] }}</div>
+                        <div class="log-direction">{{ $entry['direction'] }}</div>
                         <div class="log-status">
-                            @if($entry['status'] === 'Entry')
-                                <span class="badge badge-entry">{{ $entry['status'] }}</span>
-                            @else
-                                <span class="badge badge-exit">{{ $entry['status'] }}</span>
+                            <span class="badge badge-{{ strtolower($entry['result']) }}">{{ $entry['result'] }}</span>
+                            @if($entry['reason'])
+                                <span class="log-reason">{{ $entry['reason'] }}</span>
                             @endif
                         </div>
                     </div>
                 @endforeach
             </div>
+        @else
+            <p class="detail-empty-state">No access events have been recorded for this card.</p>
         @endif
     </div>
 </div>
@@ -365,9 +379,9 @@
     grid-template-columns: 100px 1fr auto;
     gap: 1rem;
     align-items: center;
-    border-left: 4px solid var(--primary);
+    border-left: 0;
     border: 1px solid rgba(245, 197, 24, 0.15);
-    border-left: 4px solid var(--primary);
+    border-left: 0;
 }
 
 .day-label {
@@ -431,6 +445,16 @@
     color: #7f1d1d;
 }
 
+.badge-granted {
+    background-color: #dcfce7;
+    color: #166534;
+}
+
+.badge-denied {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
     .detail-grid {
@@ -468,6 +492,226 @@
     .log-item {
         flex-direction: column;
         gap: 0.5rem;
+    }
+
+    .log-status {
+        margin-left: 0;
+    }
+}
+
+body.smartlocking-detail-page {
+    background: #f4f7fb;
+    color: #0b1640;
+}
+
+body.smartlocking-detail-page .sidebar {
+    background: linear-gradient(180deg, #0b1640 0%, #112060 100%);
+}
+
+body.smartlocking-detail-page .sidebar-logo,
+body.smartlocking-detail-page .sidebar-logo-text,
+body.smartlocking-detail-page .sidebar-logo-text .brand-main {
+    color: #fff;
+}
+
+body.smartlocking-detail-page .sidebar-nav a.active {
+    color: #f5c518;
+    background: rgba(245, 197, 24, 0.16);
+}
+
+body.smartlocking-detail-page .sidebar-logout {
+    color: rgba(255, 255, 255, 0.78);
+}
+
+body.smartlocking-detail-page .main-content {
+    background: #f4f7fb;
+    color: #0b1640;
+}
+
+.smartlocking-detail-container {
+    --primary: #f5c518;
+    --primary-light: #fde97a;
+    --blue-light: #1a2f80;
+    --text: #0b1640;
+    --text-secondary: #5a6785;
+    max-width: 1340px;
+    padding: 1.75rem 2rem 3rem;
+}
+
+.detail-toolbar {
+    margin-bottom: 1rem;
+}
+
+.detail-back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-height: 40px;
+    color: #1a2f80;
+    font-size: 0.88rem;
+    font-weight: 650;
+    text-decoration: none;
+}
+
+.detail-back-link:hover {
+    color: #0b1640;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.detail-back-link:focus-visible {
+    outline: 3px solid #f5c518;
+    outline-offset: 3px;
+    border-radius: 3px;
+}
+
+.detail-header {
+    align-items: center;
+    margin-bottom: 1.75rem;
+}
+
+.detail-header h1 {
+    color: #0b1640;
+    font-size: 1.75rem;
+    line-height: 1.25;
+}
+
+.detail-header .subtitle {
+    color: #5a6785;
+}
+
+.detail-grid {
+    grid-template-columns: minmax(0, 1.1fr) minmax(300px, 0.9fr);
+    gap: 1.25rem;
+    margin-bottom: 1.25rem;
+}
+
+.info-section,
+.stats-section,
+.authorized-rooms-section,
+.schedule-section,
+.access-log-section {
+    border-color: #dbe3f5;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(11, 22, 64, 0.045);
+}
+
+.info-section h2,
+.stats-section h2,
+.authorized-rooms-section h2,
+.schedule-section h2,
+.access-log-section h2 {
+    color: #0b1640;
+    font-size: 1.1rem;
+    margin-bottom: 1.15rem;
+}
+
+.stat-card {
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid #e4e9f2;
+    border-radius: 0;
+    box-shadow: none;
+    color: #0b1640;
+    padding: 1rem 0;
+    text-align: left;
+}
+
+.stat-value {
+    color: #0b1640;
+    font-size: 1.8rem;
+    font-variant-numeric: tabular-nums;
+    margin-bottom: 0.15rem;
+}
+
+.stat-label {
+    color: #5a6785;
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    opacity: 1;
+}
+
+.last-access-value {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.7rem;
+}
+
+.last-access-value > i,
+.log-date > i,
+.log-room > i {
+    color: #5a6785;
+    flex: 0 0 auto;
+}
+
+.last-access-room {
+    display: block;
+    margin-top: 0.2rem;
+    color: #5a6785;
+    font-size: 0.86rem;
+}
+
+.detail-empty-state {
+    max-width: 70ch;
+    margin: 0;
+    padding: 0.85rem 0;
+    color: #5a6785;
+    font-size: 0.9rem;
+    line-height: 1.55;
+}
+
+.log-item {
+    gap: 1.1rem;
+    flex-wrap: wrap;
+    border-color: #e4e9f2;
+    background: #fbfcfe;
+}
+
+.log-date,
+.log-room {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+}
+
+.log-direction {
+    color: #5a6785;
+    font-size: 0.84rem;
+}
+
+.log-status {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.log-reason {
+    color: #5a6785;
+    font-size: 0.82rem;
+}
+
+@media (max-width: 768px) {
+    .smartlocking-detail-container {
+        padding: 1rem 0.25rem 2rem;
+    }
+
+    .detail-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .info-section,
+    .stats-section,
+    .authorized-rooms-section,
+    .schedule-section,
+    .access-log-section {
+        padding: 1.25rem;
+    }
+
+    .log-item {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 0.6rem;
     }
 
     .log-status {

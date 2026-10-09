@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\AccessCard;
+use App\Models\AccessLog;
 use App\Models\Classroom;
 use App\Models\Course;
 use App\Models\CourseOffering;
@@ -552,4 +553,49 @@ test('example', function () {
     $response = $this->get('/');
 
     $response->assertStatus(200);
+});
+
+it('renders smartlocking card details with readable metrics and access results', function () {
+    $admin = User::factory()->create([
+        'role' => 'admin',
+        'status' => 'active',
+        'must_change_password' => false,
+    ]);
+    $faculty = User::factory()->create([
+        'role' => 'faculty',
+        'status' => 'active',
+        'department' => 'Computer Science',
+    ]);
+    $classroom = Classroom::create([
+        'name' => 'Detail Test Room',
+        'building' => 'Main Building',
+    ]);
+    $card = AccessCard::create([
+        'user_id' => $faculty->id,
+        'classroom_id' => $classroom->id,
+        'card_number' => 'DETAIL-CARD-001',
+        'rfid_uid' => '12:34:56:78',
+        'status' => 'active',
+    ]);
+    AccessLog::create([
+        'access_card_id' => $card->id,
+        'user_id' => $faculty->id,
+        'classroom_id' => $classroom->id,
+        'direction' => 'entry',
+        'result' => 'denied',
+        'reason' => 'No active reservation or class schedule',
+        'accessed_at' => now(),
+        'metadata' => ['method' => 'RFID'],
+    ]);
+
+    actingAs($admin)
+        ->get(route('smartlocking.show', $card->id))
+        ->assertOk()
+        ->assertSee('All RFID cards')
+        ->assertSee('Total Accesses')
+        ->assertSee('No expiry date')
+        ->assertSee('Denied')
+        ->assertSee('Entry')
+        ->assertSee('No active reservation or class schedule')
+        ->assertSee('smartlocking-detail-page');
 });
