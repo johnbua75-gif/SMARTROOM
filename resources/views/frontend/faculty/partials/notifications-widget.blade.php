@@ -78,8 +78,10 @@ body.faculty-sidebar-collapsed .faculty-sidebar-toggle{right:-13px;transform:tra
   const modal = document.getElementById('facultyAccessModal');
   const message = document.getElementById('facultyAccessMessage');
   const close = document.getElementById('facultyAccessClose');
+  const currentUserId = @json((int) auth()->id());
   if (!modal || !message) return;
-  let latestNotificationId = null;
+  const pageLoadedAt = Date.now();
+  const shownGrantNotificationIds = new Set();
   let initialized = false;
 
   function closeModal() {
@@ -107,17 +109,35 @@ body.faculty-sidebar-collapsed .faculty-sidebar-toggle{right:-13px;transform:tra
         return;
       }
 
-      const newest = notifications[0];
       if (!initialized) {
-        latestNotificationId = Number(newest.id);
         initialized = true;
+        notifications.forEach(function (notification) {
+          if (notification.type !== 'rfid_access_granted') return;
+          const notificationId = Number(notification.id);
+          shownGrantNotificationIds.add(notificationId);
+          if (
+            Number(notification.user_id) === currentUserId
+            && Date.parse(notification.created_at) > pageLoadedAt
+          ) {
+            showAccessGranted(notification);
+          }
+        });
         return;
       }
 
-      if (Number(newest.id) > Number(latestNotificationId || 0)) {
-        latestNotificationId = Number(newest.id);
-        if (newest.type === 'rfid_access_granted') showAccessGranted(newest);
-      }
+      const newGrant = notifications.find(function (notification) {
+        const notificationId = Number(notification.id);
+        if (
+          notification.type !== 'rfid_access_granted'
+          || shownGrantNotificationIds.has(notificationId)
+        ) return false;
+
+        shownGrantNotificationIds.add(notificationId);
+        shownGrantNotificationIds.add(notificationId);
+          && Date.parse(notification.created_at) > pageLoadedAt;
+      });
+
+      if (newGrant) showAccessGranted(newGrant);
     } catch (error) {
       // Notification polling is non-blocking and may retry on the next interval.
     }

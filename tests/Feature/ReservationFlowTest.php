@@ -10,8 +10,11 @@
 use App\Models\AccessCard;
 use App\Models\Classroom;
 use App\Models\Course;
+use App\Models\Enrollment;
+use App\Models\Notification;
 use App\Models\Reservation;
 use App\Models\Schedule;
+use App\Models\Student;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -555,6 +558,335 @@ it('denies a scoped service token when the RFID belongs to a different claimed u
         ->assertOk()
         ->assertJsonPath('allowed', false)
         ->assertJsonPath('reason', 'Scanned card does not belong to the claimed user');
+});
+
+it('denies a cardholder when another faculty member holds the active room reservation', function () {
+    Carbon::setTestNow('2026-06-15 09:30:00');
+
+    $cardholder = makeFaculty(['status' => 'active']);
+    $reserver = makeFaculty(['status' => 'active']);
+    $room = makeRoom(['access_mode' => 'esp32']);
+    $card = AccessCard::create([
+        'user_id' => $cardholder->id,
+        'classroom_id' => $room->id,
+        'card_number' => 'CARD-NO-RESERVATION',
+        'rfid_uid' => 'AA:BB:CC:E1',
+        'status' => 'active',
+    ]);
+
+    Reservation::create([
+        'classroom_id' => $room->id,
+        'user_id' => $reserver->id,
+        'start_at' => '2026-06-15 09:00:00',
+        'end_at' => '2026-06-15 10:00:00',
+        'status' => 'approved',
+    ]);
+
+    $service = makeFaculty(['role' => 'service', 'status' => 'active']);
+    $token = $service->createToken('door-test', [
+        'reservations:check',
+        'access-logs:create',
+        'access-cards:read',
+        'door:'.$room->id,
+    ])->plainTextToken;
+
+    $this->withToken($token)
+        ->getJson('/api/v1/reservations/check?user_id='.$cardholder->id.'&rfid_uid='.$card->rfid_uid.'&classroom_id='.$room->id)
+        ->assertOk()
+        ->assertJsonPath('allowed', false);
+
+    $this->postJson('/api/v1/access-logs', [
+        'classroom_id' => $room->id,
+        'user_id' => $cardholder->id,
+        'access_card_id' => $card->id,
+        'direction' => 'entry',
+        'result' => 'granted',
+        'accessed_at' => '2026-06-15T09:30:00+08:00',
+        'metadata' => [
+            'method' => 'RFID',
+            'rfid_uid' => $card->rfid_uid,
+        ],
+    ])
+        ->assertCreated()
+        ->assertJsonPath('data.result', 'denied');
+});
+
+it('does not grant access to an enrolled user who is not the scheduled instructor', function () {
+    Carbon::setTestNow('2026-06-15 09:30:00');
+
+    $cardholder = makeFaculty(['status' => 'active']);
+    $instructor = makeFaculty(['status' => 'active']);
+    $room = makeRoom(['access_mode' => 'esp32']);
+    $card = AccessCard::create([
+        'user_id' => $cardholder->id,
+        'classroom_id' => $room->id,
+        'card_number' => 'CARD-ENROLLED-NON-INSTRUCTOR',
+        'rfid_uid' => 'AA:BB:CC:E4',
+        'status' => 'active',
+    ]);
+    $student = Student::create([
+        'user_id' => $cardholder->id,
+        'student_id' => Student::generateStudentId(),
+        'name' => $cardholder->name,
+        'email' => $cardholder->email,
+        'status' => 'active',
+    ]);
+    $course = Course::create([
+        'code' => 'NON-INSTRUCTOR-ACCESS',
+        'title' => 'Enrolled Course',
+        'instructor_user_id' => $instructor->id,
+        'classroom_id' => $room->id,
+    ]);
+    Enrollment::create([
+        'student_id' => $student->id,
+        'course_id' => $course->id,
+        'status' => 'active',
+    ]);
+    Schedule::create([
+        'classroom_id' => $room->id,
+        'course_id' => $course->id,
+        'instructor_user_id' => $instructor->id,
+        'day_of_week' => Carbon::now()->dayOfWeek,
+        'start_at' => '09:00:00',
+        'end_at' => '10:00:00',
+        'status' => 'scheduled',
+    ]);
+
+    $service = makeFaculty(['role' => 'service', 'status' => 'active']);
+    $token = $service->createToken('door-test', [
+        'reservations:check',
+        'access-logs:create',
+        'access-cards:read',
+        'door:'.$room->id,
+    ])->plainTextToken;
+
+    $this->withToken($token)
+        ->getJson('/api/v1/reservations/check?user_id='.$cardholder->id.'&rfid_uid='.$card->rfid_uid.'&classroom_id='.$room->id)
+        ->assertOk()
+        ->assertJsonPath('allowed', false);
+
+    $this->postJson('/api/v1/access-logs', [
+        'classroom_id' => $room->id,
+        'user_id' => $cardholder->id,
+        'access_card_id' => $card->id,
+        'direction' => 'entry',
+        'result' => 'granted',
+        'accessed_at' => '2026-06-15T09:30:00+08:00',
+        'metadata' => [
+            'method' => 'RFID',
+            'rfid_uid' => $card->rfid_uid,
+        ],
+    ])
+        ->assertCreated()
+        ->assertJsonPath('data.result', 'denied');
+});
+
+it('stores another users active-reservation scan as denied without creating a grant notification', function () {
+    Carbon::setTestNow('2026-06-15 09:30:00');
+
+    $cardholder = makeFaculty(['status' => 'active']);
+    $reserver = makeFaculty(['status' => 'active']);
+    $room = makeRoom(['access_mode' => 'esp32']);
+    $card = AccessCard::create([
+        'user_id' => $cardholder->id,
+        'classroom_id' => $room->id,
+        'card_number' => 'CARD-DENIED-LOG',
+        'rfid_uid' => 'AA:BB:CC:E2',
+        'status' => 'active',
+    ]);
+
+    Reservation::create([
+        'classroom_id' => $room->id,
+        'user_id' => $reserver->id,
+        'start_at' => '2026-06-15 09:00:00',
+        'end_at' => '2026-06-15 10:00:00',
+        'status' => 'approved',
+    ]);
+
+    $service = makeFaculty(['role' => 'service', 'status' => 'active']);
+    $token = $service->createToken('door-test', [
+        'reservations:check',
+        'access-logs:create',
+        'access-cards:read',
+        'door:'.$room->id,
+    ])->plainTextToken;
+
+    $this->withToken($token)
+        ->postJson('/api/v1/access-logs', [
+            'classroom_id' => $room->id,
+            'user_id' => $cardholder->id,
+            'access_card_id' => $card->id,
+            'direction' => 'entry',
+            'result' => 'granted',
+            'accessed_at' => '2026-06-15T09:30:00+08:00',
+            'metadata' => [
+                'method' => 'RFID',
+                'rfid_uid' => $card->rfid_uid,
+            ],
+        ])
+        ->assertCreated()
+        ->assertJsonPath('data.result', 'denied');
+
+    expect(Notification::query()->where('type', 'rfid_access_granted')->exists())->toBeFalse();
+});
+
+it('attributes RFID access logs to the scanned cardholder rather than the claimed user', function () {
+    Carbon::setTestNow('2026-06-15 09:30:00');
+
+    $cardholder = makeFaculty(['status' => 'active']);
+    $claimedUser = makeFaculty(['status' => 'active']);
+    $room = makeRoom(['access_mode' => 'esp32']);
+    $card = AccessCard::create([
+        'user_id' => $cardholder->id,
+        'classroom_id' => $room->id,
+        'card_number' => 'CARD-CLAIMED-USER-MISMATCH',
+        'rfid_uid' => 'AA:BB:CC:E5',
+        'status' => 'active',
+    ]);
+    Reservation::create([
+        'classroom_id' => $room->id,
+        'user_id' => $cardholder->id,
+        'start_at' => '2026-06-15 09:00:00',
+        'end_at' => '2026-06-15 10:00:00',
+        'status' => 'approved',
+    ]);
+
+    $service = makeFaculty(['role' => 'service', 'status' => 'active']);
+    $token = $service->createToken('door-test', [
+        'access-logs:create',
+        'door:'.$room->id,
+    ])->plainTextToken;
+
+    $this->withToken($token)
+        ->postJson('/api/v1/access-logs', [
+            'classroom_id' => $room->id,
+            'user_id' => $claimedUser->id,
+            'access_card_id' => $card->id,
+            'direction' => 'entry',
+            'result' => 'granted',
+            'accessed_at' => '2026-06-15T09:30:00+08:00',
+            'metadata' => [
+                'method' => 'RFID',
+                'rfid_uid' => $card->rfid_uid,
+            ],
+        ])
+        ->assertCreated()
+        ->assertJsonPath('data.user_id', $cardholder->id)
+        ->assertJsonPath('data.result', 'denied');
+
+    expect(Notification::query()->where('type', 'rfid_access_granted')->exists())->toBeFalse();
+});
+
+it('notifies only the cardholder after a valid RFID grant and refreshes their notification cache', function () {
+    Carbon::setTestNow('2026-06-15 09:30:00');
+
+    $reserver = makeFaculty(['status' => 'active']);
+    $otherFaculty = makeFaculty(['status' => 'active']);
+    $room = makeRoom(['access_mode' => 'esp32']);
+    $card = AccessCard::create([
+        'user_id' => $reserver->id,
+        'classroom_id' => $room->id,
+        'card_number' => 'CARD-GRANTED-LOG',
+        'rfid_uid' => 'AA:BB:CC:E3',
+        'status' => 'active',
+    ]);
+
+    Reservation::create([
+        'classroom_id' => $room->id,
+        'user_id' => $reserver->id,
+        'start_at' => '2026-06-15 09:00:00',
+        'end_at' => '2026-06-15 10:00:00',
+        'status' => 'approved',
+    ]);
+
+    actingAs($reserver)
+        ->getJson('/faculty-notifications/data')
+        ->assertOk()
+        ->assertJsonPath('data', []);
+    auth()->forgetGuards();
+
+    $service = makeFaculty(['role' => 'service', 'status' => 'active']);
+    $token = $service->createToken('door-test', [
+        'reservations:check',
+        'access-logs:create',
+        'access-cards:read',
+        'door:'.$room->id,
+    ])->plainTextToken;
+
+    $this->withToken($token)
+        ->postJson('/api/v1/access-logs', [
+            'classroom_id' => $room->id,
+            'user_id' => $reserver->id,
+            'access_card_id' => $card->id,
+            'direction' => 'entry',
+            'result' => 'granted',
+            'accessed_at' => '2026-06-15T09:30:00+08:00',
+            'metadata' => [
+                'method' => 'RFID',
+                'rfid_uid' => $card->rfid_uid,
+            ],
+        ])
+        ->assertCreated()
+        ->assertJsonPath('data.result', 'granted');
+
+    $notification = Notification::query()->where('type', 'rfid_access_granted')->sole();
+    expect($notification->user_id)->toBe($reserver->id);
+
+    auth()->forgetGuards();
+    actingAs($reserver)
+        ->getJson('/faculty-notifications/data')
+        ->assertOk()
+        ->assertJsonPath('data.0.id', $notification->id)
+        ->assertJsonPath('data.0.user_id', $reserver->id);
+
+    actingAs($otherFaculty)
+        ->getJson('/faculty-notifications/data')
+        ->assertOk()
+        ->assertJsonPath('data', []);
+});
+
+it('returns only notifications owned by the authenticated faculty member', function () {
+    $cardholder = makeFaculty(['status' => 'active']);
+    $otherFaculty = makeFaculty(['status' => 'active']);
+
+    $cardholderNotification = Notification::create([
+        'user_id' => $cardholder->id,
+        'type' => 'rfid_access_granted',
+        'title' => 'RFID Access Granted',
+        'body' => 'Your card granted access.',
+        'data' => [],
+    ]);
+    $otherNotification = Notification::create([
+        'user_id' => $otherFaculty->id,
+        'type' => 'rfid_access_granted',
+        'title' => 'RFID Access Granted',
+        'body' => 'Another card granted access.',
+        'data' => [],
+    ]);
+    $unownedGrantNotification = Notification::create([
+        'user_id' => null,
+        'type' => 'rfid_access_granted',
+        'title' => 'RFID Access Granted',
+        'body' => 'An unowned grant must not be broadcast.',
+        'data' => [],
+    ]);
+
+    actingAs($cardholder)
+        ->getJson('/faculty-notifications/data')
+        ->assertOk()
+        ->assertJsonPath('data.0.id', $cardholderNotification->id)
+        ->assertJsonPath('data.0.user_id', $cardholder->id)
+        ->assertJsonMissing(['id' => $otherNotification->id])
+        ->assertJsonMissing(['id' => $unownedGrantNotification->id]);
+
+    auth()->forgetGuards();
+    actingAs($otherFaculty)
+        ->getJson('/faculty-notifications/data')
+        ->assertOk()
+        ->assertJsonPath('data.0.id', $otherNotification->id)
+        ->assertJsonPath('data.0.user_id', $otherFaculty->id)
+        ->assertJsonMissing(['id' => $cardholderNotification->id])
+        ->assertJsonMissing(['id' => $unownedGrantNotification->id]);
 });
 
 it('does not allow users to probe another users access status without card credentials', function () {

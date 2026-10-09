@@ -14,6 +14,7 @@ use App\Models\Schedule;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class AccessLogController extends Controller
 {
@@ -47,7 +48,11 @@ class AccessLogController extends Controller
         $validated = $request->validated();
         $userId = $validated['user_id'] ?? null;
         $device = $request->attributes->get('device');
-        $classroomId = $device ? (int) $device->classroom_id : (int) $validated['classroom_id'];
+        $doorApi = $request->attributes->get('door_api', false);
+        $isDeviceRequest = $device || $doorApi;
+        $classroomId = $device
+            ? (int) $device->classroom_id
+            : (int) ($validated['classroom_id'] ?? 0);
         $validated['classroom_id'] = $classroomId;
 
         if ($device && $request->filled('classroom_id') && (int) $device->classroom_id !== (int) $request->input('classroom_id')) {
@@ -60,47 +65,37 @@ class AccessLogController extends Controller
         if (! empty($validated['access_card_id'])) {
             $card = AccessCard::find($validated['access_card_id']);
         }
-        if (! $card && ! empty($validated['metadata']['rfid_uid'])) {
-            $rfidUid = strtolower(trim((string) $validated['metadata']['rfid_uid']));
-            $rfidUid = preg_replace('/^rfid[-_]?/', '', $rfidUid) ?? $rfidUid;
-            $compactUid = preg_replace('/[^a-z0-9]/', '', $rfidUid) ?? $rfidUid;
-            $colonUid = implode(':', str_split($compactUid, 2));
-            $hyphenUid = implode('-', str_split($compactUid, 2));
-            $uidVariants = array_unique([
-                $rfidUid,
-                strtoupper($rfidUid),
-                $compactUid,
-                strtoupper($compactUid),
-                $colonUid,
-                strtoupper($colonUid),
-                $hyphenUid,
-                strtoupper($hyphenUid),
-                'RFID-'.$rfidUid,
-                'RFID-'.strtoupper($rfidUid),
-                'RFID-'.$colonUid,
-                'RFID-'.strtoupper($colonUid),
-            ]);
-
-            $card = AccessCard::query()->whereIn('rfid_uid', $uidVariants)->first();
+        if (! $card && data_get($validated, 'metadata.rfid_uid')) {
+            $card = AccessCard::query()
+                ->whereNormalizedRfidUid((string) data_get($validated, 'metadata.rfid_uid'))
+                ->first();
         }
 
         if ($card) {
+            $claimedUserId = $validated['user_id'] ?? null;
+            if ($claimedUserId !== null && (int) $card->user_id !== (int) $claimedUserId) {
+                $validated['result'] = 'denied';
+                $validated['reason'] = $validated['reason'] ?? 'Scanned card does not belong to the claimed user';
+            }
+
             $validated['access_card_id'] ??= $card->id;
-            $validated['user_id'] ??= $card->user_id;
-            $userId = $validated['user_id'];
+            $validated['user_id'] = $card->user_id;
+            $userId = $card->user_id;
         }
 
-        if ($card && $userId && (int) $card->user_id !== (int) $userId) {
-            $validated['result'] = 'denied';
-            $validated['reason'] = $validated['reason'] ?? 'Scanned card does not belong to the claimed user';
-        }
-
-        if ($card && ((string) $card->status !== 'active' || ($card->expires_at && $card->expires_at->isPast()))) {
+        if (
+            $card
+            && ((string) $card->status !== 'active' || ($card->expires_at && $card->expires_at->isBefore(today())))
+        ) {
             $validated['result'] = 'denied';
             $validated['reason'] = $validated['reason'] ?? 'Access card is inactive or expired';
         }
 
-        if ($device && $validated['result'] === 'granted' && ! $card) {
+        $method = strtoupper((string) data_get($validated, 'metadata.method', ''));
+        $isRfidLog = $method === 'RFID'
+            || ! empty($validated['access_card_id'])
+            || ! empty(data_get($validated, 'metadata.rfid_uid'));
+        if ($isDeviceRequest && $validated['result'] === 'granted' && $isRfidLog && ! $card) {
             $validated['result'] = 'denied';
             $validated['reason'] = $validated['reason'] ?? 'Device grant did not include a recognized access card';
         }
@@ -110,14 +105,17 @@ class AccessLogController extends Controller
             $validated['reason'] = $validated['reason'] ?? 'Cardholder account is inactive';
         }
 
-        $accessedAt = Carbon::parse($validated['accessed_at'])->setTimezone(config('app.timezone'));
+        $accessedAt = isset($validated['accessed_at'])
+            ? Carbon::parse($validated['accessed_at'])->setTimezone(config('app.timezone'))
+            : now();
+        $validated['accessed_at'] = $accessedAt;
 
         // A granted event must correspond to either an active reservation or an official class.
         if ($userId && $classroomId) {
             $reservation = Reservation::where('user_id', $userId)
                 ->where('classroom_id', $classroomId)
                 ->where('status', 'approved')
-                ->where('start_at', '<=', $accessedAt->copy()->addMinutes(10))
+                ->where('start_at', '<=', $accessedAt)
                 ->where('end_at', '>=', $accessedAt)
                 ->first();
 
@@ -127,23 +125,7 @@ class AccessLogController extends Controller
                 ->where('day_of_week', $accessedAt->dayOfWeek)
                 ->whereTime('start_at', '<=', $accessedAt->format('H:i:s'))
                 ->whereTime('end_at', '>=', $accessedAt->format('H:i:s'))
-                ->where(function ($scheduleQuery) use ($userId): void {
-                    $scheduleQuery->whereHas('courseOffering', function ($offeringQuery) use ($userId): void {
-                        $offeringQuery->where('instructor_user_id', $userId);
-                    })->orWhere(function ($legacyQuery) use ($userId): void {
-                        $legacyQuery->whereNull('course_offering_id')
-                            ->whereHas('course', function ($courseQuery) use ($userId): void {
-                                $courseQuery->where('instructor_user_id', $userId)
-                                    ->orWhereHas('enrollments', function ($enrollmentQuery) use ($userId): void {
-                                        $enrollmentQuery->where('status', 'active')
-                                            ->whereHas('student', function ($studentQuery) use ($userId): void {
-                                                $studentQuery->where('user_id', $userId)
-                                                    ->where('status', 'active');
-                                            });
-                                    });
-                            });
-                    });
-                })
+                ->forInstructor((int) $userId)
                 ->exists();
 
             // Update result based on reservation validity
@@ -172,6 +154,7 @@ class AccessLogController extends Controller
                     'method' => 'RFID',
                 ],
             ]);
+            Cache::forget('faculty:notifications:v1:'.$log->user_id);
         }
 
         return new AccessLogResource($log);

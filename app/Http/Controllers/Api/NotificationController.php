@@ -15,13 +15,18 @@ class NotificationController extends Controller
 
         $items = Cache::remember('faculty:notifications:v1:'.$userId, now()->addSeconds(5), function () use ($userId): array {
             return Notification::query()->where(function ($query) use ($userId): void {
-                $query->whereNull('user_id')->orWhere('user_id', $userId);
+                $query->where('user_id', $userId)
+                    ->orWhere(function ($globalQuery): void {
+                        $globalQuery->whereNull('user_id')
+                            ->where('type', '!=', 'rfid_access_granted');
+                    });
             })
                 ->orderByDesc('created_at')
                 ->limit(50)
                 ->get()
                 ->map(fn (Notification $notification): array => [
                     'id' => $notification->id,
+                    'user_id' => $notification->user_id,
                     'type' => $notification->type,
                     'title' => $notification->title,
                     'body' => $notification->body,

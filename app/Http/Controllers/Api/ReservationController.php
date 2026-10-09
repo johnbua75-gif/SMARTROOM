@@ -204,34 +204,22 @@ class ReservationController extends Controller
     {
         $request->validated();
 
-        // App timezone is Asia/Manila - now() is already in Manila time
         $now = now();
-        $graceMinutes = 0;
         $userId = $request->integer('user_id');
         $device = $request->attributes->get('device');
-        $classroomId = $device ? (int) $device->classroom_id : $request->integer('classroom_id');
+        $classroomId = $device
+            ? (int) $device->classroom_id
+            : $request->integer('classroom_id');
 
         $person = User::query()->find($userId);
         if (! $person || $person->status !== 'active') {
-            $this->logDeniedDoorAccess($request, 'User account is inactive');
-            return response()->json([
-                'allowed' => false,
-                'message' => 'Access denied',
-                'reason' => 'User account is inactive',
-            ], 403);
+            return $this->accessDecision($request, false, 'Access denied', 'User account is inactive');
         }
 
         if ($device && $request->filled('classroom_id') && (int) $device->classroom_id !== $request->integer('classroom_id')) {
-            $this->logDeniedDoorAccess($request, 'Device is not registered for this classroom');
-            return response()->json([
-                'allowed' => false,
-                'message' => 'Access denied',
-                'reason' => 'Device is not registered for this classroom',
-            ], 403);
+            return $this->accessDecision($request, false, 'Access denied', 'Device is not registered for this classroom');
         }
 
-        // If an access card id or rfid uid is supplied, ensure it belongs to the claimed user.
-        // This prevents callers from passing someone else's user_id to gain access.
         $hasCardInfo = $request->filled('access_card_id') || $request->filled('rfid_uid');
 
         if ($hasCardInfo) {
@@ -242,85 +230,46 @@ class ReservationController extends Controller
             if ($accessCardId) {
                 $cardQuery->whereKey($accessCardId);
             } elseif ($rfidUid) {
-                $rawUid = strtolower(trim((string) $rfidUid));
-                $normalizedUid = preg_replace('/^rfid[-_]?/', '', $rawUid) ?? $rawUid;
-                $compactUid = preg_replace('/[^a-z0-9]/', '', $normalizedUid) ?? $normalizedUid;
-                $colonUid = implode(':', str_split($compactUid, 2));
-                $hyphenUid = implode('-', str_split($compactUid, 2));
-                $cardQuery->whereIn('rfid_uid', array_unique([
-                    $rawUid,
-                    strtoupper($rawUid),
-                    $normalizedUid,
-                    strtoupper($normalizedUid),
-                    $compactUid,
-                    strtoupper($compactUid),
-                    $colonUid,
-                    strtoupper($colonUid),
-                    $hyphenUid,
-                    strtoupper($hyphenUid),
-                    'RFID-'.$normalizedUid,
-                    'RFID-'.strtoupper($normalizedUid),
-                    'RFID-'.$colonUid,
-                    'RFID-'.strtoupper($colonUid),
-                ]));
+                $cardQuery->whereNormalizedRfidUid((string) $rfidUid);
             }
 
             $card = $cardQuery->first();
 
             if (! $card) {
-                $this->logDeniedDoorAccess($request, 'Access card not recognized');
-                return response()->json([
-                    'allowed' => false,
-                    'message' => 'Access denied',
-                    'reason' => 'Access card not recognized',
-                ], 403);
+                return $this->accessDecision($request, false, 'Access denied', 'Access card not recognized');
             }
 
-            if ((string) $card->status !== 'active' || ($card->expires_at && $card->expires_at->isPast())) {
-                $this->logDeniedDoorAccess($request, 'Access card is inactive or expired');
-                return response()->json([
-                    'allowed' => false,
-                    'message' => 'Access denied',
-                    'reason' => 'Access card is inactive or expired',
-                ], 403);
+            if (
+                (string) $card->status !== 'active'
+                || ($card->expires_at && $card->expires_at->isBefore(today()))
+            ) {
+                return $this->accessDecision($request, false, 'Access denied', 'Access card is inactive or expired');
             }
 
             if ($card->user()->where('status', 'active')->doesntExist()) {
-                $this->logDeniedDoorAccess($request, 'Cardholder account is inactive');
-                return response()->json([
-                    'allowed' => false,
-                    'message' => 'Access denied',
-                    'reason' => 'Cardholder account is inactive',
-                ], 403);
+                return $this->accessDecision($request, false, 'Access denied', 'Cardholder account is inactive');
             }
 
             if ((int) $card->user_id !== (int) $userId) {
-                $this->logDeniedDoorAccess($request, 'Scanned card does not belong to the claimed user');
-                return response()->json([
-                    'allowed' => false,
-                    'message' => 'Access denied',
-                    'reason' => 'Scanned card does not belong to the claimed user',
-                ], 403);
+                return $this->accessDecision($request, false, 'Access denied', 'Scanned card does not belong to the claimed user');
             }
-
         }
 
-        // Check for active reservation within grace period (before start + grace period, and after end)
         $reservation = Reservation::where('user_id', $userId)
             ->where('classroom_id', $classroomId)
             ->where('status', 'approved')
-            ->where('start_at', '<=', $now->copy()->addMinutes($graceMinutes))
+            ->where('start_at', '<=', $now)
             ->where('end_at', '>=', $now)
             ->first();
 
         if ($reservation) {
-            return response()->json([
-                'allowed' => true,
-                'message' => 'Access granted',
-                'reservation_id' => $reservation->id,
-                'reservation' => $reservation,
-                'server_time' => $now->toIso8601String(),
-            ], 200);
+            return $this->accessDecision(
+                $request,
+                true,
+                'Access granted',
+                '',
+                ['reservation_id' => $reservation->id, 'reservation' => $reservation]
+            );
         }
 
         $officialSchedule = Schedule::query()
@@ -329,65 +278,71 @@ class ReservationController extends Controller
             ->where('day_of_week', $now->dayOfWeek)
             ->whereTime('start_at', '<=', $now->format('H:i:s'))
             ->whereTime('end_at', '>=', $now->format('H:i:s'))
-            ->where(function ($scheduleQuery) use ($userId): void {
-                $scheduleQuery->whereHas('courseOffering', function ($offeringQuery) use ($userId): void {
-                    $offeringQuery->where('instructor_user_id', $userId);
-                })->orWhere(function ($legacyQuery) use ($userId): void {
-                    $legacyQuery->whereNull('course_offering_id')
-                        ->whereHas('course', function ($courseQuery) use ($userId): void {
-                            $courseQuery->where('instructor_user_id', $userId)
-                                ->orWhereHas('enrollments', function ($enrollmentQuery) use ($userId): void {
-                                    $enrollmentQuery->where('status', 'active')
-                                        ->whereHas('student', function ($studentQuery) use ($userId): void {
-                                            $studentQuery->where('user_id', $userId)
-                                                ->where('status', 'active');
-                                        });
-                                });
-                        });
-                });
-            })
+            ->forInstructor($userId)
             ->with(['course', 'courseOffering.instructor'])
             ->first();
 
         if ($officialSchedule) {
-            return response()->json([
-                'allowed' => true,
-                'message' => 'Access granted during official class schedule',
-                'schedule_id' => $officialSchedule->id,
-                'schedule' => $officialSchedule,
-                'server_time' => $now->toIso8601String(),
-            ], 200);
+            return $this->accessDecision(
+                $request,
+                true,
+                'Access granted during official class schedule',
+                '',
+                ['schedule_id' => $officialSchedule->id, 'schedule' => $officialSchedule]
+            );
         }
 
-        // Determine why access was denied
         $anyReservation = Reservation::where('user_id', $userId)
             ->where('classroom_id', $classroomId)
             ->first();
 
         if (! $anyReservation) {
-            $this->logDeniedDoorAccess($request, 'No active reservation or class schedule is valid at this time.');
-            return response()->json([
-                'allowed' => false,
-                'message' => 'No schedule',
-                'reason' => 'No active reservation or class schedule is valid at this time.',
-                'server_time' => $now->toIso8601String(),
-            ], 200);
-        } elseif ($anyReservation->status !== 'approved') {
+            return $this->accessDecision(
+                $request,
+                false,
+                'No schedule',
+                'No active reservation or class schedule is valid at this time.',
+                [],
+                200
+            );
+        }
+
+        if ($anyReservation->status !== 'approved') {
             $reason = "Reservation status is '{$anyReservation->status}', not approved.";
-        } elseif ($now->isBefore($anyReservation->start_at->copy()->subMinutes($graceMinutes))) {
+        } elseif ($now->isBefore($anyReservation->start_at)) {
             $reason = 'Access reserved for: '.$anyReservation->start_at->format('Y-m-d H:i');
         } else {
             $reason = 'Reservation time has expired. Reserved until: '.$anyReservation->end_at->format('Y-m-d H:i');
         }
 
-        $this->logDeniedDoorAccess($request, $reason);
+        return $this->accessDecision($request, false, 'Access denied', $reason);
+    }
 
-        return response()->json([
-            'allowed' => false,
-            'message' => 'Access denied',
+    private function accessDecision(
+        CheckAccessReservationRequest $request,
+        bool $allowed,
+        string $message,
+        string $reason,
+        array $legacyData = [],
+        int $legacyStatus = 403
+    ): JsonResponse {
+        if (! $allowed) {
+            $this->logDeniedDoorAccess($request, $reason !== '' ? $reason : $message);
+        }
+
+        $response = [
+            'allowed' => $allowed,
+            'message' => $message,
             'reason' => $reason,
-            'server_time' => $now->toIso8601String(),
-        ], 403);
+        ];
+        $status = 200;
+
+        if (! $request->attributes->get('door_api', false)) {
+            $response = [...$response, ...$legacyData, 'server_time' => now()->toIso8601String()];
+            $status = $allowed ? 200 : $legacyStatus;
+        }
+
+        return response()->json($response, $status);
     }
 
     private function logDeniedDoorAccess(CheckAccessReservationRequest $request, string $reason): void

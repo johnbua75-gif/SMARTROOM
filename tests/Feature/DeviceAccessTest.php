@@ -419,7 +419,7 @@ it('renders room access mode and device health in the admin views', function () 
         ->assertSee('Rotate key');
 });
 
-it('allows an actively enrolled student during the scheduled class in the device room', function () {
+it('denies an actively enrolled student who is not the scheduled instructor in the device room', function () {
     $now = Carbon::parse('2026-10-02 10:30:00');
     $this->travelTo($now);
     $room = Classroom::create([
@@ -472,8 +472,7 @@ it('allows an actively enrolled student during the scheduled class in the device
     $this->withToken($credential)
         ->getJson('/api/v1/device/reservations/check?user_id='.$studentUser->id.'&rfid_uid='.$card->rfid_uid)
         ->assertOk()
-        ->assertJsonPath('allowed', true)
-        ->assertJsonPath('message', 'Access granted during official class schedule');
+        ->assertJsonPath('allowed', false);
 
     $this->withToken($credential)
         ->postJson('/api/v1/device/access-logs', [
@@ -484,6 +483,6 @@ it('allows an actively enrolled student during the scheduled class in the device
             'metadata' => ['method' => 'RFID', 'rfid_uid' => $card->rfid_uid],
         ])
         ->assertCreated()
-        ->assertJsonPath('data.result', 'granted')
+        ->assertJsonPath('data.result', 'denied')
         ->assertJsonPath('data.classroom_id', $room->id);
 });
