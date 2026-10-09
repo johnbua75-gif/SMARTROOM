@@ -10,11 +10,12 @@ use App\Http\Controllers\Api\ReservationController;
 use App\Http\Controllers\Api\RoomAvailabilityController;
 use App\Http\Controllers\Api\ScheduleController;
 use App\Http\Controllers\AttendanceController;
+use App\Models\Device;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('v1')->middleware('throttle:60,1')->group(function (): void {
+Route::prefix('v1')->group(function (): void {
 
     Route::prefix('device')->middleware('device.ability:device:access')->group(function (): void {
         Route::get('access-cards', [AccessCardController::class, 'index']);
@@ -41,6 +42,26 @@ Route::prefix('v1')->middleware('throttle:60,1')->group(function (): void {
 
     // -- Authenticated endpoints (session cookie or Sanctum token) --
     Route::middleware(['auth:sanctum', 'active'])->group(function (): void {
+        Route::get('access-cards', [AccessCardController::class, 'index'])->middleware('door.token:access-cards:read,admin');
+        Route::post('access-logs', [AccessLogController::class, 'store'])->middleware('door.token:access-logs:create,admin');
+        Route::get('reservations/check', [ReservationController::class, 'checkAccess'])->middleware('door.token:reservations:check,user');
+        Route::post('heartbeat', static function (Request $request): JsonResponse {
+            $validated = $request->validate([
+                'classroom_id' => ['required', 'integer', 'exists:classrooms,id'],
+            ]);
+            $device = Device::query()
+                ->where('classroom_id', $validated['classroom_id'])
+                ->where('status', 'active')
+                ->firstOrFail();
+            $device->forceFill(['last_seen_at' => now()])->save();
+
+            return response()->json([
+                'message' => 'ok',
+                'classroom_id' => $device->classroom_id,
+                'server_time' => now()->toIso8601String(),
+            ]);
+        })->middleware('door.token:device:heartbeat');
+
         Route::apiResource('classrooms', ClassroomController::class)->only(['index', 'show']);
         Route::apiResource('classrooms', ClassroomController::class)->except(['index', 'show'])->middleware('role:admin');
         Route::apiResource('courses', CourseController::class)->only(['index', 'show']);
@@ -48,15 +69,14 @@ Route::prefix('v1')->middleware('throttle:60,1')->group(function (): void {
         Route::apiResource('schedules', ScheduleController::class)->only(['index', 'show']);
         Route::apiResource('schedules', ScheduleController::class)->except(['index', 'show'])->middleware('role:admin');
         Route::get('schedules/reservation/temporary', [ScheduleController::class, 'getTemporarySchedulesByReservation'])->middleware('role:admin');
-        Route::apiResource('access-cards', AccessCardController::class)->middleware('role:admin');
-        Route::apiResource('access-logs', AccessLogController::class)->middleware('role:admin');
+        Route::apiResource('access-cards', AccessCardController::class)->except(['index'])->middleware('role:admin');
+        Route::apiResource('access-logs', AccessLogController::class)->only(['index', 'show', 'update', 'destroy'])->middleware('role:admin');
 
         Route::post('enrollments', [EnrollmentController::class, 'store'])->middleware('role:admin');
         Route::post('enrollments/bulk', [EnrollmentController::class, 'bulkStore'])->middleware('role:admin');
         Route::delete('enrollments/{enrollment}', [EnrollmentController::class, 'destroy'])->middleware('role:admin');
 
         Route::apiResource('reservations', ReservationController::class)->only(['store', 'update', 'destroy']);
-        Route::get('/reservations/check', [ReservationController::class, 'checkAccess']);
     });
 });
 

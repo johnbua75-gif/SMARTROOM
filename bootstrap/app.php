@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EnsureDeviceAbility;
+use App\Http\Middleware\EnsureDoorTokenAbility;
 use App\Http\Middleware\EnsurePasswordIsChanged;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\EnsureUserRole;
@@ -30,7 +31,7 @@ return Application::configure(basePath: dirname(__DIR__))
             EnsureFrontendRequestsAreStateful::class,
         ]);
 
-        $middleware->throttleApi('60,1');
+        $middleware->throttleApi('api');
 
         $middleware->redirectUsersTo(function (Request $request): string {
             $role = strtolower(trim((string) $request->user()?->role));
@@ -48,8 +49,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'password.changed' => EnsurePasswordIsChanged::class,
             'active' => EnsureUserIsActive::class,
             'device.ability' => EnsureDeviceAbility::class,
+            'door.token' => EnsureDoorTokenAbility::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->shouldRenderJsonWhen(
+            static fn (Request $request, Throwable $exception): bool => $request->is('api/*') || $request->expectsJson()
+        );
     })->create();
