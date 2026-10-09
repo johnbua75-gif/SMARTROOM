@@ -30,8 +30,11 @@ body.faculty-sidebar-collapsed .faculty-sidebar-toggle{right:-13px;transform:tra
 .faculty-access-modal{position:fixed;inset:0;z-index:2400;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(7,22,64,.34);backdrop-filter:blur(3px)}
 .faculty-access-modal.is-open{display:flex}
 .faculty-access-card{width:min(390px,100%);padding:28px 26px 24px;border:1px solid #bbf7d0;border-radius:18px;background:#fff;box-shadow:0 24px 70px rgba(7,22,64,.22);text-align:center}
+.faculty-access-card.is-denied{border-color:#fecaca}
 .faculty-access-icon{width:58px;height:58px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;border-radius:50%;background:#dcfce7;color:#15803d;font-size:1.45rem}
+.faculty-access-card.is-denied .faculty-access-icon{background:#fee2e2;color:#b91c1c}
 .faculty-access-title{color:#0f172a;font:800 1.1rem 'Plus Jakarta Sans',sans-serif}.faculty-access-message{margin:8px 0 20px;color:#64748b;font-size:.84rem;line-height:1.5}.faculty-access-close{height:38px;padding:0 20px;border:0;border-radius:9px;background:#0b1640;color:#fff;cursor:pointer;font:700 .82rem 'DM Sans',sans-serif}
+.faculty-access-card.is-denied .faculty-access-title{color:#b91c1c}
 @media(max-width:768px){.faculty-notification-widget{display:none}}
 </style>
 <div class="faculty-notification-widget" id="facultyNotificationWidget">
@@ -44,8 +47,8 @@ body.faculty-sidebar-collapsed .faculty-sidebar-toggle{right:-13px;transform:tra
   </div>
 </div>
 <div class="faculty-access-modal" id="facultyAccessModal" aria-hidden="true">
-  <div class="faculty-access-card" role="dialog" aria-modal="true" aria-labelledby="facultyAccessTitle">
-    <div class="faculty-access-icon"><i class="fas fa-check"></i></div>
+  <div class="faculty-access-card" id="facultyAccessCard" role="dialog" aria-modal="true" aria-labelledby="facultyAccessTitle">
+    <div class="faculty-access-icon"><i class="fas fa-check" id="facultyAccessIcon"></i></div>
     <div class="faculty-access-title" id="facultyAccessTitle">Access Granted</div>
     <div class="faculty-access-message" id="facultyAccessMessage">Your RFID card was accepted.</div>
     <button type="button" class="faculty-access-close" id="facultyAccessClose">Continue</button>
@@ -76,23 +79,39 @@ body.faculty-sidebar-collapsed .faculty-sidebar-toggle{right:-13px;transform:tra
 <script>
 (function () {
   const modal = document.getElementById('facultyAccessModal');
+  const card = document.getElementById('facultyAccessCard');
+  const title = document.getElementById('facultyAccessTitle');
+  const icon = document.getElementById('facultyAccessIcon');
   const message = document.getElementById('facultyAccessMessage');
   const close = document.getElementById('facultyAccessClose');
   const currentUserId = @json((int) auth()->id());
-  if (!modal || !message) return;
   const pageLoadedAt = Date.now();
-  const shownGrantNotificationIds = new Set();
-  let initialized = false;
+  let lastSeenNotificationId = 0;
+  let notificationsInitialized = false;
+  let queuedNotifications = [];
+  let modalIsShowing = false;
+  if (!modal || !card || !title || !icon || !message) return;
 
   function closeModal() {
     modal.classList.remove('is-open');
     modal.setAttribute('aria-hidden', 'true');
+    modalIsShowing = false;
+    showNextNotification();
   }
 
-  function showAccessGranted(notification) {
-    message.textContent = notification.body || 'Your RFID card was accepted.';
+  function showNextNotification() {
+    if (modalIsShowing || !queuedNotifications.length) return;
+    const notification = queuedNotifications.shift();
+    const isDenied = notification.type === 'rfid_access_denied';
+    card.classList.toggle('is-denied', isDenied);
+    title.textContent = isDenied ? 'Access Denied' : 'Access Granted';
+    icon.className = isDenied ? 'fas fa-xmark' : 'fas fa-check';
+    message.textContent = isDenied
+      ? (notification.data?.reason || notification.body || 'Access was denied.')
+      : (notification.body || 'Your RFID card was accepted.');
     modal.classList.add('is-open');
     modal.setAttribute('aria-hidden', 'false');
+    modalIsShowing = true;
   }
 
   async function pollNotifications() {
@@ -104,40 +123,56 @@ body.faculty-sidebar-collapsed .faculty-sidebar-toggle{right:-13px;transform:tra
       if (!response.ok) return;
       const payload = await response.json();
       const notifications = Array.isArray(payload.data) ? payload.data : [];
-      if (!notifications.length) {
-        initialized = true;
-        return;
-      }
-
-      if (!initialized) {
-        initialized = true;
+      if (!notificationsInitialized) {
+        notificationsInitialized = true;
         notifications.forEach(function (notification) {
-          if (notification.type !== 'rfid_access_granted') return;
-          const notificationId = Number(notification.id);
-          shownGrantNotificationIds.add(notificationId);
           if (
             Number(notification.user_id) === currentUserId
+            && ['rfid_access_granted', 'rfid_access_denied'].includes(notification.type)
             && Date.parse(notification.created_at) > pageLoadedAt
           ) {
-            showAccessGranted(notification);
+            queuedNotifications.push(notification);
           }
         });
+        if (notifications.length) {
+          lastSeenNotificationId = Math.max(
+            ...notifications.map(function (notification) { return Number(notification.id) || 0; })
+          );
+        }
+        queuedNotifications.sort(function (first, second) {
+          return Number(second.id) - Number(first.id);
+        });
+        showNextNotification();
         return;
       }
 
-      const newGrant = notifications.find(function (notification) {
-        const notificationId = Number(notification.id);
+      const newNotifications = notifications
+        .filter(function (notification) {
+          return Number(notification.id) > lastSeenNotificationId;
+        })
+        .sort(function (first, second) {
+          return Number(second.id) - Number(first.id);
+        });
+
+      if (notifications.length) {
+        lastSeenNotificationId = Math.max(
+          lastSeenNotificationId,
+          ...notifications.map(function (notification) { return Number(notification.id) || 0; })
+        );
+      }
+
+      newNotifications.forEach(function (notification) {
         if (
-          notification.type !== 'rfid_access_granted'
-          || shownGrantNotificationIds.has(notificationId)
-        ) return false;
+          Number(notification.user_id) !== currentUserId
+          || !['rfid_access_granted', 'rfid_access_denied'].includes(notification.type)
+        ) return;
 
-        shownGrantNotificationIds.add(notificationId);
-        shownGrantNotificationIds.add(notificationId);
-          && Date.parse(notification.created_at) > pageLoadedAt;
+        queuedNotifications.push(notification);
       });
-
-      if (newGrant) showAccessGranted(newGrant);
+      queuedNotifications.sort(function (first, second) {
+        return Number(second.id) - Number(first.id);
+      });
+      showNextNotification();
     } catch (error) {
       // Notification polling is non-blocking and may retry on the next interval.
     }

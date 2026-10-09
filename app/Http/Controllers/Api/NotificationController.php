@@ -18,7 +18,7 @@ class NotificationController extends Controller
                 $query->where('user_id', $userId)
                     ->orWhere(function ($globalQuery): void {
                         $globalQuery->whereNull('user_id')
-                            ->where('type', '!=', 'rfid_access_granted');
+                            ->whereNotIn('type', ['rfid_access_granted', 'rfid_access_denied']);
                     });
             })
                 ->orderByDesc('created_at')

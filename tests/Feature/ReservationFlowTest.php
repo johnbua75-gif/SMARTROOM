@@ -775,6 +775,11 @@ it('attributes RFID access logs to the scanned cardholder rather than the claime
         ->assertJsonPath('data.result', 'denied');
 
     expect(Notification::query()->where('type', 'rfid_access_granted')->exists())->toBeFalse();
+
+    $deniedNotification = Notification::query()->where('type', 'rfid_access_denied')->sole();
+    expect($deniedNotification->user_id)->toBe($cardholder->id)
+        ->and($deniedNotification->user_id)->not->toBe($claimedUser->id)
+        ->and($deniedNotification->data['reason'])->toBe('Scanned card does not belong to the claimed user');
 });
 
 it('notifies only the cardholder after a valid RFID grant and refreshes their notification cache', function () {
@@ -843,6 +848,158 @@ it('notifies only the cardholder after a valid RFID grant and refreshes their no
         ->getJson('/faculty-notifications/data')
         ->assertOk()
         ->assertJsonPath('data', []);
+});
+
+it('notifies only each cardholder for scans received in the same polling window', function () {
+    Carbon::setTestNow('2026-06-15 09:30:00');
+
+    $facultyA = makeFaculty(['status' => 'active']);
+    $facultyB = makeFaculty(['status' => 'active']);
+    $room = makeRoom(['access_mode' => 'esp32']);
+    $cardA = AccessCard::create([
+        'user_id' => $facultyA->id,
+        'classroom_id' => $room->id,
+        'card_number' => 'CARD-DENIED-A',
+        'rfid_uid' => 'AA:BB:CC:F1',
+        'status' => 'active',
+    ]);
+    $cardB = AccessCard::create([
+        'user_id' => $facultyB->id,
+        'classroom_id' => $room->id,
+        'card_number' => 'CARD-GRANTED-B',
+        'rfid_uid' => 'AA:BB:CC:F2',
+        'status' => 'active',
+    ]);
+    Reservation::create([
+        'classroom_id' => $room->id,
+        'user_id' => $facultyB->id,
+        'start_at' => '2026-06-15 09:00:00',
+        'end_at' => '2026-06-15 10:00:00',
+        'status' => 'approved',
+    ]);
+
+    $service = makeFaculty(['role' => 'service', 'status' => 'active']);
+    $token = $service->createToken('door-test', [
+        'reservations:check',
+        'access-logs:create',
+        'access-cards:read',
+        'door:'.$room->id,
+    ])->plainTextToken;
+
+    actingAs($facultyA)
+        ->getJson('/faculty-notifications/data')
+        ->assertOk()
+        ->assertJsonPath('data', []);
+    auth()->forgetGuards();
+    actingAs($facultyB)
+        ->getJson('/faculty-notifications/data')
+        ->assertOk()
+        ->assertJsonPath('data', []);
+    auth()->forgetGuards();
+
+    foreach ([[$facultyA, $cardA, 'denied'], [$facultyB, $cardB, 'granted']] as [$owner, $card, $result]) {
+        $this->withToken($token)
+            ->postJson('/api/v1/access-logs', [
+                'classroom_id' => $room->id,
+                'user_id' => $owner->id,
+                'access_card_id' => $card->id,
+                'direction' => 'entry',
+                'result' => $result,
+                'reason' => $result === 'denied' ? 'No Schedule' : null,
+                'accessed_at' => '2026-06-15T09:30:00+08:00',
+                'metadata' => ['method' => 'RFID', 'rfid_uid' => $card->rfid_uid],
+            ])
+            ->assertCreated()
+            ->assertJsonPath('data.result', $result);
+    }
+
+    $denied = Notification::query()->where('type', 'rfid_access_denied')->sole();
+    $granted = Notification::query()->where('type', 'rfid_access_granted')->sole();
+
+    expect($denied->user_id)->toBe($facultyA->id)
+        ->and($denied->data)->toMatchArray([
+            'access_log_id' => $denied->data['access_log_id'],
+            'classroom_id' => $room->id,
+            'classroom_name' => $room->name,
+            'reason' => 'No active reservation or class schedule',
+            'method' => 'RFID',
+        ])
+        ->and($denied->body)->toContain('No active reservation or class schedule')
+        ->and($granted->user_id)->toBe($facultyB->id);
+
+    actingAs($facultyA)
+        ->getJson('/faculty-notifications/data')
+        ->assertOk()
+        ->assertJsonPath('data.0.type', 'rfid_access_denied')
+        ->assertJsonMissing(['id' => $granted->id]);
+    $this->get('/faculty-notifications')
+        ->assertOk()
+        ->assertSee('facultyAccessModal')
+        ->assertSee('rfid_access_denied');
+
+    auth()->forgetGuards();
+    actingAs($facultyB)
+        ->getJson('/faculty-notifications/data')
+        ->assertOk()
+        ->assertJsonPath('data.0.type', 'rfid_access_granted')
+        ->assertJsonMissing(['id' => $denied->id]);
+});
+
+it('does not notify a claimed user when an RFID card is unknown', function () {
+    $claimedUser = makeFaculty(['status' => 'active']);
+    $room = makeRoom(['access_mode' => 'esp32']);
+    $service = makeFaculty(['role' => 'service', 'status' => 'active']);
+    $token = $service->createToken('door-test', [
+        'access-logs:create',
+        'door:'.$room->id,
+    ])->plainTextToken;
+
+    $this->withToken($token)
+        ->postJson('/api/v1/access-logs', [
+            'classroom_id' => $room->id,
+            'user_id' => $claimedUser->id,
+            'direction' => 'entry',
+            'result' => 'denied',
+            'reason' => 'Wrong Card',
+            'metadata' => ['method' => 'RFID', 'rfid_uid' => 'AA:BB:CC:F3'],
+        ])
+        ->assertCreated()
+        ->assertJsonPath('data.user_id', null);
+
+    expect(Notification::query()->where('type', 'rfid_access_denied')->exists())->toBeFalse();
+});
+
+it('normalizes RFID system errors instead of reporting a missing reservation', function () {
+    $cardholder = makeFaculty(['status' => 'active']);
+    $room = makeRoom(['access_mode' => 'esp32']);
+    $card = AccessCard::create([
+        'user_id' => $cardholder->id,
+        'classroom_id' => $room->id,
+        'card_number' => 'CARD-SYSTEM-ERROR',
+        'rfid_uid' => 'AA:BB:CC:F4',
+        'status' => 'active',
+    ]);
+    $service = makeFaculty(['role' => 'service', 'status' => 'active']);
+    $token = $service->createToken('door-test', [
+        'access-logs:create',
+        'door:'.$room->id,
+    ])->plainTextToken;
+
+    $this->withToken($token)
+        ->postJson('/api/v1/access-logs', [
+            'classroom_id' => $room->id,
+            'user_id' => $cardholder->id,
+            'access_card_id' => $card->id,
+            'direction' => 'entry',
+            'result' => 'denied',
+            'reason' => 'API Error',
+            'metadata' => ['method' => 'RFID', 'rfid_uid' => $card->rfid_uid],
+        ])
+        ->assertCreated()
+        ->assertJsonPath('data.reason', 'Could not verify access, please try again');
+
+    expect(Notification::query()->where('type', 'rfid_access_denied')->sole()->data['reason'])
+        ->toBe('Could not verify access, please try again');
 });
 
 it('returns only notifications owned by the authenticated faculty member', function () {

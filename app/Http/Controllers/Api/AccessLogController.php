@@ -71,6 +71,11 @@ class AccessLogController extends Controller
                 ->first();
         }
 
+        $method = strtoupper((string) data_get($validated, 'metadata.method', ''));
+        $isRfidLog = $method === 'RFID'
+            || ! empty($validated['access_card_id'])
+            || ! empty(data_get($validated, 'metadata.rfid_uid'));
+
         if ($card) {
             $claimedUserId = $validated['user_id'] ?? null;
             if ($claimedUserId !== null && (int) $card->user_id !== (int) $claimedUserId) {
@@ -81,6 +86,9 @@ class AccessLogController extends Controller
             $validated['access_card_id'] ??= $card->id;
             $validated['user_id'] = $card->user_id;
             $userId = $card->user_id;
+        } elseif ($isRfidLog) {
+            $validated['user_id'] = null;
+            $userId = null;
         }
 
         if (
@@ -91,10 +99,6 @@ class AccessLogController extends Controller
             $validated['reason'] = $validated['reason'] ?? 'Access card is inactive or expired';
         }
 
-        $method = strtoupper((string) data_get($validated, 'metadata.method', ''));
-        $isRfidLog = $method === 'RFID'
-            || ! empty($validated['access_card_id'])
-            || ! empty(data_get($validated, 'metadata.rfid_uid'));
         if ($isDeviceRequest && $validated['result'] === 'granted' && $isRfidLog && ! $card) {
             $validated['result'] = 'denied';
             $validated['reason'] = $validated['reason'] ?? 'Device grant did not include a recognized access card';
@@ -103,6 +107,10 @@ class AccessLogController extends Controller
         if ($card && $card->user()->where('status', 'active')->doesntExist()) {
             $validated['result'] = 'denied';
             $validated['reason'] = $validated['reason'] ?? 'Cardholder account is inactive';
+        }
+
+        if (in_array(strtolower(trim((string) ($validated['reason'] ?? ''))), ['api error', 'schedule check failed'], true)) {
+            $validated['reason'] = 'Could not verify access, please try again';
         }
 
         $accessedAt = isset($validated['accessed_at'])
@@ -128,32 +136,69 @@ class AccessLogController extends Controller
                 ->forInstructor((int) $userId)
                 ->exists();
 
-            // Update result based on reservation validity
-            if (! $reservation && ! $officialSchedule && $validated['result'] !== 'denied') {
-                $validated['result'] = 'denied';
-                $validated['reason'] = $validated['reason'] ?? 'No valid reservation or official class during access time';
+            if (! $reservation && ! $officialSchedule) {
+                $reason = strtolower(trim((string) ($validated['reason'] ?? '')));
+                $genericScheduleReasons = ['', 'no schedule', 'no active schedule', 'no active reservation or class schedule', 'no valid reservation or official class during access time'];
+
+                if ($validated['result'] !== 'denied') {
+                    $validated['result'] = 'denied';
+                    $validated['reason'] = 'No active reservation or class schedule';
+                } elseif ($isRfidLog && in_array($reason, $genericScheduleReasons, true)) {
+                    $anyReservation = Reservation::query()
+                        ->where('user_id', $userId)
+                        ->where('classroom_id', $classroomId)
+                        ->latest('start_at')
+                        ->first();
+
+                    if (! $anyReservation) {
+                        $validated['reason'] = 'No active reservation or class schedule';
+                    } elseif ($anyReservation->status !== 'approved') {
+                        $validated['reason'] = "Reservation status is '{$anyReservation->status}', not approved";
+                    } elseif ($accessedAt->isBefore($anyReservation->start_at)) {
+                        $validated['reason'] = 'Reservation has not started yet';
+                    } else {
+                        $validated['reason'] = 'Reservation time has expired';
+                    }
+                }
             }
         }
 
         $log = AccessLog::create($validated)->load(['accessCard', 'classroom', 'user']);
 
-        if (
-            $log->result === 'granted'
-            && $log->user_id
-            && strtolower((string) data_get($log->metadata, 'method')) === 'rfid'
-        ) {
-            Notification::create([
-                'user_id' => $log->user_id,
-                'type' => 'rfid_access_granted',
-                'title' => 'RFID Access Granted',
-                'body' => 'Your RFID card granted access to '.($log->classroom?->name ?? 'the assigned room').'.',
-                'data' => [
-                    'access_log_id' => $log->id,
-                    'classroom_id' => $log->classroom_id,
-                    'accessed_at' => $log->accessed_at?->toIso8601String(),
-                    'method' => 'RFID',
-                ],
-            ]);
+        $notificationType = match ([$log->result, strtolower((string) data_get($log->metadata, 'method'))]) {
+            ['granted', 'rfid'] => 'rfid_access_granted',
+            ['denied', 'rfid'] => 'rfid_access_denied',
+            default => null,
+        };
+
+        if ($notificationType && $log->user_id) {
+            $alreadyNotified = Notification::query()
+                ->where('data->access_log_id', $log->id)
+                ->exists();
+
+            if (! $alreadyNotified) {
+                $classroomName = $log->classroom?->name ?? 'the assigned room';
+                $reason = $log->reason ?: 'Access denied';
+                $isDenied = $notificationType === 'rfid_access_denied';
+
+                Notification::create([
+                    'user_id' => $log->user_id,
+                    'type' => $notificationType,
+                    'title' => $isDenied ? 'Access Denied' : 'RFID Access Granted',
+                    'body' => $isDenied
+                        ? 'Access to '.$classroomName.' was denied: '.$reason
+                        : 'Your RFID card granted access to '.$classroomName.'.',
+                    'data' => [
+                        'access_log_id' => $log->id,
+                        'classroom_id' => $log->classroom_id,
+                        'classroom_name' => $log->classroom?->name,
+                        'reason' => $isDenied ? $reason : null,
+                        'accessed_at' => $log->accessed_at?->toIso8601String(),
+                        'method' => 'RFID',
+                    ],
+                ]);
+            }
+
             Cache::forget('faculty:notifications:v1:'.$log->user_id);
         }
 

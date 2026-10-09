@@ -165,5 +165,6 @@
     window.setInterval(refreshWhenNotificationsChange, 10000);
 })();
 </script>
+@include('frontend.faculty.partials.notifications-widget')
 </body>
 </html>
