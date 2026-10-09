@@ -9,6 +9,8 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\RateLimiter;
+use Laravel\Sanctum\Sanctum;
 
 uses(RefreshDatabase::class);
 
@@ -170,7 +172,7 @@ it('keeps the device heartbeat available through the scoped Sanctum token', func
     $service = User::factory()->create(['role' => 'service', 'status' => 'active']);
     $token = createDoorTestToken($service, ['device:heartbeat', 'door:40']);
 
-    $this->withToken($token)
+    $response = $this->withToken($token)
         ->postJson('/api/v1/heartbeat', ['classroom_id' => 40])
         ->assertOk()
         ->assertExactJson([
@@ -179,6 +181,7 @@ it('keeps the device heartbeat available through the scoped Sanctum token', func
             'server_time' => now()->toIso8601String(),
         ]);
 
+    expect($response->status())->not->toBe(500);
     expect($device->fresh()->last_seen_at)->not->toBeNull();
 });
 
@@ -188,20 +191,84 @@ it('rejects heartbeat requests for a classroom outside the token scope', functio
     $service = User::factory()->create(['role' => 'service', 'status' => 'active']);
     $token = createDoorTestToken($service, ['device:heartbeat', 'door:40']);
 
-    $this->withToken($token)
+    $response = $this->withToken($token)
         ->postJson('/api/v1/heartbeat', ['classroom_id' => 41])
         ->assertForbidden()
         ->assertJsonStructure(['message']);
+
+    expect($response->status())->not->toBe(500);
 });
 
 it('validates the heartbeat classroom against existing classrooms', function () {
     $service = User::factory()->create(['role' => 'service', 'status' => 'active']);
     $token = createDoorTestToken($service, ['device:heartbeat', 'door:999']);
 
-    $this->withToken($token)
+    $response = $this->withToken($token)
         ->postJson('/api/v1/heartbeat', ['classroom_id' => 999])
         ->assertUnprocessable()
         ->assertJsonValidationErrors(['classroom_id']);
+
+    expect($response->status())->not->toBe(500);
+});
+
+it('registers the named api rate limiter', function () {
+    expect(RateLimiter::limiter('api'))->not->toBeNull();
+});
+
+it('requires authentication for heartbeat requests and returns JSON', function () {
+    $response = $this->postJson('/api/v1/heartbeat', ['classroom_id' => 40])
+        ->assertUnauthorized()
+        ->assertJsonStructure(['message']);
+
+    expect($response->status())->not->toBe(500);
+});
+
+it('returns a JSON not found response when a classroom has no active device', function () {
+    createDoorTestClassroom(40);
+    $service = User::factory()->create(['role' => 'service', 'status' => 'active']);
+    $token = createDoorTestToken($service, ['device:heartbeat', 'door:40']);
+
+    $response = $this->withToken($token)
+        ->postJson('/api/v1/heartbeat', ['classroom_id' => 40])
+        ->assertNotFound()
+        ->assertJsonStructure(['message']);
+
+    expect($response->status())->not->toBe(500);
+});
+
+it('forbids heartbeat when the token lacks the heartbeat ability', function () {
+    createDoorTestClassroom(40);
+    $service = User::factory()->create(['role' => 'service', 'status' => 'active']);
+    $token = createDoorTestToken($service, ['door:40']);
+
+    $response = $this->withToken($token)
+        ->postJson('/api/v1/heartbeat', ['classroom_id' => 40])
+        ->assertForbidden()
+        ->assertJsonStructure(['message']);
+
+    expect($response->status())->not->toBe(500);
+});
+
+it('does not return server errors for authenticated door API endpoints', function () {
+    $classroom = createDoorTestClassroom(40);
+    $admin = User::factory()->create(['role' => 'admin', 'status' => 'active']);
+    Sanctum::actingAs($admin);
+
+    $accessCardsResponse = $this->getJson('/api/v1/access-cards?rfid_uid=AA%3ABB%3ACC%3ADD');
+    $reservationResponse = $this->getJson(
+        '/api/v1/reservations/check?user_id='.$admin->id.'&classroom_id='.$classroom->id.'&rfid_uid=AA%3ABB%3ACC%3ADD'
+    );
+    $accessLogsResponse = $this->postJson('/api/v1/access-logs', [
+        'classroom_id' => $classroom->id,
+        'result' => 'denied',
+        'direction' => 'entry',
+        'reason' => 'Smoke test',
+        'metadata' => ['method' => 'Fingerprint'],
+    ]);
+
+    expect($accessCardsResponse->status())->not->toBe(500)
+        ->and($reservationResponse->status())->not->toBe(500)
+        ->and($accessLogsResponse->status())->not->toBe(500);
 });
 
 it('stores anonymous fingerprint logs with an offset timestamp', function () {
