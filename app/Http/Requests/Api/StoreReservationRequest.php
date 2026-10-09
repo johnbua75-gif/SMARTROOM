@@ -21,7 +21,7 @@ class StoreReservationRequest extends FormRequest
     {
         return [
             'classroom_id' => ['required', 'integer', 'exists:classrooms,id'],
-            'start_at' => ['required', 'date'],
+            'start_at' => ['required', 'date', 'after_or_equal:now'],
             'end_at' => ['required', 'date', 'after:start_at'],
             'notes' => ['nullable', 'string', 'max:1000'],
         ];

@@ -230,7 +230,7 @@ it('denies device access for a current unapproved reservation owned by the scann
 
     $this->withToken($credential)
         ->getJson('/api/v1/device/reservations/check?user_id='.$user->id.'&rfid_uid='.$card->rfid_uid)
-        ->assertForbidden()
+        ->assertSuccessful()
         ->assertJsonPath('allowed', false)
         ->assertJsonPath('reason', "Reservation status is 'reserved', not approved.");
 });
@@ -267,7 +267,7 @@ it('denies access to inactive users even when their card and reservation are act
 
     $this->withToken($credential)
         ->getJson('/api/v1/device/reservations/check?user_id='.$user->id.'&rfid_uid='.$card->rfid_uid)
-        ->assertForbidden()
+        ->assertSuccessful()
         ->assertJsonPath('allowed', false);
 
     $this->actingAs($user, 'sanctum')

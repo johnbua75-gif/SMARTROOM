@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Models\Device;
 use Closure;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Laravel\Sanctum\PersonalAccessToken;
 use Symfony\Component\HttpFoundation\Response;
@@ -38,7 +39,18 @@ class EnsureDeviceAbility
         $device->forceFill(['last_seen_at' => now()])->save();
         $request->attributes->set('device', $device);
 
-        return $next($request);
+        $response = $next($request);
+
+        if (
+            $response instanceof JsonResponse
+            && $response->getStatusCode() === 403
+            && is_array($responseData = $response->getData(true))
+            && ($responseData['allowed'] ?? null) === false
+        ) {
+            $response->setStatusCode(200);
+        }
+
+        return $response;
     }
 
     private function deviceFromLegacyToken(string $credential, string $ability): ?Device
