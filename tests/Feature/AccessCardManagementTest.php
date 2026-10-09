@@ -3,6 +3,7 @@
 use App\Models\AccessCard;
 use App\Models\Classroom;
 use App\Models\Course;
+use App\Models\CourseOffering;
 use App\Models\Device;
 use App\Models\Schedule;
 use App\Models\User;
@@ -86,6 +87,64 @@ it('shows only active faculty in the cardholder dropdown', function () {
     expect(User::query()->eligibleRfidCardholders()->pluck('id')->all())
         ->toContain($faculty->id)
         ->not->toContain($inactiveFaculty->id, $student->id);
+});
+
+it('shows schedules for a cardholder assigned through a course offering', function () {
+    $admin = User::factory()->create([
+        'role' => 'admin',
+        'status' => 'active',
+        'must_change_password' => false,
+    ]);
+    $instructor = User::factory()->create([
+        'role' => 'faculty',
+        'status' => 'active',
+    ]);
+    $courseInstructor = User::factory()->create([
+        'role' => 'faculty',
+        'status' => 'active',
+    ]);
+    $classroom = Classroom::create([
+        'name' => 'Room 16',
+        'building' => 'Main Building',
+    ]);
+    $course = Course::create([
+        'code' => 'OFFERING-101',
+        'title' => 'Offering-Based Subject',
+        'instructor_user_id' => $courseInstructor->id,
+    ]);
+    $offering = CourseOffering::create([
+        'course_id' => $course->id,
+        'instructor_user_id' => $instructor->id,
+        'classroom_id' => $classroom->id,
+        'block_section' => 'BSIT-1A',
+        'term_start' => '2026-10-01',
+        'term_end' => '2026-12-31',
+    ]);
+    Schedule::create([
+        'classroom_id' => $classroom->id,
+        'course_id' => $course->id,
+        'course_offering_id' => $offering->id,
+        'instructor_user_id' => null,
+        'start_at' => '2026-10-12 09:00:00',
+        'end_at' => '2026-10-12 10:00:00',
+        'day_of_week' => 1,
+        'status' => 'scheduled',
+    ]);
+    AccessCard::create([
+        'user_id' => $instructor->id,
+        'card_number' => 'OFFERING-SCHEDULE-CARD',
+        'rfid_uid' => 'A1:B2:C3:D4',
+        'status' => 'active',
+    ]);
+
+    actingAs($admin)
+        ->get(route('admin.smartlocking'))
+        ->assertOk()
+        ->assertSee('Offering-Based Subject')
+        ->assertSee('Room 16')
+        ->assertSee('09:00')
+        ->assertSee('10:00')
+        ->assertDontSee('No schedule assigned');
 });
 
 it('rejects students and other ineligible users when creating access cards', function (string $role, string $status) {

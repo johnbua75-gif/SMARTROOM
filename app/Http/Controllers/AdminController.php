@@ -6,11 +6,14 @@ use App\Models\AccessCard;
 use App\Models\AccessLog;
 use App\Models\Classroom;
 use App\Models\Notification;
+use App\Models\Schedule;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AdminController extends Controller
@@ -18,44 +21,16 @@ class AdminController extends Controller
     public function smartlocking(): View
     {
         $cards = AccessCard::query()
-            ->with([
-                'user.courses.schedules.classroom',
-            ])
+            ->with('user')
             ->latest('id')
             ->get();
+        $schedulesByInstructor = $this->schedulesByInstructor(
+            $cards->pluck('user')->filter()->unique('id')->values()
+        );
 
-        $cardViewData = $cards->map(function (AccessCard $card): array {
+        $cardViewData = $cards->map(function (AccessCard $card) use ($schedulesByInstructor): array {
             $user = $card->user;
-
-            $scheduleRows = collect();
-
-            if ($user) {
-                $scheduleRows = $user->courses
-                    ->flatMap(function ($course) {
-                        return $course->schedules->map(function ($schedule) use ($course) {
-                            $day = $this->dayLabel($schedule->day_of_week, $schedule->start_at);
-                            $time = $schedule->start_at && $schedule->end_at
-                                ? $schedule->start_at->format('H:i').' - '.$schedule->end_at->format('H:i')
-                                : '--:-- - --:--';
-
-                            return [
-                                'room' => $schedule->classroom?->name ?? 'Unassigned room',
-                                'day' => $day,
-                                'time' => $time,
-                                'subject' => $course->title,
-                            ];
-                        });
-                    })
-                    ->values()
-                    ->map(function (array $row): array {
-                        return [
-                            'room' => $row['room'],
-                            'day' => $row['day'],
-                            'time' => $row['time'],
-                            'subject' => $row['subject'],
-                        ];
-                    });
-            }
+            $scheduleRows = $schedulesByInstructor->get($user?->id, collect());
 
             return [
                 'id' => $card->id,
@@ -70,16 +45,9 @@ class AdminController extends Controller
             ];
         })->all();
 
-        $scheduledRoomCount = $cards
-            ->flatMap(function (AccessCard $card) {
-                if (! $card->user) {
-                    return collect();
-                }
-
-                return $card->user->courses->flatMap(
-                    fn ($course) => $course->schedules->pluck('classroom_id')
-                );
-            })
+        $scheduledRoomCount = $schedulesByInstructor
+            ->flatten(1)
+            ->pluck('classroom_id')
             ->filter()
             ->unique()
             ->count();
@@ -115,7 +83,6 @@ class AdminController extends Controller
         $cardModel = AccessCard::query()
             ->with([
                 'user.authorizedClassrooms',
-                'user.courses.schedules.classroom',
                 'user.accessLogs.classroom',
                 'accessLogs.classroom',
             ])
@@ -148,24 +115,9 @@ class AdminController extends Controller
                 });
         }
 
-        $schedule = collect();
-
-        if ($user) {
-            $schedule = $user->courses
-                ->flatMap(function ($course) {
-                    return $course->schedules->map(function ($session) {
-                        return [
-                            'day' => $this->dayLabel($session->day_of_week, $session->start_at),
-                            'time' => $session->start_at && $session->end_at
-                                ? $session->start_at->format('H:i').' - '.$session->end_at->format('H:i')
-                                : '--:-- - --:--',
-                            'room' => $session->classroom?->name ?? 'Unassigned',
-                        ];
-                    });
-                })
-                ->values()
-                ->take(10);
-        }
+        $schedule = $this->schedulesByInstructor($user ? collect([$user]) : collect())
+            ->get($user?->id, collect())
+            ->take(10);
 
         $card = [
             'id' => $cardModel->id,
@@ -195,6 +147,60 @@ class AdminController extends Controller
         return view('frontend.admin.smartlocking-detail', [
             'card' => $card,
         ]);
+    }
+
+    /**
+     * @param  Collection<int, User>  $instructors
+     * @return Collection<int, Collection<int, array{classroom_id: int|null, day: string, time: string, room: string, subject: string}>>
+     */
+    private function schedulesByInstructor(Collection $instructors): Collection
+    {
+        $instructorIds = $instructors->pluck('id')->filter()->unique()->values()->all();
+
+        if ($instructorIds === []) {
+            return collect();
+        }
+
+        return Schedule::query()
+            ->with(['classroom', 'course', 'courseOffering.course'])
+            ->where(function (Builder $query) use ($instructorIds): void {
+                $query->whereIn('instructor_user_id', $instructorIds)
+                    ->orWhere(function (Builder $offeringQuery) use ($instructorIds): void {
+                        $offeringQuery
+                            ->whereNull('instructor_user_id')
+                            ->whereHas('courseOffering', function (Builder $query) use ($instructorIds): void {
+                                $query->whereIn('instructor_user_id', $instructorIds);
+                            });
+                    })
+                    ->orWhere(function (Builder $courseQuery) use ($instructorIds): void {
+                        $courseQuery
+                            ->whereNull('instructor_user_id')
+                            ->whereNull('course_offering_id')
+                            ->whereHas('course', function (Builder $query) use ($instructorIds): void {
+                                $query->whereIn('instructor_user_id', $instructorIds);
+                            });
+                    });
+            })
+            ->orderBy('id')
+            ->get()
+            ->groupBy(fn (Schedule $schedule): ?int => $schedule->instructor_user_id
+                ?? $schedule->courseOffering?->instructor_user_id
+                ?? $schedule->course?->instructor_user_id)
+            ->map(fn (Collection $schedules): Collection => $schedules
+                ->map(function (Schedule $schedule): array {
+                    $subject = $schedule->courseOffering?->course ?? $schedule->course;
+
+                    return [
+                        'classroom_id' => $schedule->classroom_id,
+                        'day' => $this->dayLabel($schedule->day_of_week, $schedule->start_at),
+                        'time' => $schedule->start_at && $schedule->end_at
+                            ? $schedule->start_at->format('H:i').' - '.$schedule->end_at->format('H:i')
+                            : '--:-- - --:--',
+                        'room' => $schedule->classroom?->name ?? 'Unassigned room',
+                        'subject' => $subject?->title ?? 'Unassigned subject',
+                    ];
+                })
+                ->values());
     }
 
     public function accessLogs(): View
