@@ -1097,6 +1097,11 @@ body{
 <script>
 document.addEventListener('DOMContentLoaded', function () {
   var csrfToken = '<?= csrf_token() ?>';
+  function currentCsrfToken() {
+    var xsrfCookie = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/);
+    return xsrfCookie ? decodeURIComponent(xsrfCookie[1]) : csrfToken;
+  }
+
   var reserveOverlay = document.getElementById('reserveOverlay');
   var reserveForm = document.getElementById('reserveForm');
   var reserveRoomId = document.getElementById('reserveRoomId');
@@ -1854,7 +1859,7 @@ document.addEventListener('DOMContentLoaded', function () {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': csrfToken,
+                'X-XSRF-TOKEN': currentCsrfToken(),
                 'X-Requested-With': 'XMLHttpRequest',
                 'Accept': 'application/json'
               },
