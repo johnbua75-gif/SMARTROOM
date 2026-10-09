@@ -198,7 +198,7 @@ it('requires RFID proof before a device can check a users reservation', function
         ->assertForbidden();
 });
 
-it('grants device access for a current reserved reservation owned by the scanned cardholder', function () {
+it('denies device access for a current unapproved reservation owned by the scanned cardholder', function () {
     $now = Carbon::parse('2026-10-03 10:30:00');
     $this->travelTo($now);
     $classroom = Classroom::create([
@@ -230,10 +230,9 @@ it('grants device access for a current reserved reservation owned by the scanned
 
     $this->withToken($credential)
         ->getJson('/api/v1/device/reservations/check?user_id='.$user->id.'&rfid_uid='.$card->rfid_uid)
-        ->assertOk()
-        ->assertJsonPath('allowed', true)
-        ->assertJsonPath('message', 'Access granted')
-        ->assertJsonPath('reservation_id', $reservation->id);
+        ->assertForbidden()
+        ->assertJsonPath('allowed', false)
+        ->assertJsonPath('reason', "Reservation status is 'reserved', not approved.");
 });
 
 it('denies access to inactive users even when their card and reservation are active', function () {

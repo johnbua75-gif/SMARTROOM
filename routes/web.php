@@ -117,7 +117,6 @@ Route::middleware(['auth', 'active', 'password.changed', 'role:faculty'])->group
         Route::middleware('role:faculty')->group(function (): void {
             Route::get('/reservations/mine', [FacultyController::class, 'myReservations'])->name('faculty.reservations.mine');
             Route::post('/reservations', [ApiReservationController::class, 'store']);
-            Route::patch('/reservations/{reservation}', [ApiReservationController::class, 'update']);
             Route::delete('/reservations/{reservation}', [ApiReservationController::class, 'destroy']);
         });
     });

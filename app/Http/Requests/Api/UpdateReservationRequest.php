@@ -6,6 +6,7 @@ use App\Services\RoomAvailabilityService;
 use App\Support\RoomAvailabilityStatus;
 use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateReservationRequest extends FormRequest
 {
@@ -19,10 +20,15 @@ class UpdateReservationRequest extends FormRequest
      */
     public function rules(): array
     {
+        $allowedStatuses = ['reserved', 'cancelled'];
+        if (strtolower(trim((string) $this->user()?->role)) === 'admin') {
+            $allowedStatuses[] = 'approved';
+        }
+
         return [
             'start_at' => ['sometimes', 'date'],
             'end_at' => ['sometimes', 'date'],
-            'status' => ['sometimes', 'string', 'in:reserved,cancelled'],
+            'status' => ['sometimes', 'string', Rule::in($allowedStatuses)],
             'notes' => ['nullable', 'string', 'max:1000'],
         ];
     }

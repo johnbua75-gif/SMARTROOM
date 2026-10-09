@@ -319,7 +319,7 @@ class ReservationController extends Controller
         // Check for active reservation within grace period (before start + grace period, and after end)
         $reservation = Reservation::where('user_id', $userId)
             ->where('classroom_id', $classroomId)
-            ->whereIn('status', ['approved', 'reserved'])
+            ->where('status', 'approved')
             ->where('start_at', '<=', $now->copy()->addMinutes($graceMinutes))
             ->where('end_at', '>=', $now)
             ->first();
@@ -383,8 +383,8 @@ class ReservationController extends Controller
                 'reason' => 'No active reservation or class schedule is valid at this time.',
                 'server_time' => $now->toIso8601String(),
             ], 200);
-        } elseif (! in_array($anyReservation->status, ['reserved', 'approved'])) {
-            $reason = "Reservation status is '{$anyReservation->status}', not active.";
+        } elseif ($anyReservation->status !== 'approved') {
+            $reason = "Reservation status is '{$anyReservation->status}', not approved.";
         } elseif ($now->isBefore($anyReservation->start_at->copy()->subMinutes($graceMinutes))) {
             $reason = 'Access reserved for: '.$anyReservation->start_at->format('Y-m-d H:i');
         } else {

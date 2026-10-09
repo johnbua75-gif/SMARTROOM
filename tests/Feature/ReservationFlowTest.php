@@ -194,6 +194,51 @@ it('prevents a faculty from cancelling another faculty reservation', function ()
     expect($reservation->fresh()->status)->toBe('approved');
 });
 
+it('allows admins to approve a reservation', function () {
+    Carbon::setTestNow('2026-06-15 08:00:00');
+
+    $admin = User::factory()->create(['role' => 'admin', 'status' => 'active']);
+    $faculty = makeFaculty();
+    $room = makeRoom();
+    $reservation = Reservation::create([
+        'classroom_id' => $room->id,
+        'user_id' => $faculty->id,
+        'start_at' => '2026-06-15 09:00:00',
+        'end_at' => '2026-06-15 10:00:00',
+        'status' => 'reserved',
+    ]);
+
+    actingAs($admin);
+
+    patchJson('/api/v1/reservations/'.$reservation->id, ['status' => 'approved'])
+        ->assertSuccessful()
+        ->assertJsonPath('data.status', 'approved');
+
+    expect($reservation->fresh()->status)->toBe('approved');
+});
+
+it('does not allow faculty to approve a reservation through the update endpoint', function () {
+    Carbon::setTestNow('2026-06-15 08:00:00');
+
+    $faculty = makeFaculty();
+    $room = makeRoom();
+    $reservation = Reservation::create([
+        'classroom_id' => $room->id,
+        'user_id' => $faculty->id,
+        'start_at' => '2026-06-15 09:00:00',
+        'end_at' => '2026-06-15 10:00:00',
+        'status' => 'reserved',
+    ]);
+
+    actingAs($faculty);
+
+    patchJson('/api/v1/reservations/'.$reservation->id, ['status' => 'approved'])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['status']);
+
+    expect($reservation->fresh()->status)->toBe('reserved');
+});
+
 // ── Conflict Detection ──────────────────────────────────────────
 
 it('prevents double-booking the same room at the same time', function () {
