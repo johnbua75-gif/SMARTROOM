@@ -198,6 +198,44 @@ it('requires RFID proof before a device can check a users reservation', function
         ->assertForbidden();
 });
 
+it('grants device access for a current reserved reservation owned by the scanned cardholder', function () {
+    $now = Carbon::parse('2026-10-03 10:30:00');
+    $this->travelTo($now);
+    $classroom = Classroom::create([
+        'name' => 'Reserved Access Room',
+        'building' => 'Main Building',
+        'access_mode' => 'esp32',
+    ]);
+    $user = User::factory()->create(['role' => 'student', 'status' => 'active']);
+    $card = AccessCard::create([
+        'user_id' => $user->id,
+        'card_number' => 'RESERVED-ACCESS-CARD',
+        'rfid_uid' => '87:3E:D2:06',
+        'status' => 'active',
+    ]);
+    $reservation = Reservation::create([
+        'classroom_id' => $classroom->id,
+        'user_id' => $user->id,
+        'start_at' => $now->copy()->subMinutes(30),
+        'end_at' => $now->copy()->addMinutes(30),
+        'status' => 'reserved',
+    ]);
+    $credential = str_repeat('r', 64);
+    Device::create([
+        'name' => 'Reserved Access Door',
+        'classroom_id' => $classroom->id,
+        'status' => 'active',
+        'credential_hash' => hash('sha256', $credential),
+    ]);
+
+    $this->withToken($credential)
+        ->getJson('/api/v1/device/reservations/check?user_id='.$user->id.'&rfid_uid='.$card->rfid_uid)
+        ->assertOk()
+        ->assertJsonPath('allowed', true)
+        ->assertJsonPath('message', 'Access granted')
+        ->assertJsonPath('reservation_id', $reservation->id);
+});
+
 it('denies access to inactive users even when their card and reservation are active', function () {
     $now = Carbon::parse('2026-10-03 10:30:00');
     $this->travelTo($now);

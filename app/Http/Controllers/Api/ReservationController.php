@@ -319,7 +319,7 @@ class ReservationController extends Controller
         // Check for active reservation within grace period (before start + grace period, and after end)
         $reservation = Reservation::where('user_id', $userId)
             ->where('classroom_id', $classroomId)
-            ->where('status', 'approved')
+            ->whereIn('status', ['approved', 'reserved'])
             ->where('start_at', '<=', $now->copy()->addMinutes($graceMinutes))
             ->where('end_at', '>=', $now)
             ->first();
