@@ -432,36 +432,7 @@
 </head>
 <body class="@yield('body-class')">
     <div class="container">
-        <!- Sidebar ->
-        <div class="sidebar">
-            <a href="#" class="sidebar-logo">
-                <img src="{{ asset('images/logo.png') }}" alt="PSU SmartDoor Logo" class="sidebar-logo-img">
-                <div class="sidebar-logo-text">
-                    <span class="brand-psu">PSU</span>
-                    <span class="brand-main">Smart<span class="door-accent">Door</span></span>
-                </div>
-            </a>
-
-            <ul class="sidebar-nav">
-                <li><a href="/dashboard" class="{{ Request::is('dashboard') ? 'active' : '' }}"><i class="fas fa-chart-line"></i> Dashboard</a></li>
-                <li><a href="/classrooms" class="{{ Request::is('classrooms*') ? 'active' : '' }}"><i class="fas fa-school"></i> Classrooms</a></li>
-                <li><a href="/schedule" class="{{ Request::is('schedule*') ? 'active' : '' }}"><i class="fas fa-calendar"></i> Schedule</a></li>
-                <li><a href="/smartlocking" class="{{ Request::is('smartlocking*') ? 'active' : '' }}"><i class="fas fa-lock"></i> SmartLocking</a></li>
-                <!- AI Recommendations removed from sidebar ->
-                <li><a href="/attendance" class="{{ Request::is('attendance*') ? 'active' : '' }}"><i class="fas fa-clipboard-check"></i> Attendance</a></li>
-                <li><a href="{{ route('admin.notifications.create') }}" class="{{ Request::is('admin/notifications*') ? 'active' : '' }}"><i class="fas fa-bullhorn"></i> Announcements</a></li>
-                <!- Reports link removed from sidebar ->
-            </ul>
-
-            <div class="sidebar-logout">
-                <form method="POST" action="/logout" style="display:inline;">
-                    @csrf
-                    <button type="submit" style="background:none;border:none;padding:0;color:inherit;font:inherit;cursor:pointer;display:flex;align-items:center;gap:8px;">
-                        <i class="fas fa-sign-out-alt"></i> Sign Out
-                    </button>
-                </form>
-            </div>
-        </div>
+        @include('frontend.admin.partials.sidebar')
 
         <!- Main Content ->
         <div class="main-content">

@@ -556,61 +556,7 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
 </head>
 <body>
 
-<!-- ══════════════════════════ SIDEBAR ══════════════════════════ -->
-<div class="sidebar">
-  <a href="#" class="sidebar-logo">
-    <div class="logo-mark"><i class="fas fa-door-open"></i></div>
-    <div class="logo-text">
-      <span class="brand-psu" style="font-size:0.6rem;font-weight:700;letter-spacing:0.18em;color:rgba(255,255,255,0.45);display:block;margin-bottom:3px;text-transform:uppercase;">PSU</span>
-      <span class="brand-main">Smart<span>Room</span></span>
-    </div>
-  </a>
-
-  <span class="nav-section-label">Main Menu</span>
-  <ul class="sidebar-nav">
-    <li>
-      <a href="{{ route('admin.classrooms') }}">
-        <span class="nav-icon"><i class="fas fa-school"></i></span>
-        Room Management
-      </a>
-    </li>
-    <li>
-      <a href="{{ url('/admin/schedule') }}" class="active">
-        <span class="nav-icon"><i class="fas fa-calendar-days"></i></span>
-        Schedule
-      </a>
-    </li>
-    <li>
-      <a href="{{ url('/admin/users') }}">
-        <span class="nav-icon"><i class="fas fa-users-cog"></i></span>
-        User Management
-      </a>
-    </li>
-    <li>
-      <a href="{{ url('/smartlocking') }}">
-        <span class="nav-icon"><i class="fas fa-lock"></i></span>
-        SmartLocking
-      </a>
-    </li>
-  </ul>
-
-  <div class="sidebar-footer">
-    <div class="user-widget">
-      <img src="https://ui-avatars.com/api/?name={{ urlencode(auth()->user()?->name ?? 'Admin User') }}&background=0ea5e9&color=fff" alt="{{ auth()->user()?->name ?? 'Admin User' }}">
-      <div class="user-widget-info">
-        <div class="user-widget-name">{{ auth()->user()?->name ?? 'Admin User' }}</div>
-        <div class="user-widget-role">{{ ucfirst(auth()->user()?->role ?? 'admin') }}</div>
-      </div>
-    </div>
-    <form method="POST" action="{{ url('/logout') }}">
-      @csrf
-      <button type="submit" class="sidebar-logout-btn">
-        <i class="fas fa-arrow-right-from-bracket"></i>
-        Sign Out
-      </button>
-    </form>
-  </div>
-</div>
+@include('frontend.admin.partials.sidebar')
 
 <!-- ══════════════════════════ MAIN ══════════════════════════ -->
 <div class="main">

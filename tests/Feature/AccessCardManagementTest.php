@@ -597,5 +597,9 @@ it('renders smartlocking card details with readable metrics and access results',
         ->assertSee('Denied')
         ->assertSee('Entry')
         ->assertSee('No active reservation or class schedule')
-        ->assertSee('smartlocking-detail-page');
+        ->assertSee('smartlocking-detail-page')
+        ->assertSee('Administrator navigation')
+        ->assertSee('User Management')
+        ->assertSee('Announcements')
+        ->assertSee('href="'.route('smartlocking.index').'" class="active"', false);
 });
