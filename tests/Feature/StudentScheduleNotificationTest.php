@@ -91,6 +91,11 @@ it('lets an admin publish a campus announcement that students can see', function
 
 it('renders the admin notification composer with shared navigation and accessible fields', function () {
     $admin = User::factory()->create(['role' => 'admin']);
+    $recipient = User::factory()->create([
+        'name' => 'Notification Recipient',
+        'email' => 'notification-recipient@example.com',
+        'role' => 'faculty',
+    ]);
 
     $this->actingAs($admin)
         ->get(route('admin.notifications.create'))
@@ -100,8 +105,29 @@ it('renders the admin notification composer with shared navigation and accessibl
         ->assertSee('notification-form-panel', false)
         ->assertSee('notificationTitle', false)
         ->assertSee('notificationUserId', false)
+        ->assertSee('value="'.$recipient->id.'"', false)
+        ->assertSee('Notification Recipient')
         ->assertSee('Send to user')
         ->assertSee('Sign Out');
+});
+
+it('sends an admin announcement to the selected user only', function () {
+    $admin = User::factory()->create(['role' => 'admin']);
+    $recipient = User::factory()->create(['role' => 'faculty']);
+
+    $this->actingAs($admin)
+        ->post(route('admin.notifications.store'), [
+            'title' => 'Targeted update',
+            'body' => 'For one recipient.',
+            'user_id' => $recipient->id,
+        ])
+        ->assertRedirect();
+
+    $this->assertDatabaseHas('notifications', [
+        'type' => 'announcement',
+        'title' => 'Targeted update',
+        'user_id' => $recipient->id,
+    ]);
 });
 
 it('broadcasts user-specific notifications only to the users private channel', function () {

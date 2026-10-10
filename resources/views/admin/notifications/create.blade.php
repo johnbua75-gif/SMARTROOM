@@ -67,16 +67,19 @@
 
             <div class="notification-field">
                 <label for="notificationUserId">Send to user <span class="optional-label">Optional</span></label>
-                <input
+                <select
                     id="notificationUserId"
                     name="user_id"
-                    type="number"
-                    min="1"
-                    step="1"
-                    value="{{ old('user_id') }}"
-                    inputmode="numeric"
+                    class="notification-user-select"
                     aria-describedby="notificationUserHint notificationUserError"
                 >
+                    <option value="">All users</option>
+                    @foreach ($users as $user)
+                        <option value="{{ $user->id }}" @selected((string) old('user_id') === (string) $user->id)>
+                            {{ $user->name }} · {{ $user->email }} ({{ ucfirst($user->role) }})
+                        </option>
+                    @endforeach
+                </select>
                 <span class="notification-field-hint" id="notificationUserHint">Leave blank to send this announcement to everyone.</span>
                 @error('user_id')
                     <span class="notification-field-error" id="notificationUserError">{{ $message }}</span>
@@ -191,6 +194,7 @@ body.admin-notification-create-page .main-content {
 }
 
 .notification-field input,
+.notification-field select,
 .notification-field textarea {
     width: 100%;
     border: 1px solid #cbd5e1;
@@ -208,6 +212,17 @@ body.admin-notification-create-page .main-content {
     padding: 9px 12px;
 }
 
+.notification-field select {
+    min-height: 44px;
+    padding: 9px 36px 9px 12px;
+    appearance: none;
+    background-color: #fff;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%235a6785' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 13px center;
+    cursor: pointer;
+}
+
 .notification-field textarea {
     min-height: 148px;
     padding: 11px 12px;
@@ -215,6 +230,7 @@ body.admin-notification-create-page .main-content {
 }
 
 .notification-field input:focus,
+.notification-field select:focus,
 .notification-field textarea:focus {
     border-color: #1a2f80;
     outline: none;

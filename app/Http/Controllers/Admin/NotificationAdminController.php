@@ -4,13 +4,18 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Notification;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class NotificationAdminController extends Controller
 {
     public function create()
     {
-        return view('admin.notifications.create');
+        return view('admin.notifications.create', [
+            'users' => User::query()
+                ->orderBy('name')
+                ->get(['id', 'name', 'email', 'role']),
+        ]);
     }
 
     public function store(Request $request)
