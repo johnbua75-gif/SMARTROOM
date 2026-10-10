@@ -16,15 +16,15 @@
     $announcementsActive = request()->is('admin/notifications*');
 @endphp
 <style>
-:root { --sidebar-w: 244px; }
+:root { --sidebar-w: 252px; }
 .admin-sidebar {
     position: fixed;
     inset: 0 auto 0 0;
     z-index: 120;
     display: flex;
-    flex: 0 0 244px;
+    flex: 0 0 252px;
     flex-direction: column;
-    width: 244px;
+    width: 252px;
     height: 100vh;
     padding: 0;
     overflow: hidden;
@@ -46,15 +46,16 @@
 }
 .admin-sidebar .logo-mark {
     display: flex;
-    flex: 0 0 38px;
+    flex: 0 0 42px;
     align-items: center;
     justify-content: center;
-    width: 38px;
-    height: 38px;
+    width: 42px;
+    height: 42px;
     border-radius: 8px;
+    overflow: hidden;
     background: #f5c518;
-    color: #0b1640;
 }
+.admin-sidebar .admin-sidebar-logo-img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .admin-sidebar .logo-text { display: grid; gap: 3px; line-height: 1; }
 .admin-sidebar .brand-psu { color: rgba(255,255,255,.56); font-size: .58rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
 .admin-sidebar .brand-main { color: #fff; font-size: .98rem; font-weight: 750; }
@@ -80,10 +81,10 @@
 .admin-sidebar .sidebar-nav a:focus-visible,
 .admin-sidebar .sidebar-logout-btn:focus-visible,
 .admin-sidebar-toggle:focus-visible { outline: 3px solid #f5c518; outline-offset: 2px; }
-.admin-sidebar .sidebar-nav a.active { background: rgba(245,197,24,.15); color: #f5c518; }
+.admin-sidebar .sidebar-nav a.active { background: #303748; color: #f5c518; }
 .admin-sidebar .sidebar-nav a.active::before { position: absolute; inset: 9px auto 9px 0; width: 3px; border-radius: 0 2px 2px 0; background: #f5c518; content: ''; }
 .admin-sidebar .nav-icon { display: flex; flex: 0 0 30px; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 6px; background: rgba(255,255,255,.06); font-size: .82rem; }
-.admin-sidebar .sidebar-nav a.active .nav-icon { background: rgba(245,197,24,.16); color: #f5c518; }
+.admin-sidebar .sidebar-nav a.active .nav-icon { background: rgba(245,197,24,.13); color: #f5c518; }
 .admin-sidebar .sidebar-footer { display: grid; gap: 8px; padding: 12px 10px 14px; margin-top: auto; border-top: 1px solid rgba(245,197,24,.18); }
 .admin-sidebar .user-widget { display: flex; align-items: center; gap: 10px; min-width: 0; padding: 9px; border-radius: 6px; background: rgba(255,255,255,.055); }
 .admin-sidebar-user-avatar { display: flex; flex: 0 0 34px; align-items: center; justify-content: center; width: 34px; height: 34px; border: 1px solid rgba(245,197,24,.45); border-radius: 50%; background: #1a2f80; color: #f5c518; font-size: .7rem; font-weight: 750; }
@@ -92,7 +93,7 @@
 .admin-sidebar .user-widget-role { margin-top: 2px; color: rgba(255,255,255,.55); font-size: .68rem; }
 .admin-sidebar .sidebar-logout-btn { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 40px; padding: 8px 10px; border: 0; border-radius: 6px; background: transparent; color: rgba(255,255,255,.72); cursor: pointer; font-family: inherit; font-size: .82rem; font-weight: 500; text-align: left; }
 .admin-sidebar .sidebar-logout-btn:hover { background: rgba(248,113,113,.1); color: #fecaca; }
-.admin-sidebar ~ .main-content { margin-left: 244px; }
+.admin-sidebar ~ .main-content { margin-left: 252px; }
 .admin-sidebar-toggle,
 .admin-sidebar-backdrop { display: none; }
 @media (max-width: 768px) {
@@ -116,7 +117,7 @@
 <div class="admin-sidebar-backdrop" id="adminSidebarBackdrop" aria-hidden="true"></div>
 <aside class="sidebar admin-sidebar" id="adminSidebar" aria-label="Administrator navigation">
     <a href="{{ route('admin.dashboard') }}" class="sidebar-logo">
-        <span class="logo-mark"><i class="fas fa-door-open" aria-hidden="true"></i></span>
+        <span class="logo-mark"><img class="admin-sidebar-logo-img" src="{{ asset('images/logo.png') }}" alt=""></span>
         <span class="logo-text"><span class="brand-psu">PSU</span><span class="brand-main">Smart<span>Room</span></span></span>
     </a>
     <span class="nav-section-label">Main Menu</span>
