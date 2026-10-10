@@ -89,6 +89,21 @@ it('lets an admin publish a campus announcement that students can see', function
         ->assertSee('The afternoon lecture is cancelled.');
 });
 
+it('renders the admin notification composer with shared navigation and accessible fields', function () {
+    $admin = User::factory()->create(['role' => 'admin']);
+
+    $this->actingAs($admin)
+        ->get(route('admin.notifications.create'))
+        ->assertSuccessful()
+        ->assertSee('Create Notification')
+        ->assertSee('Administrator navigation')
+        ->assertSee('notification-form-panel', false)
+        ->assertSee('notificationTitle', false)
+        ->assertSee('notificationUserId', false)
+        ->assertSee('Send to user')
+        ->assertSee('Sign Out');
+});
+
 it('broadcasts user-specific notifications only to the users private channel', function () {
     $user = User::factory()->create();
     $notification = Notification::create([
