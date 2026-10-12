@@ -15,6 +15,11 @@ use Illuminate\Support\Collection;
 
 class RoomAvailabilityService
 {
+    /** Room operating hours (24h clock): open 5:00 AM, close 6:00 PM. */
+    public const OPEN_HOUR = 5;
+
+    public const CLOSE_HOUR = 18;
+
     private const ACTIVE_SCHEDULE_STATUSES = ['scheduled', 'ongoing'];
 
     private const ACTIVE_RESERVATION_STATUSES = ['reserved', 'approved'];
@@ -424,10 +429,16 @@ class RoomAvailabilityService
         return Schedule::query()
             ->whereIn('status', self::ACTIVE_SCHEDULE_STATUSES)
             ->where(function (Builder $query): void {
-                $query->whereHas('courseOffering.instructor', function (Builder $instructorQuery): void {
+                $query->whereHas('instructor', function (Builder $instructorQuery): void {
                     $this->applyItDepartmentScope($instructorQuery);
+                })->orWhere(function (Builder $offeringQuery): void {
+                    $offeringQuery->whereNull('instructor_user_id')
+                        ->whereHas('courseOffering.instructor', function (Builder $instructorQuery): void {
+                            $this->applyItDepartmentScope($instructorQuery);
+                        });
                 })->orWhere(function (Builder $legacyQuery): void {
-                    $legacyQuery->whereNull('course_offering_id')
+                    $legacyQuery->whereNull('instructor_user_id')
+                        ->whereNull('course_offering_id')
                         ->whereHas('course.instructor', function (Builder $instructorQuery): void {
                             $this->applyItDepartmentScope($instructorQuery);
                         });
@@ -440,10 +451,16 @@ class RoomAvailabilityService
         return Schedule::query()
             ->where('status', 'cancelled')
             ->where(function (Builder $query): void {
-                $query->whereHas('courseOffering.instructor', function (Builder $instructorQuery): void {
+                $query->whereHas('instructor', function (Builder $instructorQuery): void {
                     $this->applyItDepartmentScope($instructorQuery);
+                })->orWhere(function (Builder $offeringQuery): void {
+                    $offeringQuery->whereNull('instructor_user_id')
+                        ->whereHas('courseOffering.instructor', function (Builder $instructorQuery): void {
+                            $this->applyItDepartmentScope($instructorQuery);
+                        });
                 })->orWhere(function (Builder $legacyQuery): void {
-                    $legacyQuery->whereNull('course_offering_id')
+                    $legacyQuery->whereNull('instructor_user_id')
+                        ->whereNull('course_offering_id')
                         ->whereHas('course.instructor', function (Builder $instructorQuery): void {
                             $this->applyItDepartmentScope($instructorQuery);
                         });
@@ -465,7 +482,10 @@ class RoomAvailabilityService
         return Classroom::query()
             ->where(function (Builder $query): void {
                 $query
-                    ->whereHas('schedules.courseOffering.instructor', function (Builder $instructorQuery): void {
+                    ->whereHas('schedules.instructor', function (Builder $instructorQuery): void {
+                        $this->applyItDepartmentScope($instructorQuery);
+                    })
+                    ->orWhereHas('schedules.courseOffering.instructor', function (Builder $instructorQuery): void {
                         $this->applyItDepartmentScope($instructorQuery);
                     })
                     ->orWhereHas('schedules', function (Builder $scheduleQuery): void {

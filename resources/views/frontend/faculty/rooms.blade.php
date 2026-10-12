@@ -342,6 +342,21 @@ body { font-family:var(--fb); background:var(--bg); color:var(--text); min-heigh
 .reserve-submit{border:none;background:var(--accent);color:#fff}
 .reserve-submit:hover{background:var(--navy-mid)}
 .reserve-submit:disabled{opacity:.7;cursor:not-allowed}
+.slot-hours{text-transform:none;letter-spacing:0;font-weight:500}
+.slot-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;max-height:210px;overflow-y:auto;padding:2px}
+.slot-btn{height:36px;border-radius:8px;border:1.5px solid #bbf7d0;background:#f0fdf4;color:#166534;font-size:.76rem;font-weight:700;font-family:var(--fb);cursor:pointer;transition:all .12s}
+.slot-btn:hover:not(:disabled){background:#dcfce7}
+.slot-btn.is-selected{background:var(--accent);border-color:var(--accent);color:#fff}
+.slot-btn:disabled{cursor:not-allowed;background:#f3f4f6;border-color:#e5e7eb;color:#9ca3af;text-decoration:line-through}
+.slot-legend{display:flex;gap:14px;font-size:.7rem;color:var(--text-3);margin-top:2px}
+.slot-legend span{display:inline-flex;align-items:center;gap:5px}
+.slot-dot{width:10px;height:10px;border-radius:3px;display:inline-block;border:1px solid transparent}
+.slot-dot.is-free{background:#f0fdf4;border-color:#bbf7d0}
+.slot-dot.is-selected{background:var(--accent)}
+.slot-dot.is-busy{background:#e5e7eb}
+.slot-summary{font-size:.78rem;font-weight:600;color:var(--text-2);background:var(--bg);border-radius:8px;padding:8px 10px}
+.slot-summary.is-ready{color:#166534;background:#f0fdf4}
+.slot-loading{grid-column:1/-1;text-align:center;font-size:.78rem;color:var(--text-3);padding:12px 0}
 
 .temp-sched-info{padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:var(--r-sm);font-size:.82rem;margin-bottom:12px;line-height:1.5}
 .temp-sched-info strong{color:var(--text-2);font-weight:600}
@@ -968,14 +983,25 @@ body{
       <input type="hidden" id="reserveRoomId" name="classroom_id">
 
       <div class="reserve-group">
-        <label class="reserve-label" for="reserveStartAt">Start</label>
-        <input class="reserve-input" id="reserveStartAt" name="start_at" type="datetime-local" required>
+        <label class="reserve-label" for="reserveDate">Date</label>
+        <input class="reserve-input" id="reserveDate" type="date" required>
       </div>
 
       <div class="reserve-group">
-        <label class="reserve-label" for="reserveEndAt">End</label>
-        <input class="reserve-input" id="reserveEndAt" name="end_at" type="datetime-local" required>
+        <div class="slot-head">
+          <span class="reserve-label">Available times <span class="slot-hours">(5:00 AM - 6:00 PM)</span></span>
+        </div>
+        <div class="slot-grid" id="slotGrid" role="group" aria-label="Hourly time slots"></div>
+        <div class="slot-legend">
+          <span><i class="slot-dot is-free"></i>Free</span>
+          <span><i class="slot-dot is-selected"></i>Selected</span>
+          <span><i class="slot-dot is-busy"></i>Taken</span>
+        </div>
+        <div class="slot-summary" id="slotSummary">Select one or more consecutive free hours.</div>
       </div>
+
+      <input type="hidden" id="reserveStartAt" name="start_at">
+      <input type="hidden" id="reserveEndAt" name="end_at">
 
       <div class="reserve-group">
         <label class="reserve-label" for="reserveNotes">Notes (Optional)</label>
@@ -1108,6 +1134,9 @@ document.addEventListener('DOMContentLoaded', function () {
   var reserveRoomName = document.getElementById('reserveRoomName');
   var reserveStartAt = document.getElementById('reserveStartAt');
   var reserveEndAt = document.getElementById('reserveEndAt');
+  var reserveDate = document.getElementById('reserveDate');
+  var slotGrid = document.getElementById('slotGrid');
+  var slotSummary = document.getElementById('slotSummary');
   var reserveNotes = document.getElementById('reserveNotes');
   var reserveError = document.getElementById('reserveError');
   var reserveSubmitBtn = document.getElementById('reserveSubmitBtn');
@@ -1191,23 +1220,138 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     var now = new Date();
-    var startDefault = new Date(now.getTime() + 30 * 60000);
-    var endDefault = new Date(startDefault.getTime() + 60 * 60000);
+    var today = formatDateOnly(now);
+    var defaultDate = bookingStartAt && bookingStartAt.value ? bookingStartAt.value.slice(0, 10) : today;
+    if (defaultDate < today) defaultDate = today;
+    if (defaultDate === today && now.getHours() >= SLOT_CLOSE_HOUR) {
+      defaultDate = formatDateOnly(new Date(now.getTime() + 24 * 3600000));
+    }
 
     reserveRoomId.value = String(roomId);
     reserveRoomName.textContent = roomName;
-    reserveStartAt.value = bookingStartAt && bookingStartAt.value ? bookingStartAt.value : localDateTimeInput(startDefault);
-    reserveEndAt.value = bookingEndAt && bookingEndAt.value ? bookingEndAt.value : localDateTimeInput(endDefault);
+    reserveDate.min = today;
+    reserveDate.value = defaultDate;
     reserveNotes.value = '';
     reserveError.textContent = '';
     reserveError.classList.remove('is-visible');
     reserveSubmitBtn.disabled = false;
+    clearSlotSelection();
 
     reserveOverlay.classList.add('is-open');
     reserveOverlay.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
-    reserveStartAt.focus();
+    loadSlots();
   }
+
+  /* ── Free-slot picker for the reserve modal (hourly, 5 AM - 6 PM) ── */
+  var SLOT_OPEN_HOUR = 5;
+  var SLOT_CLOSE_HOUR = 18;
+  var slotData = [];
+  var slotSel = null; // { from: index, to: index }
+  var slotLoadToken = 0;
+
+  function slotHourLabel(hour) {
+    var h12 = hour % 12 === 0 ? 12 : hour % 12;
+    return h12 + ':00 ' + (hour < 12 ? 'AM' : 'PM');
+  }
+
+  function clearSlotSelection() {
+    slotSel = null;
+    reserveStartAt.value = '';
+    reserveEndAt.value = '';
+    updateSlotSummary();
+  }
+
+  function updateSlotSummary() {
+    if (!slotSel) {
+      slotSummary.textContent = 'Select one or more consecutive free hours.';
+      slotSummary.classList.remove('is-ready');
+      return;
+    }
+    var first = slotData[slotSel.from];
+    var last = slotData[slotSel.to];
+    reserveStartAt.value = first.start_at;
+    reserveEndAt.value = last.end_at;
+    var hours = slotSel.to - slotSel.from + 1;
+    var dateLabel = new Date(first.start_at).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
+    var startHour = Number(first.start_at.slice(11, 13));
+    var endHour = Number(last.end_at.slice(11, 13));
+    slotSummary.textContent = dateLabel + ' · ' + slotHourLabel(startHour) + ' - ' + slotHourLabel(endHour) + ' (' + hours + ' hr' + (hours > 1 ? 's' : '') + ')';
+    slotSummary.classList.add('is-ready');
+  }
+
+  function renderSlots() {
+    slotGrid.innerHTML = slotData.map(function (slot, index) {
+      var free = slot.status === 'free';
+      var selected = slotSel && index >= slotSel.from && index <= slotSel.to;
+      var startHour = Number(slot.start_at.slice(11, 13));
+      var title = free ? 'Available' : (slot.reason || 'Not available');
+      return '<button type="button" class="slot-btn' + (selected ? ' is-selected' : '') + '" data-index="' + index + '"'
+        + (free ? '' : ' disabled') + ' title="' + escapeHtml(title) + '" aria-pressed="' + (selected ? 'true' : 'false') + '">'
+        + slotHourLabel(startHour) + '</button>';
+    }).join('');
+    if (!slotData.some(function (slot) { return slot.status === 'free'; })) {
+      slotSummary.textContent = 'No free hours on this date. Try another day.';
+      slotSummary.classList.remove('is-ready');
+    }
+  }
+
+  async function loadSlots() {
+    var token = ++slotLoadToken;
+    clearSlotSelection();
+    slotGrid.innerHTML = '<div class="slot-loading">Loading available times...</div>';
+    try {
+      var query = new URLSearchParams({ classroom_id: reserveRoomId.value, date: reserveDate.value });
+      var response = await fetch('/api/v1/room-availability/slots?' + query.toString(), {
+        credentials: 'same-origin',
+        headers: { 'Accept': 'application/json' }
+      });
+      var payload = await response.json().catch(function () { return {}; });
+      if (token !== slotLoadToken) return;
+      if (!response.ok) throw new Error(payload.message || 'Failed');
+      slotData = (payload.data && payload.data.slots) || [];
+      renderSlots();
+    } catch (err) {
+      if (token !== slotLoadToken) return;
+      slotData = [];
+      slotGrid.innerHTML = '<div class="slot-loading">Could not load available times. Please try again.</div>';
+    }
+  }
+
+  function onSlotClick(index) {
+    var clicked = slotData[index];
+    if (!clicked || clicked.status !== 'free') return;
+
+    if (slotSel && index >= slotSel.from && index <= slotSel.to) {
+      if (slotSel.from === slotSel.to) {
+        slotSel = null; // toggle off single selection
+      } else {
+        slotSel = { from: index, to: index };
+      }
+    } else if (slotSel) {
+      var from = Math.min(slotSel.from, index);
+      var to = Math.max(slotSel.to, index);
+      var allFree = true;
+      for (var i = from; i <= to; i++) {
+        if (slotData[i].status !== 'free') { allFree = false; break; }
+      }
+      slotSel = allFree ? { from: from, to: to } : { from: index, to: index };
+    } else {
+      slotSel = { from: index, to: index };
+    }
+
+    renderSlots();
+    updateSlotSummary();
+    reserveError.classList.remove('is-visible');
+  }
+
+  slotGrid.addEventListener('click', function (event) {
+    var btn = event.target.closest('.slot-btn');
+    if (btn) onSlotClick(Number(btn.dataset.index));
+  });
+  reserveDate.addEventListener('change', function () {
+    if (reserveDate.value) loadSlots();
+  });
 
   function setBookingDefaults() {
     if (!bookingStartAt || !bookingEndAt) return;
@@ -1841,7 +1985,7 @@ document.addEventListener('DOMContentLoaded', function () {
     reserveError.classList.remove('is-visible');
 
     if (!startAt || !endAt) {
-      reserveError.textContent = 'Start and end date/time are required.';
+      reserveError.textContent = 'Please select an available time slot.';
       reserveError.classList.add('is-visible');
       reserveSubmitBtn.disabled = false;
       return;

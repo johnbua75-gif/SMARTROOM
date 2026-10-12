@@ -15,6 +15,53 @@ use Illuminate\Support\Facades\Cache;
 
 class RoomAvailabilityController extends Controller
 {
+    /**
+     * Hourly free/busy slots for one room on one date, within operating hours.
+     */
+    public function slots(Request $request, RoomAvailabilityService $availabilityService): JsonResponse
+    {
+        $validated = $request->validate([
+            'classroom_id' => ['required', 'integer', 'exists:classrooms,id'],
+            'date' => ['required', 'date_format:Y-m-d'],
+        ]);
+
+        $classroomId = (int) $validated['classroom_id'];
+        $day = Carbon::createFromFormat('Y-m-d', $validated['date'])->startOfDay();
+        $now = now();
+        $slots = [];
+
+        for ($hour = RoomAvailabilityService::OPEN_HOUR; $hour < RoomAvailabilityService::CLOSE_HOUR; $hour++) {
+            $start = $day->copy()->setTime($hour, 0);
+            $end = $start->copy()->addHour();
+
+            if ($end->lte($now)) {
+                $status = 'past';
+                $reason = 'This time has already passed.';
+            } else {
+                $availability = $availabilityService->checkAvailability($classroomId, $start, $end);
+                $status = $availability['available'] ? 'free' : (string) $availability['status'];
+                $reason = $availability['reason'];
+            }
+
+            $slots[] = [
+                'start_at' => $start->format('Y-m-d\TH:i'),
+                'end_at' => $end->format('Y-m-d\TH:i'),
+                'status' => $status,
+                'reason' => $reason,
+            ];
+        }
+
+        return response()->json([
+            'data' => [
+                'classroom_id' => $classroomId,
+                'date' => $validated['date'],
+                'open_hour' => RoomAvailabilityService::OPEN_HOUR,
+                'close_hour' => RoomAvailabilityService::CLOSE_HOUR,
+                'slots' => $slots,
+            ],
+        ]);
+    }
+
     public function check(CheckRoomAvailabilityRequest $request, RoomAvailabilityService $availabilityService): JsonResponse
     {
         $payload = $request->validated();

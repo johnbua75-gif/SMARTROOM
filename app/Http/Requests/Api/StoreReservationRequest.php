@@ -38,6 +38,14 @@ class StoreReservationRequest extends FormRequest
             $startAt = Carbon::parse((string) $this->input('start_at'));
             $endAt = Carbon::parse((string) $this->input('end_at'));
 
+            $openAt = $startAt->copy()->setTime(RoomAvailabilityService::OPEN_HOUR, 0);
+            $closeAt = $startAt->copy()->setTime(RoomAvailabilityService::CLOSE_HOUR, 0);
+            if ($startAt->lt($openAt) || $endAt->gt($closeAt)) {
+                $validator->errors()->add('start_at', 'Reservations must be within operating hours (5:00 AM - 6:00 PM) on the same day.');
+
+                return;
+            }
+
             $service = app(RoomAvailabilityService::class);
 
             $availability = $service->checkAvailability($classroomId, $startAt, $endAt);

@@ -34,6 +34,7 @@ Route::prefix('v1')->group(function (): void {
 
     // -- Public read-only endpoints (room availability data only, no PII) --
     Route::get('room-availability/check', [RoomAvailabilityController::class, 'check']);
+    Route::get('room-availability/slots', [RoomAvailabilityController::class, 'slots']);
     Route::get('room-statuses', [RoomAvailabilityController::class, 'statuses']);
     Route::get('map/buildings', [MapInteractionController::class, 'buildings']);
     Route::get('map/buildings/{building}/rooms', [MapInteractionController::class, 'roomsByBuilding']);
