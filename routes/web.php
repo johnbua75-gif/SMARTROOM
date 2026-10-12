@@ -124,8 +124,8 @@ Route::middleware(['auth', 'active', 'password.changed', 'role:faculty'])->group
 });
 
 Route::middleware(['auth', 'active', 'password.changed', 'role:admin'])->group(function (): void {
-    Route::get('/dashboard', [AdminController::class, 'users'])->name('dashboard');
-    Route::get('/admin/dashboard', [AdminController::class, 'users'])->name('admin.dashboard');
+    Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+    Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
     Route::get('/admin/notifications/create', [NotificationAdminController::class, 'create'])->name('admin.notifications.create');
     Route::post('/admin/notifications', [NotificationAdminController::class, 'store'])->name('admin.notifications.store');
 

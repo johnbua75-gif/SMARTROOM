@@ -3,480 +3,100 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard – SmartDoor</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<title>Dashboard - SmartRoom</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <style>
-/* ── RESET & BASE ───────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
 :root {
-  --yellow:        #f5c518;
-  --yellow-bg:     #fff8e1;
-  --navy:          #0b1640;
-  --navy-mid:      #1a2f80;
-  --white:         #ffffff;
-  --bg:            #f4f6f9;
-  --border:        #e8ecf3;
-  --text:          #111827;
-  --text-secondary:#6b7280;
-  --text-light:    #9ca3af;
-  --green:         #16a34a;
-  --green-bg:      #dcfce7;
-  --green-border:  #86efac;
-  --blue-bg:       #dbeafe;
-  --blue-border:   #93c5fd;
-  --blue-text:     #1d4ed8;
-  --orange-bg:     #ffedd5;
-  --orange-border: #fdba74;
-  --orange-text:   #c2410c;
-  --red:           #dc2626;
-  --red-bg:        #fee2e2;
-  --shadow:        0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-  --shadow-card:   0 2px 8px rgba(0,0,0,0.06);
-  --radius:        14px;
-  --radius-sm:     10px;
-  --sidebar-w:     240px;
+  --navy: #0b1640;
+  --navy-mid: #1a2f80;
+  --gold: #f5c518;
+  --bg: #f6f8fc;
+  --card: #ffffff;
+  --line: #e6ebf3;
+  --text: #0b1640;
+  --muted: #7b86a3;
+  --green: #16a34a;
+  --red: #dc2626;
+  --amber: #d4a10a;
+  --sidebar-w: 252px;
 }
+body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; }
+.main { margin-left: var(--sidebar-w); flex: 1; min-width: 0; padding: 36px 40px 56px; display: flex; flex-direction: column; gap: 28px; }
 
-body {
-  font-family: 'Inter', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100vh;
-  display: flex;
-}
+/* Header */
+.dash-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+.dash-eyebrow { font-size: .7rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+.dash-title { font-size: 1.7rem; font-weight: 800; letter-spacing: -.02em; }
+.dash-sub { font-size: .88rem; color: var(--muted); margin-top: 4px; }
+.dash-live { display: inline-flex; align-items: center; gap: 10px; padding: 8px 14px; border-radius: 999px; background: var(--card); border: 1px solid var(--line); font-size: .74rem; font-weight: 700; color: #166534; }
+.dash-live .dot { width: 7px; height: 7px; border-radius: 50%; background: #22c55e; animation: ping 1.8s infinite; }
+.dash-live b { color: var(--navy); font-family: ui-monospace, Menlo, Consolas, monospace; letter-spacing: .03em; font-variant-numeric: tabular-nums; }
+@keyframes ping { 0% { box-shadow: 0 0 0 0 rgba(34,197,94,.55); } 70% { box-shadow: 0 0 0 8px rgba(34,197,94,0); } 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); } }
 
-/* ══════════════════════════════════════════════
-   SIDEBAR  — DO NOT CHANGE
-══════════════════════════════════════════════ */
-.sidebar {
-  position: fixed;
-  left: 0; top: 0;
-  width: var(--sidebar-w);
-  height: 100vh;
-  background: var(--navy);
-  display: flex;
-  flex-direction: column;
-  padding: 0;
-  overflow: hidden;
-  z-index: 100;
-}
-.sidebar::before {
-  content: '';
-  position: absolute; inset: 0;
-  background: linear-gradient(160deg, rgba(245,197,24,0.06) 0%, transparent 55%);
-  pointer-events: none;
-}
-.sidebar::after {
-  content: '';
-  position: absolute;
-  bottom: -60px; right: -60px;
-  width: 180px; height: 180px;
-  border-radius: 50%;
-  border: 1px solid rgba(245,197,24,0.08);
-  pointer-events: none;
-}
-.sidebar-logo {
-  display: flex; align-items: center; gap: 12px;
-  padding: 28px 20px 24px 24px;
-  text-decoration: none;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
-  margin-bottom: 8px;
-}
-.logo-mark {
-  width: 40px; height: 40px;
-  background: var(--yellow);
-  border-radius: 12px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.1rem; color: var(--navy); flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(245,197,24,0.4);
-}
-.logo-text { line-height: 1; }
-.logo-text .brand-psu {
-  font-size: 0.6rem; font-weight: 600; letter-spacing: 0.18em;
-  color: rgba(255,255,255,0.45); text-transform: uppercase;
-  display: block; margin-bottom: 3px;
-}
-.logo-text .brand-main {
-  font-size: 1.05rem; font-weight: 700; color: #fff; letter-spacing: -0.01em;
-}
-.logo-text .brand-main span { color: var(--yellow); }
-.nav-section-label {
-  font-size: 0.68rem; font-weight: 700; letter-spacing: 0.12em;
-  text-transform: uppercase; color: rgba(255,255,255,0.25);
-  padding: 16px 24px 6px;
-}
-.sidebar-nav { list-style: none; overflow-y: auto; padding: 0 12px; }
-.sidebar-nav::-webkit-scrollbar { width: 0; }
-.sidebar-nav li { margin-bottom: 2px; }
-.sidebar-nav a {
-  display: flex; align-items: center; gap: 11px;
-  padding: 11px 12px; text-decoration: none;
-  color: rgba(255,255,255,0.6); font-size: 0.88rem; font-weight: 500;
-  border-radius: var(--radius-sm);
-  transition: all 0.22s cubic-bezier(0.4,0,0.2,1);
-  position: relative; overflow: hidden;
-}
-.sidebar-nav a .nav-icon {
-  width: 32px; height: 32px; border-radius: 8px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 0.85rem; background: rgba(255,255,255,0.05);
-  flex-shrink: 0; transition: all 0.22s;
-}
-.sidebar-nav a:hover { color: rgba(255,255,255,0.9); background: rgba(255,255,255,0.06); }
-.sidebar-nav a:hover .nav-icon { background: rgba(255,255,255,0.1); }
-.sidebar-nav a.active { background: rgba(245,197,24,0.14); color: var(--yellow); }
-.sidebar-nav a.active .nav-icon { background: rgba(245,197,24,0.2); color: var(--yellow); }
-.sidebar-nav a.active::before {
-  content: ''; position: absolute;
-  left: 0; top: 20%; bottom: 20%;
-  width: 3px; background: var(--yellow);
-  border-radius: 0 2px 2px 0;
-}
-.sidebar-footer {
-  margin-top: auto; padding: 16px 12px 24px;
-  border-top: 1px solid rgba(255,255,255,0.06);
-}
-.user-widget {
-  display: flex; align-items: center; gap: 10px;
-  padding: 10px 12px; border-radius: var(--radius-sm);
-  background: rgba(255,255,255,0.05); margin-bottom: 8px;
-}
-.user-widget img {
-  width: 34px; height: 34px; border-radius: 50%; object-fit: cover;
-  border: 2px solid rgba(245,197,24,0.4);
-}
-.user-widget-info { flex: 1; min-width: 0; }
-.user-widget-name {
-  font-size: 0.83rem; font-weight: 600; color: #fff;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.user-widget-role { font-size: 0.73rem; color: rgba(255,255,255,0.4); }
-.sidebar-logout-btn {
-  display: flex; align-items: center; gap: 10px;
-  padding: 9px 12px; color: rgba(255,255,255,0.4);
-  font-size: 0.84rem; font-weight: 500; border-radius: var(--radius-sm);
-  transition: all 0.22s; width: 100%;
-  background: none; border: none; cursor: pointer; font-family: inherit;
-  text-decoration: none;
-}
-.sidebar-logout-btn:hover { color: #f87171; background: rgba(244,63,94,0.08); }
+/* KPI */
+.kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.kpi { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 20px 22px; display: flex; flex-direction: column; gap: 14px; }
+.kpi-top { display: flex; align-items: center; justify-content: space-between; }
+.kpi-label { font-size: .72rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.kpi-icon { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: .85rem; background: #eef2ff; color: var(--navy-mid); }
+.kpi-icon.gold { background: #fffbe6; color: var(--amber); }
+.kpi-value { font-size: 2.2rem; font-weight: 800; letter-spacing: -.03em; line-height: 1; }
+.kpi-value small { font-size: .95rem; font-weight: 600; color: var(--muted); letter-spacing: 0; }
+.kpi-foot { font-size: .78rem; color: var(--muted); }
+.kpi-foot b { color: var(--text); font-weight: 700; }
+.kpi-foot .bad { color: var(--red); font-weight: 700; }
 
-/* ══════════════════════════════════════════════
-   MAIN LAYOUT
-══════════════════════════════════════════════ */
-.main {
-  margin-left: var(--sidebar-w);
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-}
+/* Panels */
+.grid-2 { display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; }
+.panel { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 22px 24px; }
+.panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+.panel-title { font-size: .95rem; font-weight: 800; }
+.panel-link { font-size: .76rem; font-weight: 700; color: var(--navy-mid); text-decoration: none; }
+.panel-link:hover { text-decoration: underline; }
 
-/* ── TOPBAR ─────────────────────────────────────── */
-.topbar {
-  background: var(--white);
-  border-bottom: 1px solid var(--border);
-  padding: 0 36px;
-  height: 64px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  box-shadow: 0 1px 0 var(--border);
-}
+/* Room status bar */
+.status-bar { display: flex; height: 10px; border-radius: 999px; overflow: hidden; background: #eef1f7; gap: 3px; }
+.status-bar span { display: block; height: 100%; }
+.seg-free { background: var(--navy-mid); }
+.seg-busy { background: var(--gold); }
+.seg-off { background: #cbd2e1; }
+.status-legend { display: flex; flex-wrap: wrap; gap: 20px; margin-top: 14px; font-size: .8rem; color: var(--muted); }
+.status-legend b { color: var(--text); font-weight: 800; margin-right: 4px; }
+.status-legend i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 7px; }
 
-.topbar-search {
-  display: flex; align-items: center; gap: 10px;
-  background: var(--bg);
-  border: 1.5px solid var(--border);
-  border-radius: 24px;
-  padding: 8px 18px;
-  width: 340px;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-.topbar-search:focus-within {
-  border-color: #93c5fd;
-  box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
-}
-.topbar-search i { color: var(--text-light); font-size: 0.9rem; }
-.topbar-search input {
-  border: none; outline: none; background: transparent;
-  font-size: 0.9rem; font-family: 'Inter', sans-serif;
-  color: var(--text); width: 100%;
-}
-.topbar-search input::placeholder { color: var(--text-light); }
+/* Lists */
+.list { display: flex; flex-direction: column; }
+.row { display: flex; align-items: center; gap: 14px; padding: 13px 0; border-top: 1px solid var(--line); }
+.row:first-child { border-top: 0; padding-top: 0; }
+.row:last-child { padding-bottom: 0; }
+.row-time { flex: 0 0 92px; font-size: .78rem; font-weight: 700; color: var(--navy-mid); font-variant-numeric: tabular-nums; }
+.row-main { flex: 1; min-width: 0; }
+.row-title { font-size: .86rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row-sub { font-size: .74rem; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tag { flex: 0 0 auto; font-size: .64rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; padding: 4px 9px; border-radius: 999px; }
+.tag-live { color: #166534; background: #f0fdf4; border: 1px solid #bbf7d0; }
+.tag-next { color: var(--navy-mid); background: #eef2ff; border: 1px solid #dbe3f5; }
+.tag-done { color: #8a94b0; background: #f4f6fa; border: 1px solid #eceff6; }
+.tag-cancel { color: #b45309; background: #fffbeb; border: 1px solid #fde68a; }
+.tag-ok { color: #166534; background: #f0fdf4; border: 1px solid #bbf7d0; }
+.tag-deny { color: #b91c1c; background: #fef2f2; border: 1px solid #fecaca; }
+.empty { padding: 26px 0 8px; text-align: center; font-size: .82rem; color: var(--muted); }
 
-.topbar-right {
-  display: flex; align-items: center; gap: 20px;
-}
+/* Quick actions + people */
+.actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.action { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-radius: 14px; border: 1px solid var(--line); text-decoration: none; color: var(--text); font-size: .82rem; font-weight: 700; transition: all .15s; }
+.action i { width: 30px; height: 30px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: .8rem; background: #eef2ff; color: var(--navy-mid); }
+.action:hover { border-color: var(--navy-mid); transform: translateY(-1px); }
+.people { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 18px; }
+.person { padding: 14px; border-radius: 14px; background: var(--bg); text-align: center; }
+.person b { display: block; font-size: 1.35rem; font-weight: 800; letter-spacing: -.02em; }
+.person span { font-size: .7rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
 
-.notif-btn {
-  position: relative; background: none; border: none;
-  cursor: pointer; color: var(--text-secondary); font-size: 1.2rem;
-  padding: 6px; border-radius: 8px; transition: background 0.2s;
-}
-.notif-btn:hover { background: var(--bg); }
-.notif-badge {
-  position: absolute; top: 4px; right: 4px;
-  width: 8px; height: 8px; background: var(--red);
-  border-radius: 50%; border: 1.5px solid var(--white);
-}
-
-.topbar-profile {
-  display: flex; align-items: center; gap: 12px; cursor: pointer;
-}
-.topbar-profile-info { text-align: right; }
-.topbar-profile-name {
-  font-size: 0.88rem; font-weight: 700; color: var(--text); line-height: 1.2;
-}
-.topbar-profile-role { font-size: 0.78rem; color: var(--text-secondary); }
-.topbar-profile img {
-  width: 40px; height: 40px; border-radius: 50%; object-fit: cover;
-  border: 2px solid var(--border);
-  box-shadow: var(--shadow);
-}
-
-/* ── PAGE CONTENT ────────────────────────────────── */
-.content {
-  padding: 32px 36px 48px;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-/* ── PAGE HEADER ─────────────────────────────────── */
-.page-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-}
-.page-header-left h1 {
-  font-size: 1.55rem;
-  font-weight: 800;
-  color: var(--text);
-  letter-spacing: -0.02em;
-  margin-bottom: 4px;
-}
-.page-header-left p {
-  font-size: 0.92rem;
-  color: var(--text-secondary);
-  font-weight: 400;
-}
-.date-badge {
-  display: flex; align-items: center; gap: 8px;
-  background: var(--white);
-  border: 1.5px solid var(--border);
-  border-radius: 24px;
-  padding: 7px 16px;
-  font-size: 0.88rem;
-  color: var(--text-secondary);
-  font-weight: 500;
-  box-shadow: var(--shadow);
-  white-space: nowrap;
-}
-.date-badge i { color: var(--text-light); font-size: 0.82rem; }
-
-/* ── STAT CARDS ──────────────────────────────────── */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-}
-
-.stat-card {
-  background: var(--white);
-  border-radius: var(--radius);
-  border: 1.5px solid var(--border);
-  padding: 22px 22px 20px;
-  box-shadow: var(--shadow-card);
-  position: relative;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-.stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-}
-
-.stat-trend {
-  position: absolute;
-  top: 18px; right: 18px;
-  font-size: 0.78rem; font-weight: 700;
-  display: flex; align-items: center; gap: 3px;
-}
-.trend-up   { color: var(--green); }
-.trend-down { color: var(--red); }
-
-.stat-icon-wrap {
-  width: 44px; height: 44px;
-  border-radius: 12px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.3rem;
-  margin-bottom: 16px;
-}
-.icon-yellow { background: var(--yellow-bg); color: #b45309; }
-.icon-blue   { background: var(--blue-bg);   color: var(--blue-text); }
-.icon-green  { background: var(--green-bg);  color: var(--green); }
-.icon-red    { background: var(--red-bg);    color: var(--red); }
-
-.stat-value {
-  font-size: 2rem;
-  font-weight: 800;
-  color: var(--text);
-  letter-spacing: -0.04em;
-  line-height: 1;
-  margin-bottom: 5px;
-}
-.stat-label {
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  font-weight: 500;
-}
-
-/* ── CHARTS ROW ──────────────────────────────────── */
-.charts-row {
-  display: grid;
-  grid-template-columns: 1.7fr 1fr;
-  gap: 16px;
-}
-
-.chart-card {
-  background: var(--white);
-  border-radius: var(--radius);
-  border: 1.5px solid var(--border);
-  padding: 24px 24px 20px;
-  box-shadow: var(--shadow-card);
-}
-
-.chart-card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 20px;
-}
-.chart-card-title {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--text);
-}
-.chart-period-btn {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  background: var(--bg);
-  border: 1.5px solid var(--border);
-  border-radius: 20px;
-  padding: 4px 14px;
-  cursor: pointer;
-  font-family: 'Inter', sans-serif;
-  transition: border-color 0.2s;
-}
-.chart-period-btn:hover { border-color: #93c5fd; }
-.chart-wrap { height: 220px; }
-
-/* ── RECENT STATUS ───────────────────────────────── */
-.status-card {
-  background: var(--white);
-  border-radius: var(--radius);
-  border: 1.5px solid var(--border);
-  box-shadow: var(--shadow-card);
-  overflow: hidden;
-}
-
-.status-card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 22px 24px 16px;
-}
-.status-card-title {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--text);
-}
-.view-all-link {
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: var(--navy-mid);
-  text-decoration: none;
-  transition: color 0.2s;
-}
-.view-all-link:hover { color: var(--navy); }
-
-.status-table { width: 100%; border-collapse: collapse; }
-
-.status-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px 24px;
-  border-top: 1px solid var(--border);
-  transition: background 0.15s;
-}
-.status-row:hover { background: var(--bg); }
-
-.status-room-info {
-  display: flex; align-items: center; gap: 14px;
-}
-.status-room-icon {
-  width: 40px; height: 40px;
-  border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.1rem;
-  flex-shrink: 0;
-}
-.room-name {
-  font-size: 0.92rem;
-  font-weight: 700;
-  color: var(--text);
-  margin-bottom: 2px;
-}
-.room-meta {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-}
-
-.status-badge {
-  font-size: 0.8rem;
-  font-weight: 700;
-  border-radius: 8px;
-  padding: 5px 16px;
-  letter-spacing: 0.01em;
-}
-.badge-occupied    { background: var(--blue-bg);    color: var(--blue-text);    border: 1.5px solid var(--blue-border); }
-.badge-available   { background: var(--green-bg);   color: var(--green);        border: 1.5px solid var(--green-border); }
-.badge-maintenance { background: var(--orange-bg);  color: var(--orange-text);  border: 1.5px solid var(--orange-border); }
-
-/* ── ANIMATIONS ──────────────────────────────────── */
-@keyframes fadeSlideUp {
-  from { opacity: 0; transform: translateY(14px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-.page-header { animation: fadeSlideUp 0.4s both 0.04s; }
-.stats-grid  { animation: fadeSlideUp 0.4s both 0.1s; }
-.charts-row  { animation: fadeSlideUp 0.4s both 0.18s; }
-.status-card { animation: fadeSlideUp 0.4s both 0.25s; }
-
-/* ── RESPONSIVE ──────────────────────────────────── */
-@media (max-width: 1200px) {
-  .stats-grid  { grid-template-columns: repeat(2,1fr); }
-  .charts-row  { grid-template-columns: 1fr; }
-  .content     { padding: 24px 20px 40px; }
-  .topbar      { padding: 0 20px; }
-}
-@media (max-width: 768px) {
-  :root { --sidebar-w: 0px; }
-  .sidebar { display: none; }
-  .topbar-search { width: 200px; }
-  .stats-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
-}
+@media (max-width: 1100px) { .kpis { grid-template-columns: repeat(2, 1fr); } .grid-2 { grid-template-columns: 1fr; } }
+@media (max-width: 768px) { :root { --sidebar-w: 0px; } .main { padding: 24px 16px 40px; } .kpis { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { .dash-live .dot { animation: none; } }
 </style>
 @include('frontend.admin.partials.minimal-ui-overrides')
 </head>
@@ -484,291 +104,176 @@ body {
 
 @include('frontend.admin.partials.sidebar')
 
-{{-- ═══ MAIN ══════════════════════════════════════ --}}
+@php
+    $now = now();
+    $adminName = trim((string) (auth()->user()?->name ?? 'Admin'));
+    $firstName = explode(' ', $adminName)[0] ?: 'Admin';
+    $hour = (int) $now->format('G');
+    $greeting = $hour < 12 ? 'Good morning' : ($hour < 18 ? 'Good afternoon' : 'Good evening');
+    $total = max(1, $stats['rooms_total']);
+    $pct = fn (int $n): string => number_format(($n / $total) * 100, 2, '.', '');
+@endphp
+
 <div class="main">
 
-  {{-- TOPBAR --}}
-  <div class="topbar">
-    <div style="font-size:0.84rem;color:var(--text-secondary);display:flex;align-items:center;gap:7px;">
-      <i class="fas fa-clock" style="font-size:0.78rem;color:var(--text-light);"></i>
-      <span>{{ \Carbon\Carbon::now()->format('l, F j, Y') }}</span>
+  <header class="dash-head">
+    <div>
+      <div class="dash-eyebrow">{{ $now->format('l, F j, Y') }}</div>
+      <h1 class="dash-title">{{ $greeting }}, {{ $firstName }}</h1>
+      <p class="dash-sub">Here is what is happening across your rooms today.</p>
     </div>
+    <div class="dash-live"><span class="dot"></span>LIVE <b id="dashClock">--:--:--</b></div>
+  </header>
+
+  <section class="kpis">
+    <article class="kpi">
+      <div class="kpi-top"><span class="kpi-label">Rooms free now</span><span class="kpi-icon"><i class="fas fa-door-open"></i></span></div>
+      <div class="kpi-value">{{ $stats['rooms_free'] }} <small>/ {{ $stats['rooms_total'] }}</small></div>
+      <div class="kpi-foot"><b>{{ $stats['rooms_busy'] }}</b> in use &middot; <b>{{ $stats['rooms_unavailable'] }}</b> unavailable</div>
+    </article>
+    <article class="kpi">
+      <div class="kpi-top"><span class="kpi-label">Classes today</span><span class="kpi-icon"><i class="fas fa-calendar-day"></i></span></div>
+      <div class="kpi-value">{{ $stats['classes_today'] }}</div>
+      <div class="kpi-foot">{{ $stats['classes_cancelled'] }} cancelled</div>
+    </article>
+    <article class="kpi">
+      <div class="kpi-top"><span class="kpi-label">Door access today</span><span class="kpi-icon gold"><i class="fas fa-key"></i></span></div>
+      <div class="kpi-value">{{ $stats['access_today'] }}</div>
+      <div class="kpi-foot">
+        @if ($stats['access_denied'] > 0)
+          <span class="bad">{{ $stats['access_denied'] }} denied</span>
+        @else
+          No denied attempts
+        @endif
+      </div>
+    </article>
+    <article class="kpi">
+      <div class="kpi-top"><span class="kpi-label">Active RFID cards</span><span class="kpi-icon gold"><i class="fas fa-id-card"></i></span></div>
+      <div class="kpi-value">{{ $stats['active_cards'] }}</div>
+      <div class="kpi-foot"><a class="panel-link" href="{{ route('smartlocking.index') }}">Manage cards</a></div>
+    </article>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2 class="panel-title">Room availability</h2>
+      <a class="panel-link" href="{{ route('admin.classrooms') }}">View rooms</a>
+    </div>
+    <div class="status-bar" role="img" aria-label="Room availability breakdown">
+      <span class="seg-free" style="width: {{ $pct($stats['rooms_free']) }}%"></span>
+      <span class="seg-busy" style="width: {{ $pct($stats['rooms_busy']) }}%"></span>
+      <span class="seg-off" style="width: {{ $pct($stats['rooms_unavailable']) }}%"></span>
+    </div>
+    <div class="status-legend">
+      <span><i class="seg-free"></i><b>{{ $stats['rooms_free'] }}</b>Free</span>
+      <span><i class="seg-busy"></i><b>{{ $stats['rooms_busy'] }}</b>In use</span>
+      <span><i class="seg-off"></i><b>{{ $stats['rooms_unavailable'] }}</b>Unavailable</span>
+    </div>
+  </section>
+
+  <div class="grid-2">
+    <section class="panel">
+      <div class="panel-head">
+        <h2 class="panel-title">Today's schedule</h2>
+        <a class="panel-link" href="{{ route('admin.schedule') }}">Full schedule</a>
+      </div>
+      <div class="list">
+        @forelse ($todaySchedules as $schedule)
+          @php
+            $subject = $schedule->course?->title ?? $schedule->courseOffering?->course?->title ?? 'Class session';
+            $isLive = in_array($schedule->id, $liveScheduleIds, true);
+            if ($schedule->status === 'cancelled') { $tagClass = 'tag-cancel'; $tagText = 'Cancelled'; }
+            elseif ($isLive) { $tagClass = 'tag-live'; $tagText = 'Live'; }
+            elseif ($schedule->end_at <= $now) { $tagClass = 'tag-done'; $tagText = 'Done'; }
+            else { $tagClass = 'tag-next'; $tagText = 'Upcoming'; }
+          @endphp
+          <div class="row">
+            <div class="row-time">{{ $schedule->start_at->format('g:i') }} - {{ $schedule->end_at->format('g:i A') }}</div>
+            <div class="row-main">
+              <div class="row-title">{{ $subject }}</div>
+              <div class="row-sub">{{ $schedule->classroom?->name ?? 'No room' }}@if($schedule->instructor) &middot; {{ $schedule->instructor->name }}@endif</div>
+            </div>
+            <span class="tag {{ $tagClass }}">{{ $tagText }}</span>
+          </div>
+        @empty
+          <div class="empty">No classes scheduled today.</div>
+        @endforelse
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2 class="panel-title">Recent door activity</h2>
+        <a class="panel-link" href="{{ route('accessLogs') }}">All logs</a>
+      </div>
+      <div class="list">
+        @forelse ($recentLogs as $log)
+          @php $granted = strtolower((string) $log->result) === 'granted'; @endphp
+          <div class="row">
+            <div class="row-main">
+              <div class="row-title">{{ $log->user?->name ?? 'Unknown card' }}</div>
+              <div class="row-sub">{{ $log->classroom?->name ?? 'Door' }} &middot; {{ optional($log->accessed_at)->diffForHumans() }}</div>
+            </div>
+            <span class="tag {{ $granted ? 'tag-ok' : 'tag-deny' }}">{{ $granted ? 'Granted' : 'Denied' }}</span>
+          </div>
+        @empty
+          <div class="empty">No door activity yet.</div>
+        @endforelse
+      </div>
+    </section>
   </div>
 
-  {{-- CONTENT --}}
-  <div class="content">
-
-    {{-- Page Header --}}
-    <div class="page-header">
-      <div class="page-header-left">
-        <h1>Welcome back, Elena!</h1>
-        <p>Here's what's happening in your campus today.</p>
+  <div class="grid-2">
+    <section class="panel">
+      <div class="panel-head">
+        <h2 class="panel-title">Upcoming reservations</h2>
       </div>
-      <div class="date-badge">
-        <i class="fas fa-clock"></i>
-        <span>{{ \Carbon\Carbon::now()->format('l, F j') }}</span>
-      </div>
-    </div>
-
-    {{-- Stat Cards --}}
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-trend trend-up"><i class="fas fa-arrow-up"></i> +2</div>
-        <div class="stat-icon-wrap icon-yellow">
-          <i class="fas fa-door-open"></i>
-        </div>
-        <div class="stat-value">42</div>
-        <div class="stat-label">Total Classrooms</div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-trend trend-down"><i class="fas fa-arrow-down"></i> -4</div>
-        <div class="stat-icon-wrap icon-blue">
-          <i class="fas fa-user-group"></i>
-        </div>
-        <div class="stat-value">18</div>
-        <div class="stat-label">Rooms Occupied</div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-trend trend-up"><i class="fas fa-arrow-up"></i> +12</div>
-        <div class="stat-icon-wrap icon-green">
-          <i class="fas fa-calendar-check"></i>
-        </div>
-        <div class="stat-value">86</div>
-        <div class="stat-label">Scheduled Today</div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-trend trend-down"><i class="fas fa-arrow-down"></i> -1</div>
-        <div class="stat-icon-wrap icon-red">
-          <i class="fas fa-triangle-exclamation"></i>
-        </div>
-        <div class="stat-value">3</div>
-        <div class="stat-label">Reported Issues</div>
-      </div>
-    </div>
-
-    {{-- Charts --}}
-    <div class="charts-row">
-      {{-- Occupancy Line Chart --}}
-      <div class="chart-card">
-        <div class="chart-card-header">
-          <div class="chart-card-title">Classroom Occupancy Trends</div>
-          <select class="chart-period-btn" id="occupancyPeriod" aria-label="Occupancy period">
-            <option value="today">Today</option>
-            <option value="week">This Week</option>
-            <option value="month">This Month</option>
-          </select>
-        </div>
-        <div class="chart-wrap">
-          <canvas id="occupancyChart"></canvas>
-        </div>
-      </div>
-
-      {{-- Weekly Bar Chart --}}
-      <div class="chart-card">
-        <div class="chart-card-header">
-          <div class="chart-card-title">Weekly Peak Usage (%)</div>
-        </div>
-        <div class="chart-wrap">
-          <canvas id="usageChart"></canvas>
-        </div>
-      </div>
-    </div>
-
-    {{-- Recent Status Changes --}}
-    <div class="status-card">
-      <div class="status-card-header">
-        <div class="status-card-title">Recent Status Changes</div>
-        <a href="#" class="view-all-link">View All</a>
-      </div>
-
-      <div class="status-row">
-        <div class="status-room-info">
-          <div class="status-room-icon icon-blue">
-            <i class="fas fa-door-open"></i>
+      <div class="list">
+        @forelse ($upcomingReservations as $reservation)
+          <div class="row">
+            <div class="row-time">{{ $reservation->start_at->format('M j') }}<br>{{ $reservation->start_at->format('g:i') }} - {{ $reservation->end_at->format('g:i A') }}</div>
+            <div class="row-main">
+              <div class="row-title">{{ $reservation->classroom?->name ?? 'Room' }}</div>
+              <div class="row-sub">{{ $reservation->user?->name ?? 'Unknown' }}@if($reservation->notes) &middot; {{ \Illuminate\Support\Str::limit($reservation->notes, 40) }}@endif</div>
+            </div>
           </div>
-          <div>
-            <div class="room-name">Room 302</div>
-            <div class="room-meta">Dr. Ramos • 10 mins ago</div>
-          </div>
-        </div>
-        <span class="status-badge badge-occupied">Occupied</span>
+        @empty
+          <div class="empty">No upcoming reservations today.</div>
+        @endforelse
       </div>
+    </section>
 
-      <div class="status-row">
-        <div class="status-room-info">
-          <div class="status-room-icon icon-green">
-            <i class="fas fa-door-open"></i>
-          </div>
-          <div>
-            <div class="room-name">Lab 105</div>
-            <div class="room-meta">Prof. Cruz • 25 mins ago</div>
-          </div>
-        </div>
-        <span class="status-badge badge-available">Available</span>
+    <section class="panel">
+      <div class="panel-head">
+        <h2 class="panel-title">Quick actions</h2>
       </div>
-
-      <div class="status-row">
-        <div class="status-room-info">
-          <div class="status-room-icon icon-yellow">
-            <i class="fas fa-door-open"></i>
-          </div>
-          <div>
-            <div class="room-name">Room 201</div>
-            <div class="room-meta">Engr. Rivera • 1 hour ago</div>
-          </div>
-        </div>
-        <span class="status-badge badge-maintenance">Maintenance</span>
+      <div class="actions">
+        <a class="action" href="{{ route('admin.users') }}"><i class="fas fa-users-cog"></i>User Management</a>
+        <a class="action" href="{{ route('admin.schedule') }}"><i class="fas fa-calendar-days"></i>Schedule</a>
+        <a class="action" href="{{ route('smartlocking.index') }}"><i class="fas fa-lock"></i>SmartLocking</a>
+        <a class="action" href="{{ route('admin.notifications.create') }}"><i class="fas fa-bullhorn"></i>Announcement</a>
       </div>
-
-      <div class="status-row">
-        <div class="status-room-info">
-          <div class="status-room-icon icon-blue">
-            <i class="fas fa-door-open"></i>
-          </div>
-          <div>
-            <div class="room-name">Room 404</div>
-            <div class="room-meta">Dr. Santos • 2 hours ago</div>
-          </div>
-        </div>
-        <span class="status-badge badge-occupied">Occupied</span>
+      <div class="people">
+        <div class="person"><b>{{ $stats['users_total'] }}</b><span>Users</span></div>
+        <div class="person"><b>{{ $stats['faculty_total'] }}</b><span>Faculty</span></div>
+        <div class="person"><b>{{ $stats['students_total'] }}</b><span>Students</span></div>
       </div>
-    </div>
+    </section>
+  </div>
 
-  </div>{{-- /content --}}
-</div>{{-- /main --}}
+</div>
 
 <script>
-/* ── Occupancy Area Chart ── */
-const occCtx  = document.getElementById('occupancyChart').getContext('2d');
-const occGrad = occCtx.createLinearGradient(0, 0, 0, 220);
-occGrad.addColorStop(0, 'rgba(30,58,138,0.16)');
-occGrad.addColorStop(1, 'rgba(30,58,138,0.0)');
-
-const occupancyChart = new Chart(occCtx, {
-  type: 'line',
-  data: {
-    labels: ['7AM','9AM','11AM','1PM','3PM','5PM','7PM'],
-    datasets: [{
-      data: [15, 25, 42, 45, 44, 30, 10],
-      borderColor: '#1d4ed8',
-      backgroundColor: occGrad,
-      fill: true,
-      tension: 0.45,
-      pointRadius: 0,
-      pointHoverRadius: 5,
-      pointHoverBackgroundColor: '#fff',
-      pointHoverBorderColor: '#1d4ed8',
-      pointHoverBorderWidth: 2.5,
-      borderWidth: 2.5,
-    }]
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    interaction: { mode: 'index', intersect: false },
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        backgroundColor: '#fff',
-        titleColor: '#111827',
-        bodyColor: '#6b7280',
-        borderColor: '#e5e7eb',
-        borderWidth: 1,
-        padding: 10,
-        cornerRadius: 8,
-        displayColors: false,
-        callbacks: { label: ctx => ` ${ctx.parsed.y} rooms` }
-      }
-    },
-    scales: {
-      x: {
-        grid: { display: false },
-        border: { display: false },
-        ticks: { color: '#9ca3af', font: { size: 11, weight: '500', family: 'Inter' } }
-      },
-      y: {
-        grid: { color: '#f3f4f6', drawBorder: false },
-        border: { display: false, dash: [3,3] },
-        ticks: {
-          color: '#9ca3af',
-          font: { size: 11, weight: '500', family: 'Inter' },
-          stepSize: 15, padding: 6
-        },
-        min: 0, max: 60
-      }
-    }
+(function () {
+  var clock = document.getElementById('dashClock');
+  function tick() {
+    if (clock) clock.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   }
-});
-
-document.getElementById('occupancyPeriod')?.addEventListener('change', function () {
-  const periods = {
-    today: { labels: ['7AM','9AM','11AM','1PM','3PM','5PM','7PM'], data: [15, 25, 42, 45, 44, 30, 10] },
-    week: { labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], data: [34, 48, 55, 42, 61, 29, 18] },
-    month: { labels: ['Week 1','Week 2','Week 3','Week 4'], data: [44, 58, 51, 67] },
-  };
-  const selected = periods[this.value];
-  occupancyChart.data.labels = selected.labels;
-  occupancyChart.data.datasets[0].data = selected.data;
-  occupancyChart.update();
-});
-
-/* ── Weekly Bar Chart ── */
-const barCtx = document.getElementById('usageChart').getContext('2d');
-new Chart(barCtx, {
-  type: 'bar',
-  data: {
-    labels: ['Tue','','Thu','Fri','','Sat'],
-    datasets: [{
-      data: [82, 68, 65, 95, 88, 30],
-      backgroundColor: '#f5c518',
-      hoverBackgroundColor: '#fbbf24',
-      borderRadius: 6,
-      borderSkipped: false,
-      barPercentage: 0.62,
-      categoryPercentage: 0.72,
-    }]
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        backgroundColor: '#fff',
-        titleColor: '#111827',
-        bodyColor: '#6b7280',
-        borderColor: '#e5e7eb',
-        borderWidth: 1,
-        padding: 10,
-        cornerRadius: 8,
-        displayColors: false,
-        callbacks: { label: ctx => ` ${ctx.parsed.y}%` }
-      }
-    },
-    scales: {
-      x: {
-        grid: { display: false },
-        border: { display: false },
-        ticks: { color: '#9ca3af', font: { size: 11, weight: '500', family: 'Inter' } }
-      },
-      y: {
-        grid: { display: false },
-        border: { display: false },
-        ticks: {
-          color: '#9ca3af',
-          font: { size: 11, weight: '500', family: 'Inter' },
-          stepSize: 25, padding: 6,
-          callback: v => v
-        },
-        min: 0, max: 110
-      }
-    }
-  }
-});
+  tick();
+  setInterval(tick, 1000);
+  // Keep the numbers fresh without user action.
+  setTimeout(function () { window.location.reload(); }, 60000);
+})();
 </script>
-
 </body>
 </html>

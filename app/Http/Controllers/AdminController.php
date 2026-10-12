@@ -6,6 +6,7 @@ use App\Models\AccessCard;
 use App\Models\AccessLog;
 use App\Models\Classroom;
 use App\Models\Notification;
+use App\Models\Reservation;
 use App\Models\Schedule;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
@@ -527,6 +528,80 @@ class AdminController extends Controller
         $pdf .= "startxref\n{$xrefOffset}\n%%EOF";
 
         return $pdf;
+    }
+
+    public function dashboard(): View
+    {
+        $now = now();
+        $todayStart = $now->copy()->startOfDay();
+        $todayEnd = $now->copy()->endOfDay();
+
+        $rooms = Classroom::query()->get(['id', 'name', 'building', 'status', 'current_occupancy', 'capacity']);
+        $blocked = ['maintenance', 'unavailable'];
+
+        $todaySchedules = Schedule::query()
+            ->with(['classroom:id,name', 'course:id,code,title', 'courseOffering.course:id,code,title', 'instructor:id,name'])
+            ->whereBetween('start_at', [$todayStart, $todayEnd])
+            ->orderBy('start_at')
+            ->get();
+
+        $liveSchedules = $todaySchedules->filter(
+            fn (Schedule $s): bool => in_array($s->status, ['scheduled', 'ongoing'], true)
+                && $s->start_at <= $now && $s->end_at > $now
+        );
+        $occupiedRoomIds = $liveSchedules->pluck('classroom_id')->unique();
+
+        $reservationsToday = Reservation::query()
+            ->with(['classroom:id,name', 'user:id,name'])
+            ->whereIn('status', ['reserved', 'approved'])
+            ->where('end_at', '>', $now)
+            ->where('start_at', '<=', $todayEnd)
+            ->orderBy('start_at')
+            ->limit(6)
+            ->get();
+        $reservedRoomIds = Reservation::query()
+            ->whereIn('status', ['reserved', 'approved'])
+            ->where('start_at', '<=', $now)
+            ->where('end_at', '>', $now)
+            ->pluck('classroom_id')
+            ->unique();
+
+        $busyRoomIds = $occupiedRoomIds->merge($reservedRoomIds)->unique();
+        $roomsTotal = $rooms->count();
+        $roomsUnavailable = $rooms->filter(fn (Classroom $r): bool => in_array((string) $r->status, $blocked, true))->count();
+        $roomsBusy = $rooms->filter(fn (Classroom $r): bool => $busyRoomIds->contains($r->id)
+            && ! in_array((string) $r->status, $blocked, true))->count();
+        $roomsFree = max(0, $roomsTotal - $roomsUnavailable - $roomsBusy);
+
+        $logsToday = AccessLog::query()->whereBetween('accessed_at', [$todayStart, $todayEnd]);
+        $recentLogs = AccessLog::query()
+            ->with(['user:id,name', 'classroom:id,name'])
+            ->latest('accessed_at')
+            ->limit(6)
+            ->get();
+
+        $stats = [
+            'rooms_total' => $roomsTotal,
+            'rooms_free' => $roomsFree,
+            'rooms_busy' => $roomsBusy,
+            'rooms_unavailable' => $roomsUnavailable,
+            'classes_today' => $todaySchedules->where('status', '!=', 'cancelled')->count(),
+            'classes_cancelled' => $todaySchedules->where('status', 'cancelled')->count(),
+            'access_today' => (clone $logsToday)->count(),
+            'access_denied' => (clone $logsToday)->where('result', '!=', 'granted')->count(),
+            'active_cards' => AccessCard::query()->where('status', 'active')->count(),
+            'users_total' => User::query()->count(),
+            'faculty_total' => User::query()->where('role', 'faculty')->count(),
+            'students_total' => User::query()->where('role', 'student')->count(),
+        ];
+
+        return view('frontend.admin.dashboard', [
+            'stats' => $stats,
+            'todaySchedules' => $todaySchedules->take(8),
+            'liveScheduleIds' => $liveSchedules->pluck('id')->all(),
+            'recentLogs' => $recentLogs,
+            'upcomingReservations' => $reservationsToday,
+        ]);
     }
 
     public function users(): View
