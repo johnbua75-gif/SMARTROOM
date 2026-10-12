@@ -172,10 +172,10 @@ it('admin can reset a user password and force password change', function () {
     expect($user->password)->not->toBe('OldPassword123!');
 });
 
-it('does not change the password when the temporary password is wrong', function () {
+it('rejects a new password equal to the temporary password', function () {
     $user = User::create([
         'name' => 'Temp User',
-        'email' => 'temp.wrong@example.com',
+        'email' => 'temp.same@example.com',
         'password' => Hash::make('TempPass123!'),
         'role' => 'faculty',
         'must_change_password' => true,
@@ -184,21 +184,16 @@ it('does not change the password when the temporary password is wrong', function
     actingAs($user)
         ->from('/password/change')
         ->post('/password/change', [
-            'current_password' => 'WrongTemp999!',
-            'password' => 'BrandNewPass1!',
-            'password_confirmation' => 'BrandNewPass1!',
+            'password' => 'TempPass123!',
+            'password_confirmation' => 'TempPass123!',
         ])
         ->assertRedirect('/password/change')
-        ->assertSessionHasErrors('current_password');
+        ->assertSessionHasErrors('password');
 
-    $user->refresh();
-
-    expect($user->must_change_password)->toBeTrue();
-    expect(Hash::check('TempPass123!', $user->password))->toBeTrue();
-    expect(Hash::check('BrandNewPass1!', $user->password))->toBeFalse();
+    expect($user->refresh()->must_change_password)->toBeTrue();
 });
 
-it('changes the password with the right temporary password and then skips the form', function () {
+it('sets a new password without asking for the temporary one and then skips the form', function () {
     $user = User::create([
         'name' => 'Temp User Ok',
         'email' => 'temp.ok@example.com',
@@ -209,7 +204,6 @@ it('changes the password with the right temporary password and then skips the fo
 
     actingAs($user)
         ->post('/password/change', [
-            'current_password' => 'TempPass123!',
             'password' => 'BrandNewPass1!',
             'password_confirmation' => 'BrandNewPass1!',
         ])
@@ -220,9 +214,9 @@ it('changes the password with the right temporary password and then skips the fo
     expect($user->must_change_password)->toBeFalse();
     expect(Hash::check('BrandNewPass1!', $user->password))->toBeTrue();
 
-    // Reopening the form after a successful change must not ask for the temporary password again.
     actingAs($user)->get('/password/change')->assertRedirect();
 });
+
 
 it('blocks suspended users from logging in', function () {
     $user = User::create([

@@ -109,9 +109,6 @@
 
             <form method="POST" action="{{ route('password.change.submit') }}">
                 @csrf
-                <label for="current_password">Current Password (temporary)</label>
-                <input id="current_password" name="current_password" type="password" required>
-
                 <label for="password">New Password</label>
                 <input id="password" name="password" type="password" minlength="8" required>
 

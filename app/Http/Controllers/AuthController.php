@@ -12,7 +12,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
-use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
@@ -212,23 +211,16 @@ class AuthController extends Controller
         }
 
         $request->validate([
-            'current_password' => ['required', 'string'],
-            'password' => ['required', 'string', 'min:8', 'confirmed', 'different:current_password'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 
-        $throttleKey = 'password-change:'.($user?->id ?? $request->ip());
-
-        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
-            $seconds = RateLimiter::availableIn($throttleKey);
-
-            return back()->withErrors(['current_password' => "Too many attempts. Try again in {$seconds} seconds."]);
+        if (! $user) {
+            return redirect()->route('auth.login');
         }
 
-        // Verify the temporary password first; nothing is written unless it matches.
-        if (! $user || ! Hash::check((string) $request->input('current_password'), $user->password)) {
-            RateLimiter::hit($throttleKey, 60);
-
-            return back()->withErrors(['current_password' => 'The temporary password is incorrect. Your password was not changed.']);
+        // The user already proved the temporary password at sign-in; just require a different one.
+        if (Hash::check((string) $request->input('password'), $user->password)) {
+            return back()->withErrors(['password' => 'Your new password must be different from the temporary password.']);
         }
 
         DB::transaction(function () use ($user, $request): void {
@@ -239,7 +231,6 @@ class AuthController extends Controller
             ])->save();
         });
 
-        RateLimiter::clear($throttleKey);
         $request->session()->regenerate();
 
         $targetRoute = $this->redirectRouteForRole((string) $user->role);
