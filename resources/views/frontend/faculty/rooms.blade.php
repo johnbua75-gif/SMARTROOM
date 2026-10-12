@@ -347,6 +347,8 @@ body { font-family:var(--fb); background:var(--bg); color:var(--text); min-heigh
 .slot-btn{height:36px;border-radius:8px;border:1.5px solid #bbf7d0;background:#f0fdf4;color:#166534;font-size:.76rem;font-weight:700;font-family:var(--fb);cursor:pointer;transition:all .12s}
 .slot-btn:hover:not(:disabled){background:#dcfce7}
 .slot-btn.is-selected{background:var(--accent);border-color:var(--accent);color:#fff}
+.slot-btn.is-freed:not(.is-selected){border-style:dashed;border-color:#f59e0b;background:#fffbeb;color:#92400e}
+.slot-dot.is-freed{background:#fffbeb;border:1px dashed #f59e0b}
 .slot-btn:disabled{cursor:not-allowed;background:#f3f4f6;border-color:#e5e7eb;color:#9ca3af;text-decoration:line-through}
 .slot-legend{display:flex;gap:14px;font-size:.7rem;color:var(--text-3);margin-top:2px}
 .slot-legend span{display:inline-flex;align-items:center;gap:5px}
@@ -994,6 +996,7 @@ body{
         <div class="slot-grid" id="slotGrid" role="group" aria-label="Hourly time slots"></div>
         <div class="slot-legend">
           <span><i class="slot-dot is-free"></i>Free</span>
+          <span><i class="slot-dot is-freed"></i>Class cancelled</span>
           <span><i class="slot-dot is-selected"></i>Selected</span>
           <span><i class="slot-dot is-busy"></i>Taken</span>
         </div>
@@ -1285,8 +1288,8 @@ document.addEventListener('DOMContentLoaded', function () {
       var free = slot.status === 'free';
       var selected = slotSel && index >= slotSel.from && index <= slotSel.to;
       var startHour = Number(slot.start_at.slice(11, 13));
-      var title = free ? 'Available' : (slot.reason || 'Not available');
-      return '<button type="button" class="slot-btn' + (selected ? ' is-selected' : '') + '" data-index="' + index + '"'
+      var title = free ? (slot.freed_by_cancellation ? (slot.reason || 'Class cancelled - free') : 'Available') : (slot.reason || 'Not available');
+      return '<button type="button" class="slot-btn' + (selected ? ' is-selected' : '') + (slot.freed_by_cancellation ? ' is-freed' : '') + '" data-index="' + index + '"'
         + (free ? '' : ' disabled') + ' title="' + escapeHtml(title) + '" aria-pressed="' + (selected ? 'true' : 'false') + '">'
         + slotHourLabel(startHour) + '</button>';
     }).join('');

@@ -30,6 +30,12 @@ class RoomAvailabilityController extends Controller
         $now = now();
         $slots = [];
 
+        $cancelled = $availabilityService->itScopedCancelledSchedules()
+            ->where('classroom_id', $classroomId)
+            ->where('start_at', '<', $day->copy()->addDay())
+            ->where('end_at', '>', $day)
+            ->get(['start_at', 'end_at']);
+
         for ($hour = RoomAvailabilityService::OPEN_HOUR; $hour < RoomAvailabilityService::CLOSE_HOUR; $hour++) {
             $start = $day->copy()->setTime($hour, 0);
             $end = $start->copy()->addHour();
@@ -43,11 +49,16 @@ class RoomAvailabilityController extends Controller
                 $reason = $availability['reason'];
             }
 
+            $freedByCancellation = $status === 'free' && $cancelled->contains(
+                fn ($schedule) => $schedule->start_at < $end && $schedule->end_at > $start
+            );
+
             $slots[] = [
                 'start_at' => $start->format('Y-m-d\TH:i'),
                 'end_at' => $end->format('Y-m-d\TH:i'),
                 'status' => $status,
-                'reason' => $reason,
+                'reason' => $freedByCancellation ? 'Class cancelled - room is free to reserve.' : $reason,
+                'freed_by_cancellation' => $freedByCancellation,
             ];
         }
 
