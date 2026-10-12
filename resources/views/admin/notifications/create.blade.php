@@ -6,6 +6,7 @@
 @section('content')
 <main class="notification-create-page">
     <header class="notification-page-header">
+        <div class="notification-header-icon" aria-hidden="true"><i class="fas fa-bullhorn"></i></div>
         <div>
             <h1>Create Notification</h1>
             <p>Publish an announcement to everyone or send it to one user.</p>
@@ -105,46 +106,62 @@ body.admin-notification-create-page .main-content {
     --notice-navy: #0b1640;
     --notice-blue: #1a2f80;
     --notice-muted: #5a6785;
-    --notice-border: #dbe3f5;
-    width: min(100%, 1040px);
+    --notice-border: #e3e8f2;
+    width: 100%;
+    max-width: 880px;
     min-height: 100%;
-    padding: 22px 28px 48px;
-    margin: 0 auto;
+    padding: 32px 36px 56px;
+    margin: 0;
     color: var(--notice-navy);
 }
 
 .notification-page-header {
     display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 20px;
-    padding: 5px 0 22px;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 16px;
+    padding: 0 0 24px;
     margin-bottom: 24px;
     border-bottom: 1px solid #e1e7f0;
+}
+
+.notification-header-icon {
+    display: flex;
+    flex: 0 0 48px;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #3b5bdb, #4c6ef5);
+    box-shadow: 0 4px 14px rgba(59,91,219,.3);
+    color: #fff;
+    font-size: 1.2rem;
 }
 
 .notification-page-header h1 {
     margin: 0;
     color: var(--notice-navy);
-    font-size: 1.65rem;
-    font-weight: 750;
+    font-size: 1.55rem;
+    font-weight: 800;
+    letter-spacing: -.02em;
     line-height: 1.25;
 }
 
 .notification-page-header p {
-    margin: 7px 0 0;
+    margin: 4px 0 0;
     color: var(--notice-muted);
-    font-size: .9rem;
+    font-size: .88rem;
     line-height: 1.5;
 }
 
 .notification-form-panel {
-    width: min(100%, 760px);
-    padding: 25px 28px 28px;
+    width: 100%;
+    padding: 28px 32px 32px;
     border: 1px solid var(--notice-border);
-    border-radius: 8px;
+    border-radius: 18px;
     background: #fff;
-    box-shadow: 0 2px 8px rgba(11,22,64,.045);
+    box-shadow: 0 6px 24px rgba(11,22,64,.07);
 }
 
 .notification-form-heading {
