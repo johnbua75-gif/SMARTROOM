@@ -50,160 +50,10 @@
             overflow: hidden;
         }
 
-        /* ── SIDEBAR ── */
-        .sidebar {
-            width: 260px;
-            background: linear-gradient(180deg, var(--text) 0%, var(--blue) 100%);
-            border-right: 1px solid rgba(245, 197, 24, 0.18);
-            display: flex;
-            flex-direction: column;
-            padding: 24px 0;
-            overflow-y: auto;
-            z-index: 10;
-            position: fixed;
-            left: 0;
-            top: 0;
-            height: 100vh;
-            box-shadow: 1px 0 8px rgba(0, 0, 0, 0.25), 2px 0 20px rgba(0, 0, 0, 0.2);
-        }
-
-        .sidebar::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .sidebar::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .sidebar::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.25);
-            border-radius: 3px;
-        }
-
-        .sidebar-logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 0 20px;
-            margin-bottom: 40px;
-            text-decoration: none;
-            color: var(--white);
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .sidebar-logo-img {
-            width: 36px;
-            height: 36px;
-            display: block;
-            object-fit: contain;
-            object-position: center;
-            flex-shrink: 0;
-        }
-
-        .sidebar-logo-text {
-            display: flex;
-            flex-direction: column;
-            line-height: 1;
-            color: var(--white);
-        }
-
-        .sidebar-logo-text .brand-psu {
-            font-size: 0.56rem;
-            font-weight: 700;
-            letter-spacing: 0.14em;
-            color: rgba(255, 255, 255, 0.72);
-            margin-left: 2px;
-            margin-bottom: 2px;
-            text-transform: uppercase;
-        }
-
-        .sidebar-logo-text .brand-main {
-            font-weight: 700;
-            font-size: 0.98rem;
-            letter-spacing: -0.01em;
-            color: var(--white);
-        }
-
-        .sidebar-logo-text .door-accent {
-            color: var(--primary);
-        }
-
-        .sidebar-nav {
-            flex: 1;
-            list-style: none;
-        }
-
-        .sidebar-nav li {
-            margin: 0;
-        }
-
-        .sidebar-nav a {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 20px;
-            color: rgba(255, 255, 255, 0.78);
-            text-decoration: none;
-            transition: all 0.3s;
-            font-size: 0.9rem;
-            font-weight: 500;
-            position: relative;
-        }
-
-        .sidebar-nav a:hover {
-            color: var(--primary-light);
-            background: rgba(255, 255, 255, 0.06);
-        }
-
-        .sidebar-nav a::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 4px;
-            background: var(--primary);
-            opacity: 0;
-        }
-
-        .sidebar-nav a.active {
-            color: var(--primary);
-            background: rgba(245, 197, 24, 0.16);
-        }
-
-        .sidebar-nav a.active::before {
-            opacity: 1;
-        }
-
-        .sidebar-logout {
-            border-top: 1px solid rgba(245, 197, 24, 0.2);
-            padding-top: 16px;
-            padding-bottom: 16px;
-            margin: 16px 0 0 0;
-        }
-
-        .sidebar-logout a {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 20px;
-            color: rgba(255, 255, 255, 0.78);
-            text-decoration: none;
-            transition: all 0.3s;
-            font-size: 0.9rem;
-            font-weight: 500;
-        }
-
-        .sidebar-logout a:hover {
-            color: var(--primary-light);
-            background: rgba(255, 255, 255, 0.06);
-        }
-
         /* ── MAIN CONTENT ── */
         .main-content {
             flex: 1;
-            margin-left: 260px;
+            margin-left: var(--sidebar-w, 252px);
             overflow-y: auto;
             background: var(--gray-lighter);
             padding: 32px;
@@ -403,12 +253,6 @@
         }
 
         @media (max-width: 768px) {
-            .sidebar {
-                position: absolute;
-                left: -260px;
-                transition: left 0.3s;
-            }
-
             .main-content {
                 margin-left: 0;
                 padding: 20px;
