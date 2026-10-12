@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Classroom;
 use App\Models\Course;
 use App\Models\Notification;
 use App\Models\User;
@@ -169,6 +170,58 @@ it('admin can reset a user password and force password change', function () {
     expect($user->must_change_password)->toBeTrue();
     expect(Hash::check('OldPassword123!', $user->password))->toBeFalse();
     expect($user->password)->not->toBe('OldPassword123!');
+});
+
+it('does not change the password when the temporary password is wrong', function () {
+    $user = User::create([
+        'name' => 'Temp User',
+        'email' => 'temp.wrong@example.com',
+        'password' => Hash::make('TempPass123!'),
+        'role' => 'faculty',
+        'must_change_password' => true,
+    ]);
+
+    actingAs($user)
+        ->from('/password/change')
+        ->post('/password/change', [
+            'current_password' => 'WrongTemp999!',
+            'password' => 'BrandNewPass1!',
+            'password_confirmation' => 'BrandNewPass1!',
+        ])
+        ->assertRedirect('/password/change')
+        ->assertSessionHasErrors('current_password');
+
+    $user->refresh();
+
+    expect($user->must_change_password)->toBeTrue();
+    expect(Hash::check('TempPass123!', $user->password))->toBeTrue();
+    expect(Hash::check('BrandNewPass1!', $user->password))->toBeFalse();
+});
+
+it('changes the password with the right temporary password and then skips the form', function () {
+    $user = User::create([
+        'name' => 'Temp User Ok',
+        'email' => 'temp.ok@example.com',
+        'password' => Hash::make('TempPass123!'),
+        'role' => 'faculty',
+        'must_change_password' => true,
+    ]);
+
+    actingAs($user)
+        ->post('/password/change', [
+            'current_password' => 'TempPass123!',
+            'password' => 'BrandNewPass1!',
+            'password_confirmation' => 'BrandNewPass1!',
+        ])
+        ->assertRedirect();
+
+    $user->refresh();
+
+    expect($user->must_change_password)->toBeFalse();
+    expect(Hash::check('BrandNewPass1!', $user->password))->toBeTrue();
+
+    // Reopening the form after a successful change must not ask for the temporary password again.
+    actingAs($user)->get('/password/change')->assertRedirect();
 });
 
 it('blocks suspended users from logging in', function () {
@@ -353,6 +406,64 @@ it('shows faculty with assigned unscheduled subjects in admin schedule list', fu
         ->assertSee('Assigned Faculty')
         ->assertSee('1 Subject(s)')
         ->assertSee('Assigned Subject');
+});
+
+it('shows schedules that inherit their instructor from the course offering in the admin schedule list', function () {
+    $admin = User::create([
+        'name' => 'Schedule Admin',
+        'email' => 'schedule.admin.inherited@example.com',
+        'password' => Hash::make('Passw0rd!'),
+        'role' => 'admin',
+        'status' => 'active',
+        'must_change_password' => false,
+    ]);
+
+    $faculty = User::create([
+        'name' => 'Inherited Faculty',
+        'email' => 'inherited.faculty@example.com',
+        'password' => Hash::make('Passw0rd!'),
+        'role' => 'faculty',
+        'department' => 'BSIT',
+        'status' => 'active',
+        'must_change_password' => false,
+    ]);
+
+    $course = Course::create([
+        'code' => 'TEST202',
+        'title' => 'Inherited Subject',
+        'capacity' => 30,
+    ]);
+
+    $classroom = Classroom::create([
+        'name' => 'Test Room 101',
+        'building' => 'Test Building',
+        'capacity' => 30,
+    ]);
+
+    $offering = $course->offerings()->create([
+        'instructor_user_id' => $faculty->id,
+        'classroom_id' => $classroom->id,
+        'block_section' => 'Block A',
+        'term_start' => now()->startOfYear(),
+        'term_end' => now()->endOfYear(),
+    ]);
+
+    $course->schedules()->create([
+        'course_offering_id' => $offering->id,
+        'instructor_user_id' => null,
+        'classroom_id' => $classroom->id,
+        'block_section' => 'Block A',
+        'status' => 'scheduled',
+        'start_at' => now()->startOfWeek()->addDay(1)->setTime(8, 0),
+        'end_at' => now()->startOfWeek()->addDay(1)->setTime(9, 30),
+    ]);
+
+    actingAs($admin);
+
+    get('/admin/schedule')
+        ->assertOk()
+        ->assertSee('Inherited Faculty')
+        ->assertSee('Inherited Subject');
 });
 
 it('keeps cached faculty notifications isolated per user', function () {

@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
@@ -187,29 +188,59 @@ class AuthController extends Controller
             : back()->withErrors(['email' => [__($status)]]);
     }
 
-    public function showChangePasswordForm(): View
+    public function showChangePasswordForm(Request $request): View|RedirectResponse
     {
+        $user = $request->user();
+
+        // Once the temporary password has been replaced there is nothing left to change here.
+        // Showing the form again made users retype the old temporary password and get "incorrect".
+        if ($user && ! $user->must_change_password) {
+            return redirect()->route($this->redirectRouteForRole((string) $user->role));
+        }
+
         return view('auth.change-password');
     }
 
     public function changePassword(Request $request): RedirectResponse
     {
+        $user = $request->user();
+
+        if ($user && ! $user->must_change_password) {
+            return redirect()
+                ->route($this->redirectRouteForRole((string) $user->role))
+                ->with('status', 'Your password has already been updated.');
+        }
+
         $request->validate([
             'current_password' => ['required', 'string'],
             'password' => ['required', 'string', 'min:8', 'confirmed', 'different:current_password'],
         ]);
 
-        $user = $request->user();
+        $throttleKey = 'password-change:'.($user?->id ?? $request->ip());
 
-        if (! $user || ! Hash::check((string) $request->input('current_password'), $user->password)) {
-            return back()->withErrors(['current_password' => 'The current password is incorrect.']);
+        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            $seconds = RateLimiter::availableIn($throttleKey);
+
+            return back()->withErrors(['current_password' => "Too many attempts. Try again in {$seconds} seconds."]);
         }
 
-        $user->forceFill([
-            'password' => Hash::make((string) $request->input('password')),
-            'must_change_password' => false,
-            'remember_token' => Str::random(60),
-        ])->save();
+        // Verify the temporary password first; nothing is written unless it matches.
+        if (! $user || ! Hash::check((string) $request->input('current_password'), $user->password)) {
+            RateLimiter::hit($throttleKey, 60);
+
+            return back()->withErrors(['current_password' => 'The temporary password is incorrect. Your password was not changed.']);
+        }
+
+        DB::transaction(function () use ($user, $request): void {
+            $user->forceFill([
+                'password' => Hash::make((string) $request->input('password')),
+                'must_change_password' => false,
+                'remember_token' => Str::random(60),
+            ])->save();
+        });
+
+        RateLimiter::clear($throttleKey);
+        $request->session()->regenerate();
 
         $targetRoute = $this->redirectRouteForRole((string) $user->role);
 
