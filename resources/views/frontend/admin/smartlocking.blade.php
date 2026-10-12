@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SmartLocking â€“ SmartDoor</title>
+<title>SmartLocking – SmartDoor</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
@@ -36,9 +36,9 @@
 
 body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   SIDEBAR â€” EXACT COPY FROM CLASSROOMS
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+/* ══════════════════════════════════════════════
+   SIDEBAR — EXACT COPY FROM CLASSROOMS
+══════════════════════════════════════════════ */
 .sidebar {
   position: fixed; left: 0; top: 0;
   width: var(--sidebar-w); height: 100vh;
@@ -127,9 +127,9 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
 }
 .sidebar-logout-btn:hover { color: #f87171; background: rgba(244,63,94,0.08); }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* ══════════════════════════════════════════════
    MAIN LAYOUT
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+══════════════════════════════════════════════ */
 .main { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
 
 /* TOPBAR */
@@ -162,9 +162,9 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
 /* CONTENT */
 .content { padding: 32px 36px 48px; display: flex; flex-direction: column; gap: 24px; }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* ══════════════════════════════════════════════
    PAGE HEADER
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+══════════════════════════════════════════════ */
 .page-header { display: flex; align-items: center; gap: 16px; animation: fadeIn 0.35s both; }
 .page-header-icon {
   width: 48px; height: 48px; border-radius: 14px;
@@ -304,8 +304,6 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
   padding: 20px; align-self: start;
 }
 
-.ic-header { display: none; }
-
 /* RFID CARD VISUAL */
 .rfid-card {
   margin: 0;
@@ -387,15 +385,17 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
 .ic-rooms-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 0.72rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
 .ic-rooms-count { text-transform: none; letter-spacing: 0; font-weight: 500; }
 .access-policy-note { margin: 0 0 12px; color: var(--text-secondary); font-size: 0.76rem; line-height: 1.45; }
-.sched-list { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
-.sched-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 12px 14px; }
+.sched-list { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: #fff; }
+.sched-item { padding: 14px 16px; }
 .sched-item + .sched-item { border-top: 1px solid var(--border); }
-.sched-subj strong { display: block; font-size: 0.86rem; font-weight: 700; color: var(--text); }
-.sched-subj small { display: block; margin-top: 2px; font-size: 0.7rem; color: var(--text-secondary); }
-.sched-chips { display: flex; flex-wrap: wrap; gap: 6px; }
-.sched-chip { background: #eef2ff; color: #1e2a78; border-radius: 7px; padding: 5px 9px; font-size: 0.72rem; font-weight: 600; white-space: nowrap; }
-.sched-chip b { font-weight: 800; }
-.sched-empty { padding: 14px; font-size: 0.78rem; color: var(--text-secondary); }
+.sched-subj { margin-bottom: 10px; }
+.sched-subj strong { display: block; font-size: 0.88rem; font-weight: 700; color: var(--text); }
+.sched-subj small { display: block; margin-top: 2px; font-size: 0.72rem; color: var(--text-secondary); }
+.sched-times { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.sched-time { display: flex; align-items: center; gap: 8px; background: #f5f7ff; border-radius: 8px; padding: 7px 10px; font-size: 0.76rem; color: #1e2a78; white-space: nowrap; }
+.sched-time b { background: #3b5bdb; color: #fff; border-radius: 5px; padding: 2px 6px; font-size: 0.66rem; font-weight: 700; letter-spacing: 0.04em; }
+.sched-time span { font-weight: 600; font-variant-numeric: tabular-nums; }
+.sched-empty { padding: 14px 16px; font-size: 0.78rem; color: var(--text-secondary); }
 
 /* ANIMATIONS */
 @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
@@ -414,9 +414,9 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
 
 @include('frontend.admin.partials.sidebar')
 
-<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+<!-- ════════════════════════════════════════════
      MAIN
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+════════════════════════════════════════════ -->
 <div class="main">
 
   <!-- CONTENT -->
@@ -484,7 +484,7 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
             <select name="user_id" required>
               <option value="">Select instructor</option>
               @foreach(($instructors ?? []) as $instructor)
-                <option value="{{ $instructor->id }}">{{ $instructor->name }}{{ $instructor->department ? ' Â· '.$instructor->department : '' }}</option>
+                <option value="{{ $instructor->id }}">{{ $instructor->name }}{{ $instructor->department ? ' · '.$instructor->department : '' }}</option>
               @endforeach
             </select>
           </label>
@@ -561,7 +561,13 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
                 ->map(fn($word) => strtoupper(substr($word, 0, 1)))
                 ->join('');
           @endphp
-          @php $scheduleRows = collect($card['schedule'] ?? []); @endphp
+          @php
+            $dayOrder = ['mon'=>1,'tue'=>2,'wed'=>3,'thu'=>4,'fri'=>5,'sat'=>6,'sun'=>7];
+            $subjectGroups = collect($card['schedule'] ?? [])
+                ->unique(fn($r) => ($r['subject'] ?? '').'|'.($r['room'] ?? '').'|'.($r['day'] ?? '').'|'.($r['time'] ?? ''))
+                ->groupBy(fn($r) => ($r['subject'] ?? '').'|'.($r['room'] ?? ''))
+                ->map(fn($g) => $g->sortBy(fn($r) => ($dayOrder[strtolower(substr($r['day'] ?? '', 0, 3))] ?? 9).'-'.($r['time'] ?? ''))->values());
+          @endphp
           <div class="instructor-card">
             <div class="rfid-card">
               <div class="rfid-row1">
@@ -599,19 +605,19 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
             <div class="ic-rooms">
               <div class="ic-rooms-title">
                 <span>Reservation &amp; Class Access</span>
-                <span class="ic-rooms-count">{{ $scheduleRows->count() }} {{ \Illuminate\Support\Str::plural('subject', $scheduleRows->count()) }}</span>
+                <span class="ic-rooms-count">{{ $subjectGroups->count() }} {{ \Illuminate\Support\Str::plural('subject', $subjectGroups->count()) }}</span>
               </div>
               <p class="access-policy-note">Works at any door where the owner has an active reservation or official class schedule.</p>
               <div class="sched-list">
-                @forelse($scheduleRows->groupBy(fn($r) => ($r['subject'] ?? '') . '|' . ($r['room'] ?? '')) as $group)
+                @forelse($subjectGroups as $group)
                   <div class="sched-item">
                     <div class="sched-subj">
                       <strong>{{ $group->first()['subject'] }}</strong>
                       <small>{{ $group->first()['room'] }}</small>
                     </div>
-                    <div class="sched-chips">
+                    <div class="sched-times">
                       @foreach($group as $row)
-                        <span class="sched-chip"><b>{{ $row['day'] }}</b> {{ str_replace('-', ' â€“ ', $row['time']) }}</span>
+                        <div class="sched-time"><b>{{ strtoupper(substr($row['day'], 0, 3)) }}</b><span>{{ str_replace('-', ' to ', $row['time']) }}</span></div>
                       @endforeach
                     </div>
                   </div>
@@ -677,7 +683,7 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
               <div class="setting-row">
                 <div>
                   <strong>{{ $report->title }}</strong>
-                  <span>{{ $report->body }} Â· {{ $report->created_at?->diffForHumans() }}</span>
+                  <span>{{ $report->body }} · {{ $report->created_at?->diffForHumans() }}</span>
                 </div>
                 <span class="chip {{ $report->read_at ? '' : 'bad' }}">{{ $report->read_at ? 'Reviewed' : 'Needs review' }}</span>
               </div>
