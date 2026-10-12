@@ -665,6 +665,28 @@ body{
 .map-sub{color:#8a98ad}
 .live-badge{border-radius:999px;padding:5px 11px}
 .map-grid{min-height:260px}
+.map-live-group{display:flex;align-items:center;gap:10px}
+.map-stat{display:inline-flex;align-items:center;gap:7px;padding:5px 12px;border-radius:999px;font-size:.72rem;font-weight:800;color:var(--navy);background:#fffbe6;border:1px solid #f5e08a}
+.map-stat i{color:#d4a10a}
+.map-clock{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.76rem;font-weight:700;letter-spacing:.04em;color:var(--navy);font-variant-numeric:tabular-nums}
+.live-dot{animation:mapPing 1.8s infinite}
+@keyframes mapPing{0%{box-shadow:0 0 0 0 rgba(22,163,74,.55)}70%{box-shadow:0 0 0 7px rgba(22,163,74,0)}100%{box-shadow:0 0 0 0 rgba(22,163,74,0)}}
+.map-grid::before{background:linear-gradient(135deg,rgba(11,22,64,.62) 0%,rgba(11,22,64,.3) 100%)}
+.map-grid::after{content:'';position:absolute;inset:0;pointer-events:none;z-index:1;background-image:linear-gradient(rgba(255,255,255,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.07) 1px,transparent 1px);background-size:44px 44px;mask-image:radial-gradient(ellipse at center,#000 30%,transparent 85%)}
+.map-scan{position:absolute;left:0;right:0;top:0;height:90px;z-index:2;pointer-events:none;background:linear-gradient(180deg,transparent,rgba(245,197,24,.16) 60%,rgba(245,197,24,.45) 100%);border-bottom:1px solid rgba(245,197,24,.7);animation:mapScan 5.5s linear infinite}
+@keyframes mapScan{0%{transform:translateY(-100%);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translateY(calc(var(--scan-h,260px)));opacity:0}}
+.map-grid{--scan-h:290px}
+.pin-box{border-radius:14px;border:1px solid rgba(255,255,255,.55);backdrop-filter:blur(6px)}
+.pin-box.avail{background:rgba(22,163,74,.82);box-shadow:0 0 0 1px rgba(255,255,255,.15),0 0 24px rgba(34,197,94,.65)}
+.pin-box.full{background:rgba(220,38,38,.82);box-shadow:0 0 0 1px rgba(255,255,255,.15),0 0 20px rgba(239,68,68,.5)}
+.pin-box::before{content:'';position:absolute;inset:-3px;border-radius:17px;border:2px solid currentColor;opacity:0;pointer-events:none}
+.pin-box.avail::before{color:#4ade80;animation:pinRing 2.4s ease-out infinite}
+@keyframes pinRing{0%{transform:scale(1);opacity:.85}100%{transform:scale(1.7);opacity:0}}
+.building-lbl{padding:3px 9px;border-radius:999px;background:rgba(11,22,64,.7);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.18);text-shadow:none}
+.map-legend{border-radius:12px;background:rgba(11,22,64,.78);border:1px solid rgba(245,197,24,.28);box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.map-north{border:1px solid rgba(245,197,24,.6)}
+@media (prefers-reduced-motion:reduce){.map-scan,.pin-box::before,.live-dot{animation:none}.map-scan{display:none}}
+@media (max-width:640px){.map-stat,.map-clock{display:none}}
 
 /* Room list cards */
 .rooms-header{margin-top:2px}
@@ -918,9 +940,14 @@ body{
             <div class="map-sub">PSU Assingan Campus Layout</div>
           </div>
         </div>
-        <span class="live-badge"><span class="live-dot"></span> Live</span>
+        <div class="map-live-group">
+          <span class="map-stat" id="mapStat"><i class="fas fa-bolt"></i><span>-- rooms free</span></span>
+          <span class="map-clock" id="mapClock">--:--:--</span>
+          <span class="live-badge"><span class="live-dot"></span> Live</span>
+        </div>
       </div>
       <div class="map-grid">
+        <div class="map-scan" aria-hidden="true"></div>
         <?php for ($i = 0; $i < 3; $i++):
           $building = $mapBuildings[$i] ?? ['building' => 'N/A', 'available' => 0, 'is_full' => true];
           $isFull = (bool) ($building['is_full'] ?? true);
@@ -944,6 +971,24 @@ body{
         </div>
       </div>
     </div>
+    <script>
+    (function () {
+      var clock = document.getElementById('mapClock');
+      var stat = document.getElementById('mapStat');
+      function update() {
+        if (clock) clock.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        if (stat) {
+          var total = 0;
+          document.querySelectorAll('.map-grid [data-building-available]').forEach(function (el) {
+            total += parseInt(el.textContent, 10) || 0;
+          });
+          stat.querySelector('span').textContent = total + (total === 1 ? ' room free' : ' rooms free');
+        }
+      }
+      update();
+      setInterval(update, 1000);
+    })();
+    </script>
 
     <!-- Rooms Header -->
     <div class="rooms-header">
