@@ -360,6 +360,70 @@ body { font-family:var(--fb); background:var(--bg); color:var(--text); min-heigh
 .slot-summary.is-ready{color:#166534;background:#f0fdf4}
 .slot-loading{grid-column:1/-1;text-align:center;font-size:.78rem;color:var(--text-3);padding:12px 0}
 
+/* ── Reserve modal: futuristic live theme ── */
+#reserveOverlay{background:rgba(3,8,28,.72);backdrop-filter:blur(6px)}
+.rv-modal{--rv-cyan:#22d3ee;--rv-blue:#4f7cff;--rv-line:rgba(120,160,255,.18);position:relative;width:min(980px,100%)!important;max-height:calc(100vh - 36px);overflow:auto;border-radius:22px!important;border:1px solid rgba(120,160,255,.28)!important;background:linear-gradient(150deg,#0a1233 0%,#0d1a4a 55%,#0a1233 100%)!important;color:#e6ecff;box-shadow:0 0 0 1px rgba(34,211,238,.08),0 30px 90px rgba(2,6,30,.65),0 0 70px rgba(79,124,255,.22)!important;animation:rvIn .28s cubic-bezier(.2,.8,.2,1)}
+@keyframes rvIn{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
+.rv-modal::before{content:"";position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(120,160,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(120,160,255,.05) 1px,transparent 1px);background-size:34px 34px;mask-image:radial-gradient(ellipse at 20% 0%,#000 0%,transparent 70%)}
+.rv-glow{position:absolute;top:-120px;right:-80px;width:360px;height:360px;border-radius:50%;background:radial-gradient(circle,rgba(34,211,238,.28),transparent 65%);pointer-events:none;filter:blur(10px)}
+.rv-head{position:relative;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:20px 26px;border-bottom:1px solid var(--rv-line)}
+.rv-head-left,.rv-head-right{display:flex;align-items:center;gap:14px}
+.rv-icon{width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:#04122e;background:linear-gradient(135deg,var(--rv-cyan),var(--rv-blue));box-shadow:0 0 22px rgba(34,211,238,.45)}
+.rv-title{font-family:var(--fh);font-size:1.15rem;font-weight:800;letter-spacing:.01em;color:#fff}
+.rv-sub{font-size:.8rem;color:#9fb2e8;margin-top:2px}
+.rv-live{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;font-size:.7rem;font-weight:800;letter-spacing:.12em;color:var(--rv-cyan);background:rgba(34,211,238,.08);border:1px solid rgba(34,211,238,.35)}
+.rv-live b{color:#fff;letter-spacing:.04em;font-variant-numeric:tabular-nums}
+.rv-pulse{width:8px;height:8px;border-radius:50%;background:#22ff9c;box-shadow:0 0 0 0 rgba(34,255,156,.7);animation:rvPulse 1.6s infinite}
+@keyframes rvPulse{0%{box-shadow:0 0 0 0 rgba(34,255,156,.65)}70%{box-shadow:0 0 0 9px rgba(34,255,156,0)}100%{box-shadow:0 0 0 0 rgba(34,255,156,0)}}
+.rv-close{width:34px;height:34px;border-radius:10px;border:1px solid var(--rv-line);background:rgba(255,255,255,.04);color:#b8c6f5;cursor:pointer;transition:all .15s}
+.rv-close:hover{background:rgba(255,255,255,.12);color:#fff}
+.rv-body{position:relative;display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:24px;padding:24px 26px 26px}
+.rv-left,.rv-right{display:flex;flex-direction:column;gap:18px;min-width:0}
+.rv-row{display:flex;align-items:flex-end;gap:12px}
+.rv-field{display:flex;flex-direction:column;gap:7px;flex:1}
+.rv-grow{flex:1}
+.rv-label{font-size:.68rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#8ea4e6;margin-bottom:7px}
+.rv-field .rv-label{margin-bottom:0}
+.rv-dim{color:#6f84c8;font-weight:600;letter-spacing:.04em;text-transform:none}
+.rv-input{width:100%;height:44px;padding:0 14px;border-radius:12px;border:1px solid var(--rv-line);background:rgba(8,16,52,.7);color:#fff;font:600 .88rem var(--fb);outline:none;color-scheme:dark;transition:border-color .15s,box-shadow .15s}
+.rv-input:focus{border-color:var(--rv-cyan);box-shadow:0 0 0 3px rgba(34,211,238,.16),0 0 18px rgba(34,211,238,.18)}
+.rv-textarea{height:auto;min-height:110px;padding:12px 14px;resize:vertical;font-weight:500;flex:1}
+.rv-input::placeholder{color:#5f74b8}
+.rv-chip{display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 16px;border-radius:12px;font-size:.8rem;font-weight:800;color:#bffcff;background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.35);white-space:nowrap}
+.rv-chip i{color:var(--rv-cyan)}
+.rv-meter{display:grid;grid-template-columns:repeat(13,1fr);gap:4px;height:12px}
+.rv-meter span{border-radius:4px;background:rgba(34,211,238,.55);box-shadow:0 0 8px rgba(34,211,238,.35)}
+.rv-meter span.is-busy{background:rgba(120,135,180,.28);box-shadow:none}
+.rv-meter span.is-freed{background:rgba(245,158,11,.75);box-shadow:0 0 8px rgba(245,158,11,.4)}
+.rv-meter span.is-sel{background:linear-gradient(90deg,var(--rv-cyan),var(--rv-blue));box-shadow:0 0 12px rgba(79,124,255,.8)}
+.rv-meter span.is-now{outline:1.5px solid #fff;outline-offset:1px}
+.rv-modal .slot-grid{grid-template-columns:repeat(4,1fr);gap:10px;max-height:none;overflow:visible;padding:0}
+.rv-modal .slot-btn{height:46px;border-radius:12px;border:1px solid rgba(34,211,238,.35);background:rgba(34,211,238,.07);color:#c9f7ff;font-size:.82rem;font-weight:700;letter-spacing:.02em;transition:transform .12s,box-shadow .12s,background .12s}
+.rv-modal .slot-btn:hover:not(:disabled){background:rgba(34,211,238,.18);transform:translateY(-2px);box-shadow:0 6px 20px rgba(34,211,238,.25)}
+.rv-modal .slot-btn.is-selected{color:#04122e;border-color:transparent;background:linear-gradient(135deg,var(--rv-cyan),var(--rv-blue));box-shadow:0 0 22px rgba(34,211,238,.55)}
+.rv-modal .slot-btn.is-freed:not(.is-selected){border:1px dashed #f59e0b;background:rgba(245,158,11,.1);color:#fcd34d}
+.rv-modal .slot-btn:disabled{background:rgba(120,135,180,.08);border-color:rgba(120,135,180,.18);color:#5b6a9b;text-decoration:line-through}
+.rv-modal .slot-legend{color:#8ea4e6;font-size:.72rem;gap:16px;flex-wrap:wrap}
+.rv-modal .slot-dot.is-free{background:rgba(34,211,238,.25);border-color:rgba(34,211,238,.6)}
+.rv-modal .slot-dot.is-selected{background:linear-gradient(135deg,var(--rv-cyan),var(--rv-blue))}
+.rv-modal .slot-dot.is-freed{background:rgba(245,158,11,.2);border:1px dashed #f59e0b}
+.rv-modal .slot-dot.is-busy{background:rgba(120,135,180,.35)}
+.rv-modal .slot-loading{color:#8ea4e6}
+.rv-card{padding:16px 18px;border-radius:16px;background:linear-gradient(145deg,rgba(79,124,255,.14),rgba(34,211,238,.06));border:1px solid rgba(120,160,255,.28)}
+.rv-card .rv-label{margin-bottom:10px}
+.rv-modal .slot-summary{background:transparent;padding:0;border-radius:0;font-size:1.02rem;font-weight:700;line-height:1.5;color:#9fb2e8}
+.rv-modal .slot-summary.is-ready{color:#fff;background:transparent;text-shadow:0 0 18px rgba(34,211,238,.55)}
+.rv-modal .reserve-error{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.4);color:#fecaca}
+.rv-actions{display:flex;gap:12px;margin-top:auto}
+.rv-btn{height:48px;border-radius:13px;font:800 .86rem var(--fb);cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.rv-btn-ghost{flex:0 0 110px;background:rgba(255,255,255,.04);border:1px solid var(--rv-line);color:#b8c6f5}
+.rv-btn-ghost:hover{background:rgba(255,255,255,.1);color:#fff}
+.rv-btn-primary{flex:1;border:none;color:#04122e;background:linear-gradient(135deg,var(--rv-cyan),var(--rv-blue));box-shadow:0 8px 26px rgba(34,211,238,.35)}
+.rv-btn-primary:hover{box-shadow:0 10px 34px rgba(34,211,238,.55);transform:translateY(-1px)}
+.rv-btn-primary:disabled{opacity:.6;cursor:not-allowed;transform:none}
+@media (max-width:820px){.rv-body{grid-template-columns:1fr}.rv-modal .slot-grid{grid-template-columns:repeat(3,1fr)}.rv-live{display:none}}
+@media (prefers-reduced-motion:reduce){.rv-modal,.rv-pulse{animation:none}}
+
 .temp-sched-info{padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:var(--r-sm);font-size:.82rem;margin-bottom:12px;line-height:1.5}
 .temp-sched-info strong{color:var(--text-2);font-weight:600}
 .temp-schedule-list{max-height:400px;overflow-y:auto}
@@ -971,52 +1035,75 @@ body{
 </div><!-- /main -->
 
 <div class="reserve-overlay" id="reserveOverlay" aria-hidden="true">
-  <div class="reserve-modal" role="dialog" aria-modal="true" aria-labelledby="reserveTitle">
-    <div class="reserve-head">
-      <div>
-        <div class="reserve-title" id="reserveTitle">Reserve Room</div>
-        <div class="reserve-sub" id="reserveRoomName">Select your preferred time slot</div>
-      </div>
-      <button type="button" class="reserve-close" id="reserveCloseBtn" aria-label="Close reserve dialog">
-        <i class="fas fa-xmark"></i>
-      </button>
-    </div>
-    <form id="reserveForm" class="reserve-body">
-      <input type="hidden" id="reserveRoomId" name="classroom_id">
+  <div class="reserve-modal rv-modal" role="dialog" aria-modal="true" aria-labelledby="reserveTitle">
+    <div class="rv-glow" aria-hidden="true"></div>
 
-      <div class="reserve-group">
-        <label class="reserve-label" for="reserveDate">Date</label>
-        <input class="reserve-input" id="reserveDate" type="date" required>
-      </div>
-
-      <div class="reserve-group">
-        <div class="slot-head">
-          <span class="reserve-label">Available times <span class="slot-hours">(5:00 AM - 6:00 PM)</span></span>
+    <div class="rv-head">
+      <div class="rv-head-left">
+        <span class="rv-icon"><i class="fas fa-door-open"></i></span>
+        <div>
+          <div class="rv-title" id="reserveTitle">Reserve Room</div>
+          <div class="rv-sub" id="reserveRoomName">Select your preferred time slot</div>
         </div>
-        <div class="slot-grid" id="slotGrid" role="group" aria-label="Hourly time slots"></div>
+      </div>
+      <div class="rv-head-right">
+        <span class="rv-live"><i class="rv-pulse"></i>LIVE <b id="rvClock">--:--</b></span>
+        <button type="button" class="rv-close" id="reserveCloseBtn" aria-label="Close reserve dialog">
+          <i class="fas fa-xmark"></i>
+        </button>
+      </div>
+    </div>
+
+    <form id="reserveForm" class="rv-body">
+      <input type="hidden" id="reserveRoomId" name="classroom_id">
+      <input type="hidden" id="reserveStartAt" name="start_at">
+      <input type="hidden" id="reserveEndAt" name="end_at">
+
+      <section class="rv-left">
+        <div class="rv-row">
+          <div class="rv-field">
+            <label class="rv-label" for="reserveDate">Date</label>
+            <input class="rv-input" id="reserveDate" type="date" required>
+          </div>
+          <div class="rv-chip" id="slotFreeCount"><i class="fas fa-bolt"></i><span>-- free</span></div>
+        </div>
+
+        <div>
+          <div class="rv-label">Availability &middot; <span class="rv-dim">5:00 AM - 6:00 PM</span></div>
+          <div class="rv-meter" id="slotMeter" aria-hidden="true"></div>
+        </div>
+
+        <div>
+          <div class="rv-label">Pick your hours</div>
+          <div class="slot-grid" id="slotGrid" role="group" aria-label="Hourly time slots"></div>
+        </div>
+
         <div class="slot-legend">
           <span><i class="slot-dot is-free"></i>Free</span>
           <span><i class="slot-dot is-freed"></i>Class cancelled</span>
           <span><i class="slot-dot is-selected"></i>Selected</span>
           <span><i class="slot-dot is-busy"></i>Taken</span>
         </div>
-        <div class="slot-summary" id="slotSummary">Select one or more consecutive free hours.</div>
-      </div>
+      </section>
 
-      <input type="hidden" id="reserveStartAt" name="start_at">
-      <input type="hidden" id="reserveEndAt" name="end_at">
+      <aside class="rv-right">
+        <div class="rv-card">
+          <div class="rv-label">Your booking</div>
+          <div class="slot-summary" id="slotSummary">Select one or more consecutive free hours.</div>
+        </div>
 
-      <div class="reserve-group">
-        <label class="reserve-label" for="reserveNotes">Notes (Optional)</label>
-        <textarea class="reserve-input reserve-textarea" id="reserveNotes" name="notes" placeholder="Purpose or class details..."></textarea>
-      </div>
+        <div class="rv-field rv-grow">
+          <label class="rv-label" for="reserveNotes">Notes (optional)</label>
+          <textarea class="rv-input rv-textarea" id="reserveNotes" name="notes" placeholder="Purpose or class details..."></textarea>
+        </div>
 
-      <div class="reserve-error" id="reserveError"></div>
+        <div class="reserve-error" id="reserveError"></div>
 
-      <div class="reserve-actions">
-        <button type="button" class="reserve-cancel" id="reserveCancelBtn">Cancel</button>
-        <button type="submit" class="reserve-submit" id="reserveSubmitBtn">Confirm Reservation</button>
-      </div>
+        <div class="rv-actions">
+          <button type="button" class="rv-btn rv-btn-ghost" id="reserveCancelBtn">Cancel</button>
+          <button type="submit" class="rv-btn rv-btn-primary" id="reserveSubmitBtn"><i class="fas fa-satellite-dish"></i> Confirm Reservation</button>
+        </div>
+      </aside>
     </form>
   </div>
 </div>
@@ -1140,6 +1227,9 @@ document.addEventListener('DOMContentLoaded', function () {
   var reserveDate = document.getElementById('reserveDate');
   var slotGrid = document.getElementById('slotGrid');
   var slotSummary = document.getElementById('slotSummary');
+  var slotMeter = document.getElementById('slotMeter');
+  var slotFreeCount = document.getElementById('slotFreeCount');
+  var rvClock = document.getElementById('rvClock');
   var reserveNotes = document.getElementById('reserveNotes');
   var reserveError = document.getElementById('reserveError');
   var reserveSubmitBtn = document.getElementById('reserveSubmitBtn');
@@ -1243,6 +1333,7 @@ document.addEventListener('DOMContentLoaded', function () {
     reserveOverlay.classList.add('is-open');
     reserveOverlay.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
+    startReserveClock();
     loadSlots();
   }
 
@@ -1284,8 +1375,13 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function renderSlots() {
+    var nowDate = new Date();
+    var isToday = reserveDate.value === formatDateOnly(nowDate);
+    var freeCount = 0;
+
     slotGrid.innerHTML = slotData.map(function (slot, index) {
       var free = slot.status === 'free';
+      if (free) freeCount++;
       var selected = slotSel && index >= slotSel.from && index <= slotSel.to;
       var startHour = Number(slot.start_at.slice(11, 13));
       var title = free ? (slot.freed_by_cancellation ? (slot.reason || 'Class cancelled - free') : 'Available') : (slot.reason || 'Not available');
@@ -1293,10 +1389,34 @@ document.addEventListener('DOMContentLoaded', function () {
         + (free ? '' : ' disabled') + ' title="' + escapeHtml(title) + '" aria-pressed="' + (selected ? 'true' : 'false') + '">'
         + slotHourLabel(startHour) + '</button>';
     }).join('');
+
+    slotMeter.innerHTML = slotData.map(function (slot, index) {
+      var selected = slotSel && index >= slotSel.from && index <= slotSel.to;
+      var startHour = Number(slot.start_at.slice(11, 13));
+      var cls = selected ? 'is-sel' : (slot.status !== 'free' ? 'is-busy' : (slot.freed_by_cancellation ? 'is-freed' : ''));
+      if (isToday && startHour === nowDate.getHours()) cls += ' is-now';
+      return '<span class="' + cls + '"></span>';
+    }).join('');
+
+    slotFreeCount.querySelector('span').textContent = freeCount + ' free hour' + (freeCount === 1 ? '' : 's');
+
     if (!slotData.some(function (slot) { return slot.status === 'free'; })) {
       slotSummary.textContent = 'No free hours on this date. Try another day.';
       slotSummary.classList.remove('is-ready');
     }
+  }
+
+  var reserveClockTimer = null;
+  function tickReserveClock() {
+    if (rvClock) rvClock.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  }
+  function startReserveClock() {
+    stopReserveClock();
+    tickReserveClock();
+    reserveClockTimer = setInterval(tickReserveClock, 1000);
+  }
+  function stopReserveClock() {
+    if (reserveClockTimer) { clearInterval(reserveClockTimer); reserveClockTimer = null; }
   }
 
   async function loadSlots() {
@@ -1470,6 +1590,7 @@ document.addEventListener('DOMContentLoaded', function () {
     reserveOverlay.classList.remove('is-open');
     reserveOverlay.setAttribute('aria-hidden', 'true');
     document.body.style.overflow = '';
+    stopReserveClock();
   }
 
   /* ── Timetable grid for check modal ── */
