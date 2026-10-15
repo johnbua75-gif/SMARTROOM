@@ -62,6 +62,44 @@
         .sidebar-nav { position:relative; z-index:1; list-style:none; overflow-y:auto; padding:0 12px; scrollbar-width:none; -ms-overflow-style:none; }.sidebar-nav::-webkit-scrollbar { width:0; height:0; display:none; }.sidebar-nav li { margin-bottom:2px; }.sidebar-nav a { display:flex; align-items:center; gap:11px; padding:11px 12px; color:rgba(255,255,255,.6); text-decoration:none; font-size:.88rem; font-weight:500; border-radius:10px; transition:all .22s; position:relative; overflow:hidden; }.sidebar-nav a .nav-icon { width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:.85rem; background:rgba(255,255,255,.05); flex-shrink:0; }.sidebar-nav a:hover { color:rgba(255,255,255,.9); background:rgba(255,255,255,.06); }.sidebar-nav a.active { background:rgba(245,197,24,.14); color:var(--yellow); }.sidebar-nav a.active .nav-icon { background:rgba(245,197,24,.2); color:var(--yellow); }.sidebar-nav a.active::before { content:''; position:absolute; left:0; top:20%; bottom:20%; width:3px; background:var(--yellow); border-radius:0 2px 2px 0; }
         .sidebar-footer { position:relative; z-index:1; margin-top:auto; padding:16px 12px 24px; border-top:1px solid rgba(255,255,255,.06); }.user-widget { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:10px; background:rgba(255,255,255,.05); margin-bottom:8px; }.user-avatar { width:34px; height:34px; border-radius:50%; flex-shrink:0; background:#1a2f80; border:2px solid rgba(245,197,24,.4); display:flex; align-items:center; justify-content:center; font-size:.78rem; font-weight:700; color:var(--yellow); }.user-widget-info { flex:1; min-width:0; }.user-widget-name { font-size:.83rem; font-weight:600; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }.user-widget-role { font-size:.73rem; color:rgba(255,255,255,.4); }.sidebar-logout-btn { display:flex; align-items:center; gap:10px; width:100%; padding:9px 12px; color:rgba(255,255,255,.4); font-size:.84rem; font-weight:500; border:0; border-radius:10px; background:none; cursor:pointer; font-family:inherit; text-align:left; }.sidebar-logout-btn:hover { color:#f87171; background:rgba(244,63,94,.08); }
         @media (max-width:900px) { .sidebar { display:none; } .main { margin-left:0; padding:24px 16px; } .header { align-items:stretch; flex-direction:column; } .grid { grid-template-columns:1fr; } .search input { min-width:0; flex:1; } }
+        .main { padding:36px clamp(24px,3.2vw,56px) 60px; }
+        h1 { font-size:1.9rem; letter-spacing:-.02em; }
+        .header { padding-bottom:22px; border-bottom:1px solid var(--border); }
+        .panel { border-radius:16px; box-shadow:0 8px 30px rgba(15,23,42,.07); }
+        .panel-head { padding:20px 26px; background:linear-gradient(180deg,#fff,#fbfcfe); }
+        .panel-head h2 { display:flex; align-items:center; gap:10px; color:var(--navy); font:700 1.02rem 'Plus Jakarta Sans',sans-serif; }
+        .panel-head h2 i { width:34px; height:34px; display:inline-flex; align-items:center; justify-content:center; border-radius:10px; color:var(--navy); background:#fff3c4; font-size:.88rem; }
+        .card-list { gap:18px; padding:22px 26px; }
+        .rfid-row { display:grid; grid-template-columns:minmax(300px,420px) minmax(0,1fr); gap:28px; align-items:center; padding:22px; border:1px solid var(--border); border-radius:16px; background:#fcfdff; }
+        .rfid-row.inactive { background:#fffafa; border-color:#f3d6d6; }
+        .rfid-visual { position:relative; overflow:hidden; display:flex; flex-direction:column; justify-content:space-between; gap:26px; min-height:210px; padding:22px 24px; border-radius:18px; color:#fff; background:linear-gradient(135deg,#0b1640 0%,#1a2f80 62%,#2b49b3 100%); box-shadow:0 14px 30px rgba(11,22,64,.28); }
+        .rfid-visual::before { content:''; position:absolute; top:-70px; right:-50px; width:210px; height:210px; border-radius:50%; background:radial-gradient(circle,rgba(245,197,24,.28),transparent 68%); }
+        .rfid-visual::after { content:''; position:absolute; bottom:-90px; left:-60px; width:220px; height:220px; border-radius:50%; border:1px solid rgba(255,255,255,.1); }
+        .rfid-row.inactive .rfid-visual { background:linear-gradient(135deg,#3b2230 0%,#6b2a3a 62%,#8c3347 100%); box-shadow:0 14px 30px rgba(107,42,58,.28); }
+        .rfid-visual > * { position:relative; z-index:1; }
+        .rfid-visual-top { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+        .rfid-chip { width:44px; height:34px; border-radius:7px; background:linear-gradient(135deg,#f9d84a,#d9a80f); box-shadow:inset 0 0 0 1px rgba(0,0,0,.18),inset 0 8px 0 -4px rgba(255,255,255,.35); }
+        .rfid-visual .status { display:inline-flex; align-items:center; gap:6px; padding:6px 11px; backdrop-filter:blur(2px); }
+        .rfid-visual .status i { font-size:.72rem; }
+        .rfid-visual-number { font:600 1.25rem 'DM Mono',ui-monospace,monospace; letter-spacing:.14em; overflow-wrap:anywhere; }
+        .rfid-visual-bottom { display:flex; align-items:flex-end; justify-content:space-between; gap:12px; }
+        .rfid-visual-bottom small { display:block; margin-bottom:3px; color:rgba(255,255,255,.6); font-size:.64rem; letter-spacing:.12em; text-transform:uppercase; }
+        .rfid-visual-bottom strong { font-size:.95rem; }
+        .rfid-wave { color:rgba(255,255,255,.55); font-size:1.3rem; transform:rotate(90deg); }
+        .rfid-details { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; margin:0; }
+        .rfid-detail { display:flex; align-items:flex-start; gap:13px; padding:16px; border:1px solid var(--border); border-radius:14px; background:#fff; }
+        .rfid-detail-icon { width:38px; height:38px; flex:0 0 38px; display:flex; align-items:center; justify-content:center; border-radius:11px; color:#273b70; background:#e6ebf8; }
+        .rfid-detail dt { margin-bottom:4px; color:var(--muted); font-size:.68rem; font-weight:700; letter-spacing:.07em; text-transform:uppercase; }
+        .rfid-detail dd { margin:0; color:var(--text); font-size:.92rem; font-weight:700; overflow-wrap:anywhere; }
+        .rfid-detail dd.mono { font:500 .84rem 'DM Mono',ui-monospace,monospace; }
+        .rfid-detail dd small { display:block; margin-top:3px; color:var(--muted); font-size:.74rem; font-weight:500; }
+        .rfid-detail dd small.bad { color:var(--red); font-weight:700; }
+        .empty { padding:48px 20px; }
+        .empty i { display:block; margin-bottom:12px; color:#9da8b8; font-size:1.8rem; }
+        .empty strong { display:block; margin-bottom:5px; color:var(--text); }
+        @media (max-width:1180px) { .rfid-row { grid-template-columns:1fr; } .rfid-visual { max-width:460px; } }
+        @media (max-width:900px) { .main { padding:24px 16px 40px; } .card-list { padding:16px; } .panel-head { padding:16px; } }
+        @media (max-width:560px) { .rfid-details { grid-template-columns:1fr; } .rfid-row { padding:14px; } }
     </style>
 </head>
 <body>
@@ -94,7 +132,7 @@
     </header>
     <div class="grid" style="grid-template-columns:1fr;">
         <section class="panel">
-            <div class="panel-head"><h2>My Card Condition</h2><p>Your registered RFID card status and access details.</p></div>
+            <div class="panel-head"><h2><i class="fas fa-id-card" aria-hidden="true"></i>My Card Condition</h2><p>Your registered RFID card status and access details.</p></div>
             <div class="card-list">
                 @forelse($cards as $card)
                     @php
@@ -102,17 +140,27 @@
                         $condition = $isExpired ? 'Expired' : ucfirst((string) $card->status);
                         $conditionClass = $isExpired || strtolower((string) $card->status) !== 'active' ? 'inactive' : 'active';
                     @endphp
-                    <article class="card-row">
-                        <div>
-                            <div class="card-name">{{ $card->user?->name ?? 'Unassigned card' }}</div>
-                            <div class="card-meta">Assigned room: {{ $card->classroom?->name ?? 'No room assigned' }}</div>
-                            <div class="card-code">{{ $card->card_number ?? 'No card number' }} · {{ $card->rfid_uid ?? 'No RFID UID' }}</div>
-                            <div class="card-meta">Expires: {{ $card->expires_at?->format('M j, Y') ?? 'No expiry date' }} · Last seen: {{ $card->last_accessed_at?->format('M j, Y g:i A') ?? 'Never' }}</div>
+                    <article class="rfid-row {{ $conditionClass }}">
+                        <div class="rfid-visual" aria-label="RFID card">
+                            <div class="rfid-visual-top">
+                                <span class="rfid-chip" aria-hidden="true"></span>
+                                <span class="status {{ $conditionClass }}"><i class="fas {{ $conditionClass === 'active' ? 'fa-circle-check' : 'fa-circle-exclamation' }}" aria-hidden="true"></i>{{ $condition }}</span>
+                            </div>
+                            <div class="rfid-visual-number">{{ $card->card_number ?? 'No card number' }}</div>
+                            <div class="rfid-visual-bottom">
+                                <div><small>Card holder</small><strong>{{ $card->user?->name ?? 'Unassigned card' }}</strong></div>
+                                <i class="fas fa-wifi rfid-wave" aria-hidden="true"></i>
+                            </div>
                         </div>
-                        <span class="status {{ $conditionClass }}">{{ $condition }}</span>
+                        <dl class="rfid-details">
+                            <div class="rfid-detail"><span class="rfid-detail-icon"><i class="fas fa-door-open" aria-hidden="true"></i></span><div><dt>Assigned room</dt><dd>{{ $card->classroom?->name ?? 'No room assigned' }}</dd></div></div>
+                            <div class="rfid-detail"><span class="rfid-detail-icon"><i class="fas fa-fingerprint" aria-hidden="true"></i></span><div><dt>RFID UID</dt><dd class="mono">{{ $card->rfid_uid ?? 'No RFID UID' }}</dd></div></div>
+                            <div class="rfid-detail"><span class="rfid-detail-icon"><i class="far fa-calendar-check" aria-hidden="true"></i></span><div><dt>Expires</dt><dd>{{ $card->expires_at?->format('M j, Y') ?? 'No expiry date' }}@if ($card->expires_at)<small class="{{ $isExpired ? 'bad' : '' }}">{{ $card->expires_at->diffForHumans() }}</small>@endif</dd></div></div>
+                            <div class="rfid-detail"><span class="rfid-detail-icon"><i class="far fa-clock" aria-hidden="true"></i></span><div><dt>Last seen</dt><dd>{{ $card->last_accessed_at?->format('M j, Y g:i A') ?? 'Never' }}@if ($card->last_accessed_at)<small>{{ $card->last_accessed_at->diffForHumans() }}</small>@endif</dd></div></div>
+                        </dl>
                     </article>
                 @empty
-                    <div class="empty">No RFID card is currently assigned to your account.</div>
+                    <div class="empty"><i class="fas fa-id-card" aria-hidden="true"></i><strong>No RFID card assigned</strong>No RFID card is currently assigned to your account.</div>
                 @endforelse
             </div>
         </section>

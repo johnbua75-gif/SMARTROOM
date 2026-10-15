@@ -1,7 +1,7 @@
 <style>
 .topbar-profile,.tb-profile{display:none!important}
 .topbar{display:none!important}
-.faculty-notification-widget{position:fixed;right:18px;bottom:18px;z-index:1300;display:flex;align-items:center;gap:8px}
+.faculty-notification-widget{position:fixed;right:18px;bottom:18px;z-index:1300;display:none!important;align-items:center;gap:8px}
 .sidebar{border-right:2px solid rgba(245,197,24,.55);overflow:visible!important;transition:width .22s ease}
 .main{transition:margin-left .22s ease}
 .faculty-sidebar-toggle{position:absolute;top:50%;right:-13px;z-index:5;width:24px;height:24px;border:1px solid rgba(245,197,24,.7);border-radius:50%;background:#17265f;color:#f5c518;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.68rem;box-shadow:0 3px 8px rgba(0,0,0,.18);transform:translateY(-50%)}
