@@ -61,6 +61,34 @@
         .notification-type i { margin-right:6px; }
         .unread-label { padding:2px 7px; border-radius:999px; background:var(--yellow-light); }
         @media (max-width:768px) { .filter-bar { padding:10px 15px; overflow-x:auto; flex-wrap:nowrap; }.filter-chip { flex:0 0 auto; } }
+        .main { padding:36px clamp(24px,3.2vw,56px) 60px; }
+        .page-header,.notifications-panel,.feedback-message { max-width:none; width:100%; }
+        .page-header { align-items:center; padding-bottom:22px; margin-bottom:24px; border-bottom:1px solid var(--border); }
+        .page-title { font-size:1.9rem; letter-spacing:-.02em; }
+        .notification-summary { gap:10px; }
+        .summary-count { min-height:44px; padding:8px 16px; border-radius:12px; font-size:.8rem; box-shadow:0 1px 2px rgba(15,23,42,.04); }
+        .summary-count strong { font-size:1.15rem; }
+        .notifications-panel { border-radius:16px; box-shadow:0 8px 30px rgba(15,23,42,.07); }
+        .panel-head { padding:20px 26px; background:linear-gradient(180deg,#fff,#fbfcfe); }
+        .panel-icon { width:36px; height:36px; border-radius:10px; }
+        .filter-bar { padding:14px 26px; }
+        .notification-item { grid-template-columns:44px minmax(0,1fr) auto; align-items:start; gap:18px; padding:22px 26px; }
+        .notification-item.unread { background:#fffdf5; box-shadow:inset 4px 0 0 var(--yellow); }
+        .notification-item.unread:hover { background:#fff9e3; }
+        .notification-item.actionable { box-shadow:inset 4px 0 0 var(--navy-mid); }
+        .notification-icon { width:44px; height:44px; display:flex; align-items:center; justify-content:center; border-radius:12px; font-size:1rem; }
+        .notification-icon[data-tone="success"] { color:#126c4b; background:#e3f6ec; }
+        .notification-icon[data-tone="danger"] { color:#b42323; background:#fdeaea; }
+        .notification-icon[data-tone="warn"] { color:#8a6500; background:#fff3c4; }
+        .notification-icon[data-tone="info"] { color:#273b70; background:#e6ebf8; }
+        .notification-title { font-size:.98rem; }
+        .notification-body { font-size:.88rem; max-width:80ch; }
+        .notification-time { display:inline-flex; align-items:center; gap:6px; margin-top:10px; color:#8190a5; font-size:.76rem; }
+        .notification-type { padding:6px 11px; border-radius:999px; font-size:.7rem; }
+        .notification-type[data-type="rfid_access_granted"],.notification-type[data-type="rfid_granted"] { color:#126c4b; border-color:#bfe3d2; background:#edfaf3; }
+        .notification-type[data-type="rfid_access_denied"],.notification-type[data-type="rfid_denied"] { color:#a33b3b; border-color:#efcfcc; background:#fff3f2; }
+        @media (max-width:900px) { .page-header { align-items:flex-start; } }
+        @media (max-width:768px) { .main { padding:24px 16px 36px; }.page-header { align-items:flex-start; }.notification-item { grid-template-columns:40px minmax(0,1fr); gap:13px; padding:16px; }.notification-icon { width:40px; height:40px; }.filter-bar { padding:10px 16px; } }
         @media (prefers-reduced-motion:reduce) { .filter-chip,.notification-item,.enrollment-action { transition:none; } }
     </style>
 </head>
@@ -127,14 +155,16 @@
             <div class="notification-list">
                 @foreach ($notifications as $notification)
                     @php($enrollmentRequest = $pendingEnrollmentRequests->get((int) data_get($notification->data, 'enrollment_id')))
-                    @php($notificationLabel = match ($notification->type) { 'course_assignment' => 'Course assignment', 'enrollment_request' => 'Enrollment request', 'enrollment_status' => 'Enrollment update', default => ucwords(str_replace('_', ' ', $notification->type ?: 'Update')) })
-                    @php($notificationIcon = match ($notification->type) { 'course_assignment' => 'fa-book-open', 'enrollment_request' => 'fa-user-plus', 'enrollment_status' => 'fa-user-check', default => 'fa-bell' })
+                    @php($notificationText = strtolower(($notification->title ?? '').' '.($notification->body ?? '')))
+                    @php($notificationTone = match (true) { str_contains($notificationText, 'denied') => 'danger', str_contains($notificationText, 'granted') => 'success', $notification->type === 'enrollment_request' => 'warn', default => 'info' })
+                    @php($notificationLabel = match ($notification->type) { 'course_assignment' => 'Course assignment', 'enrollment_request' => 'Enrollment request', 'enrollment_status' => 'Enrollment update', default => str_replace('Rfid', 'RFID', ucwords(str_replace('_', ' ', $notification->type ?: 'Update'))) })
+                    @php($notificationIcon = match ($notification->type) { 'course_assignment' => 'fa-book-open', 'enrollment_request' => 'fa-user-plus', 'enrollment_status' => 'fa-user-check', default => match ($notificationTone) { 'danger' => 'fa-ban', 'success' => 'fa-id-card', default => 'fa-bell' } })
                     <article class="notification-item {{ $notification->read_at ? '' : 'unread' }} {{ $notification->type === 'enrollment_request' && $enrollmentRequest ? 'actionable' : '' }}" data-notification-id="{{ $notification->id }}" data-unread="{{ $notification->read_at ? '0' : '1' }}" data-actionable="{{ $notification->type === 'enrollment_request' && $enrollmentRequest ? '1' : '0' }}">
-                        <span class="notification-dot" aria-hidden="true"></span>
+                        <span class="notification-icon" data-tone="{{ $notificationTone }}" aria-hidden="true"><i class="fas {{ $notificationIcon }}"></i></span>
                         <div class="notification-content">
                             <div class="notification-heading"><span class="notification-title">{{ $notification->title }}</span>@if (!$notification->read_at)<span class="unread-label">Unread</span>@endif</div>
                             <div class="notification-body">{{ $notification->body ?: 'No additional details.' }}</div>
-                            <div class="notification-time">{{ $notification->created_at?->diffForHumans() ?? 'Recently' }}</div>
+                            <div class="notification-time" title="{{ $notification->created_at?->format('M j, Y g:i A') }}"><i class="far fa-clock" aria-hidden="true"></i>{{ $notification->created_at?->diffForHumans() ?? 'Recently' }}</div>
                             @if ($notification->type === 'enrollment_request' && $enrollmentRequest)
                                 <div class="enrollment-request-details">
                                     <div><strong>Student</strong>{{ $enrollmentRequest->student->name }}</div>
