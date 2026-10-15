@@ -324,6 +324,53 @@ $attendanceCards = collect($courses ?? [])->map(function ($course) {
     @media(max-width:1280px){ .stats-row{grid-template-columns:repeat(2,1fr)} .content{padding:24px 24px 48px} .topbar{padding:0 24px} }
     @media(max-width:960px){ :root{--sidebar-w:0px} .sidebar{display:none} .stats-row{grid-template-columns:repeat(2,1fr)} }
     @media(max-width:600px){ .stats-row{grid-template-columns:1fr} .form-row{grid-template-columns:1fr} .search-box{display:none} }
+
+    /* ===== DESIGN REFRESH ===== */
+    .content { max-width:1680px; width:100%; margin-inline:auto; }
+    .page-header { padding-bottom:20px; border-bottom:1px solid var(--border); }
+    .page-title { font-size:1.9rem; }
+    .stat-card { border-radius:20px; box-shadow:0 1px 2px rgba(15,23,41,.05),0 8px 24px rgba(15,23,41,.05); }
+    .stat-card::before { content:''; position:absolute; left:0; right:0; top:0; height:3px; opacity:.85; }
+    .stat-card.c-blue::before  { background:linear-gradient(90deg,#60a5fa,#1d4ed8); }
+    .stat-card.c-green::before { background:linear-gradient(90deg,#34d399,#059669); }
+    .stat-card.c-slate::before { background:linear-gradient(90deg,#94a3b8,#475569); }
+    .stat-card.c-amber::before { background:linear-gradient(90deg,#fbbf24,#b45309); }
+    .stat-card:hover { transform:translateY(-3px); }
+    .stat-value { font-variant-numeric:tabular-nums; }
+    .table-card { border-radius:20px; box-shadow:0 1px 2px rgba(15,23,41,.05),0 10px 30px rgba(15,23,41,.06); }
+    .table-toolbar { padding:22px 28px 20px; background:linear-gradient(180deg,#fff,#fbfcfe); }
+    .toolbar-icon { width:42px; height:42px; border-radius:12px; background:linear-gradient(135deg,var(--navy-light),#dbe4fb); }
+    .search-box { background:#fff; transition:border-color .2s,box-shadow .2s,width .2s; }
+    .search-box input { width:190px; }
+    .search-box:focus-within input { width:230px; }
+    .filter-tabs { padding:4px; border-radius:11px; background:#eef1f7; }
+    .ftab { padding:7px 15px; border-radius:8px; }
+    .ftab.active { background:var(--navy); color:#fff; box-shadow:0 2px 8px rgba(11,22,64,.28); }
+    .ftab.active i { color:var(--yellow) !important; }
+    thead th { padding:13px 18px; background:#f6f8fc; }
+    thead th:first-child,td:first-child { padding-left:28px; }
+    thead th:last-child,td:last-child { padding-right:28px; }
+    tbody tr { position:relative; }
+    tbody tr:hover { background:#f7f9ff; box-shadow:inset 3px 0 0 var(--navy-mid); }
+    td { padding:17px 18px; }
+    .course-code { font-size:.9rem; }
+    .course-sub { font-size:.78rem; }
+    .room-tag { border-radius:8px; background:#f3f5fa; }
+    .status-pill { padding:6px 13px; }
+    .action-btn { padding:7px 13px; border-radius:9px; }
+    .action-btn.js-open-attendance { border-color:var(--navy); background:var(--navy); color:#fff; box-shadow:0 2px 8px rgba(11,22,64,.22); }
+    .action-btn.js-open-attendance i { color:var(--yellow); }
+    .action-btn.js-open-attendance:hover { background:#16286b; border-color:#16286b; color:#fff; box-shadow:0 6px 16px rgba(11,22,64,.28); }
+    .table-footer { padding:15px 28px; background:#f9fafc; }
+    .modal { border-radius:26px; }
+    .modal-head { padding:26px 30px 22px; }
+    .modal-body { padding:26px 30px; }
+    .modal-footer { padding:18px 30px; }
+    .btn-primary,.btn-cancel,.action-btn,.ftab,.new-btn { outline-offset:2px; }
+    .btn-primary:focus-visible,.btn-cancel:focus-visible,.action-btn:focus-visible,.ftab:focus-visible,.new-btn:focus-visible,.modal-close:focus-visible { outline:3px solid #6785d4; }
+    @media(max-width:960px){ .table-card { overflow-x:auto; } .table-card table { min-width:680px; } .table-toolbar { padding:18px 18px 16px; } .page-title { font-size:1.6rem; } }
+    @media(max-width:600px){ .content { padding:20px 14px 44px; } .toolbar-right { width:100%; overflow-x:auto; } .search-box:focus-within input { width:190px; } }
+    @media (prefers-reduced-motion:reduce){ .stat-card,.action-btn,.ftab,.search-box input { transition:none; } .page-header,.stats-row,.table-card { animation:none; } .status-open .status-dot { animation:none; } }
   </style>
 </head>
 <body>
