@@ -4,6 +4,7 @@
     $facultyInitials = strtoupper(substr((string) $facultyName, 0, 1));
     $notificationTotal = $notifications->count();
     $notificationUnread = $notifications->filter(fn ($notification) => $notification->read_at === null)->count();
+    $notificationActionable = $notifications->filter(fn ($notification) => $notification->type === 'enrollment_request' && $pendingEnrollmentRequests->has((int) data_get($notification->data, 'enrollment_id')))->count();
 @endphp
 <!DOCTYPE html>
 <html lang="en">
@@ -16,7 +17,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
-        :root { --navy:#0b1640; --navy-mid:#1a2f80; --yellow:#f5c518; --bg:#f4f6fb; --white:#fff; --text:#101828; --muted:#718096; --border:#e3e8f1; --blue:#2563eb; --blue-bg:#eff6ff; }
+        :root { --navy:#0b1640; --navy-mid:#1a2f80; --yellow:#f5c518; --bg:#f4f6fb; --white:#fff; --text:#101828; --muted:#718096; --border:#e3e8f1; --blue:#2563eb; --blue-bg:#eff6ff; --yellow-light:#fff3c4; --navy-light:#dfe6f7; }
         * { box-sizing:border-box; }
         body { margin:0; min-height:100vh; background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif; }
         .sidebar { position:fixed; inset:0 auto 0 0; width:230px; height:100vh; display:flex; flex-direction:column; overflow:hidden; z-index:10; background:var(--navy); color:#fff; }
@@ -39,6 +40,28 @@
         .notification-type[data-type="enrollment_request"] { color:#755900; border-color:#ead88d; background:#fffbed; }
         .notification-type[data-type="enrollment_status"] { color:#126c4b; border-color:#bfe3d2; background:#edfaf3; }
         .mobile-menu-panel button.mobile-menu-link { width:100%; border:0; background:transparent; cursor:pointer; font:inherit; text-align:left; }
+        [hidden] { display:none !important; }
+        .feedback-message { max-width:1080px; margin:0 0 16px; padding:12px 16px; border:1px solid; border-radius:10px; font-size:.86rem; font-weight:600; }
+        .feedback-success { color:#126c4b; border-color:#bfe3d2; background:#edfaf3; }
+        .feedback-error { color:#a33b3b; border-color:#efcfcc; background:#fff3f2; }
+        .filter-bar { display:flex; flex-wrap:wrap; gap:8px; padding:12px 22px; border-bottom:1px solid var(--border); background:#fafbfd; }
+        .filter-chip { display:inline-flex; align-items:center; gap:7px; min-height:36px; padding:6px 13px; border:1px solid var(--border); border-radius:999px; color:#4c5a70; background:var(--white); font:600 .8rem 'DM Sans',sans-serif; cursor:pointer; transition:background-color .15s ease,border-color .15s ease,color .15s ease; }
+        .filter-chip span { min-width:20px; padding:1px 6px; border-radius:999px; color:var(--navy); background:#eef1f7; font-size:.72rem; font-variant-numeric:tabular-nums; text-align:center; }
+        .filter-chip:hover { border-color:#c3cde0; }
+        .filter-chip.active { color:#fff; border-color:var(--navy); background:var(--navy); }
+        .filter-chip.active span { color:var(--navy); background:var(--yellow); }
+        .filter-chip:focus-visible { outline:3px solid #6785d4; outline-offset:2px; }
+        .notification-item { transition:background-color .15s ease; }
+        .notification-item:hover { background:#f8f9fd; }
+        .notification-item.unread:hover { background:#fff9e0; }
+        .notification-item.unread { box-shadow:inset 3px 0 0 var(--yellow); }
+        .notification-item.actionable { box-shadow:inset 3px 0 0 var(--navy-mid); }
+        .notification-title { overflow-wrap:anywhere; }
+        .notification-body { overflow-wrap:anywhere; }
+        .notification-type i { margin-right:6px; }
+        .unread-label { padding:2px 7px; border-radius:999px; background:var(--yellow-light); }
+        @media (max-width:768px) { .filter-bar { padding:10px 15px; overflow-x:auto; flex-wrap:nowrap; }.filter-chip { flex:0 0 auto; } }
+        @media (prefers-reduced-motion:reduce) { .filter-chip,.notification-item,.enrollment-action { transition:none; } }
     </style>
 </head>
 <body>
@@ -96,12 +119,17 @@
         @if ($notifications->isEmpty())
             <div class="empty-state"><i class="fas fa-bell-slash"></i><strong>No notifications yet</strong><span>New faculty updates will appear here.</span></div>
         @else
+            <div class="filter-bar" role="group" aria-label="Filter notifications">
+                <button type="button" class="filter-chip active" data-filter="all" aria-pressed="true">All <span>{{ $notificationTotal }}</span></button>
+                <button type="button" class="filter-chip" data-filter="unread" aria-pressed="false">Unread <span>{{ $notificationUnread }}</span></button>
+                <button type="button" class="filter-chip" data-filter="action" aria-pressed="false">Needs action <span>{{ $notificationActionable }}</span></button>
+            </div>
             <div class="notification-list">
                 @foreach ($notifications as $notification)
                     @php($enrollmentRequest = $pendingEnrollmentRequests->get((int) data_get($notification->data, 'enrollment_id')))
                     @php($notificationLabel = match ($notification->type) { 'course_assignment' => 'Course assignment', 'enrollment_request' => 'Enrollment request', 'enrollment_status' => 'Enrollment update', default => ucwords(str_replace('_', ' ', $notification->type ?: 'Update')) })
                     @php($notificationIcon = match ($notification->type) { 'course_assignment' => 'fa-book-open', 'enrollment_request' => 'fa-user-plus', 'enrollment_status' => 'fa-user-check', default => 'fa-bell' })
-                    <article class="notification-item {{ $notification->read_at ? '' : 'unread' }}" data-notification-id="{{ $notification->id }}">
+                    <article class="notification-item {{ $notification->read_at ? '' : 'unread' }} {{ $notification->type === 'enrollment_request' && $enrollmentRequest ? 'actionable' : '' }}" data-notification-id="{{ $notification->id }}" data-unread="{{ $notification->read_at ? '0' : '1' }}" data-actionable="{{ $notification->type === 'enrollment_request' && $enrollmentRequest ? '1' : '0' }}">
                         <span class="notification-dot" aria-hidden="true"></span>
                         <div class="notification-content">
                             <div class="notification-heading"><span class="notification-title">{{ $notification->title }}</span>@if (!$notification->read_at)<span class="unread-label">Unread</span>@endif</div>
@@ -130,6 +158,7 @@
                     </article>
                 @endforeach
             </div>
+            <div class="empty-state" id="filterEmpty" hidden><i class="fas fa-filter-circle-xmark"></i><strong>Nothing here</strong><span>No notifications match this filter.</span></div>
         @endif
     </section>
 </main>
@@ -163,6 +192,26 @@
     }
 
     window.setInterval(refreshWhenNotificationsChange, 10000);
+
+    const filterButtons = Array.from(document.querySelectorAll('[data-filter]'));
+    const filterEmpty = document.getElementById('filterEmpty');
+    function applyFilter(filter) {
+        let visible = 0;
+        notificationItems.forEach((item) => {
+            const show = filter === 'all'
+                || (filter === 'unread' && item.dataset.unread === '1')
+                || (filter === 'action' && item.dataset.actionable === '1');
+            item.hidden = !show;
+            if (show) visible++;
+        });
+        filterButtons.forEach((button) => {
+            const active = button.dataset.filter === filter;
+            button.classList.toggle('active', active);
+            button.setAttribute('aria-pressed', active ? 'true' : 'false');
+        });
+        if (filterEmpty) filterEmpty.hidden = visible !== 0;
+    }
+    filterButtons.forEach((button) => button.addEventListener('click', () => applyFilter(button.dataset.filter)));
 })();
 </script>
 @include('frontend.faculty.partials.notifications-widget')
