@@ -215,5 +215,6 @@
 })();
 </script>
 @include('frontend.faculty.partials.notifications-widget')
+<style>.faculty-notification-widget { display:none !important; }</style>
 </body>
 </html>
