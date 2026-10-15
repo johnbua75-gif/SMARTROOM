@@ -49,6 +49,7 @@ class StoreScheduleRequest extends FormRequest
             'day_of_week' => ['nullable', 'integer', 'between:0,6'],
             'enrolled' => ['nullable', 'integer', 'min:0'],
             'block_section' => ['nullable', 'string', 'max:64'],
+            'class_type' => ['nullable', 'string', 'in:LEC,LAB'],
             'year_level' => ['nullable', 'integer', 'between:1,4'],
         ];
     }

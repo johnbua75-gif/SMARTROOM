@@ -6,6 +6,7 @@
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 #include <WiFi.h>
+#include <WiFiClientSecure.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
 
@@ -14,6 +15,22 @@ MFRC522 rfid(SS_PIN, RST_PIN);
 HardwareSerial fpSerial(2);
 Adafruit_Fingerprint finger(&fpSerial);
 LiquidCrystal_I2C lcd(0x27, 16, 2);
+WiFiClientSecure httpsClient;
+unsigned long lastHeartbeatMs = 0;
+
+bool beginApiRequest(HTTPClient &http, const String &url) {
+  if (url.startsWith("https://")) {
+    if (strlen(API_ROOT_CA) == 0) return false;
+    httpsClient.setCACert(API_ROOT_CA);
+    return http.begin(httpsClient, url);
+  }
+
+  return url.startsWith("http://")
+      && ALLOW_INSECURE_HTTP_FOR_LOCAL_TESTING
+      && http.begin(url);
+}
+
+enum ScheduleCheckResult { SCHED_ERROR, SCHED_DENIED, SCHED_ALLOWED };
 
 // ─── State ────────────────────────────────────────────────
 bool fpSensorReady = false;  // Track if fingerprint sensor is available
@@ -126,7 +143,6 @@ bool logAccess(String method, String result, int userId = 0, int cardId = 0, Str
 
   // ✅ FIXED: Use ArduinoJson for safer JSON construction
   DynamicJsonDocument doc(1024);
-  doc["classroom_id"] = CLASSROOM_ID;
   doc["result"] = result;
   doc["direction"] = "entry";
   doc["accessed_at"] = timestamp;
@@ -142,15 +158,23 @@ bool logAccess(String method, String result, int userId = 0, int cardId = 0, Str
   Serial.println("Log body: " + body);
   for (int attempt = 1; attempt <= 3; attempt++) {
     HTTPClient http;
-    http.begin(String(API_BASE) + "/access-logs");
+    if (!beginApiRequest(http, String(API_BASE) + "/access-logs")) return false;
     http.setTimeout(10000);
     http.addHeader("Content-Type", "application/json");
-    http.addHeader("Authorization", String("Bearer ") + API_TOKEN);
+    http.addHeader("Authorization", String("Bearer ") + DEVICE_CREDENTIAL);
     http.addHeader("Accept", "application/json");
     int code = http.POST(body);
     Serial.printf("Log API response (attempt %d): %d\n", attempt, code);
+    if (code >= 200 && code < 300) {
+      if (result != "granted") { http.end(); return true; }
+
+      DynamicJsonDocument responseDoc(1024);
+      DeserializationError responseError = deserializeJson(responseDoc, http.getString());
+      bool grantRecorded = !responseError && responseDoc["data"]["result"].as<String>() == "granted";
+      http.end();
+      return grantRecorded;
+    }
     if (code > 0) Serial.println(http.getString());
-    if (code >= 200 && code < 300) { http.end(); return true; }
     if (code >= 400 && code < 500) { http.end(); return false; }
     http.end();
     delay(300 * attempt);
@@ -167,9 +191,9 @@ bool checkRFIDApi(String uid, int &userId, int &cardId) {
   HTTPClient http;
   String url = String(API_BASE) + "/access-cards?rfid_uid=" + urlEncode(uid);
   Serial.println("Checking card: " + url);
-  http.begin(url);
+  if (!beginApiRequest(http, url)) return false;
   http.setTimeout(10000);
-  http.addHeader("Authorization", String("Bearer ") + API_TOKEN);
+  http.addHeader("Authorization", String("Bearer ") + DEVICE_CREDENTIAL);
   http.addHeader("Accept", "application/json");
 
   int code = http.GET();
@@ -195,31 +219,18 @@ bool checkRFIDApi(String uid, int &userId, int &cardId) {
   JsonArray data = doc["data"].as<JsonArray>();
   if (!data.size()) return false;
 
-  // ✅ FIXED: Loop through results and verify rfid_uid matches exactly
-  for (JsonObject card : data) {
-    String cardUid = normalizeRfidUid(card["rfid_uid"].as<String>());
-    String checkUid = normalizeRfidUid(uid);
-    if (cardUid != checkUid) continue;
-
-    String status = card["status"].as<String>();
-    userId = card["user_id"].as<int>();
-    cardId = card["id"].as<int>();
-    if (status != "active") {
-      Serial.println("Card found but not active, skipping");
-      continue;
-    }
-
-    return true;
-  }
-  return false;
+  JsonObject card = data[0].as<JsonObject>();
+  userId = card["user_id"].as<int>();
+  cardId = card["id"].as<int>();
+  return card["status"].as<String>() == "active";
 }
 
 // ─── Check Schedule against API ───────────────────────────
-bool checkSchedule(int userId, String rfidUid) {
+ScheduleCheckResult checkSchedule(int userId, String rfidUid) {
   ensureWiFi();
   if (WiFi.status() != WL_CONNECTED) {
     Serial.println("No WiFi - cannot verify schedule");
-    return false;
+    return SCHED_ERROR;
   }
 
   HTTPClient http;
@@ -228,19 +239,38 @@ bool checkSchedule(int userId, String rfidUid) {
                + "&classroom_id=" + String(CLASSROOM_ID);
   url += "&rfid_uid=" + urlEncode(rfidUid);
   Serial.println("Checking schedule: " + url);
-  http.begin(url);
+  if (!beginApiRequest(http, url)) return SCHED_ERROR;
   http.setTimeout(10000);
-  http.addHeader("Authorization", String("Bearer ") + API_TOKEN);
+  http.addHeader("Authorization", String("Bearer ") + DEVICE_CREDENTIAL);
   http.addHeader("Accept", "application/json");
 
   int code = http.GET();
   Serial.printf("Schedule API response: %d\n", code);
 
+  if (code == 403) {
+    String payload = http.getString();
+    DynamicJsonDocument denialDoc(1024);
+    DeserializationError denialError = deserializeJson(denialDoc, payload);
+
+    if (!denialError && denialDoc["allowed"].is<bool>() && !denialDoc["allowed"].as<bool>()) {
+      const char* reason = denialDoc["reason"] | "Access denied";
+      Serial.printf("Schedule denied: %s\n", reason);
+      http.end();
+      return SCHED_DENIED;
+    }
+
+    if (payload.length() > 0) Serial.println(payload);
+    Serial.println("Schedule check failed - denying access");
+    http.end();
+    return SCHED_ERROR;
+  }
+
   if (code != 200) {
+    Serial.printf("Schedule check returned HTTP %d\n", code);
     if (code > 0) Serial.println(http.getString());
     Serial.println("Schedule check failed - denying access");
     http.end();
-    return false;
+    return SCHED_ERROR;
   }
 
   String payload = http.getString();
@@ -252,13 +282,23 @@ bool checkSchedule(int userId, String rfidUid) {
   if (err) {
     Serial.print("JSON parse error in checkSchedule: ");
     Serial.println(err.c_str());
-    return false;
+    return SCHED_ERROR;
   }
 
-  bool allowed = false;
-  if (doc.containsKey("allowed")) allowed = doc["allowed"].as<bool>();
+  if (!doc["allowed"].is<bool>()) {
+    Serial.println("Schedule API response has no boolean allowed field");
+    return SCHED_ERROR;
+  }
+
+  bool allowed = doc["allowed"].as<bool>();
   Serial.printf("Schedule allowed: %s\n", allowed ? "YES" : "NO");
-  return allowed;
+  if (!allowed) {
+    const char* reason = doc["reason"] | "No active schedule";
+    Serial.printf("Schedule denied: %s\n", reason);
+    return SCHED_DENIED;
+  }
+
+  return SCHED_ALLOWED;
 }
 
 // ─── Access results ───────────────────────────────────────
@@ -328,13 +368,35 @@ void checkRFID() {
 
   // Step 2: Does this user have a schedule RIGHT NOW?
   lcdMsg("Checking", "Schedule...");
-  if (!checkSchedule(userId, uid)) {
-    denyAccess("No Schedule", "RFID", userId, cardId, uid);
+  ScheduleCheckResult scheduleResult = checkSchedule(userId, uid);
+  if (scheduleResult != SCHED_ALLOWED) {
+    denyAccess(scheduleResult == SCHED_ERROR ? "API Error" : "No Schedule", "RFID", userId, cardId, uid);
     return;
   }
 
   // Step 3: All good — unlock
   grantAccess("RFID", userId, cardId);
+}
+
+void sendDeviceHeartbeat() {
+  if (lastHeartbeatMs != 0 && millis() - lastHeartbeatMs < 60000) return;
+  if (WiFi.status() != WL_CONNECTED) return;
+  lastHeartbeatMs = millis();
+
+  DynamicJsonDocument doc(128);
+  doc["classroom_id"] = CLASSROOM_ID;
+  String body;
+  serializeJson(doc, body);
+
+  HTTPClient http;
+  if (!beginApiRequest(http, String(API_BASE) + "/heartbeat")) return;
+  http.setTimeout(5000);
+  http.addHeader("Content-Type", "application/json");
+  http.addHeader("Authorization", String("Bearer ") + DEVICE_CREDENTIAL);
+  http.addHeader("Accept", "application/json");
+  int code = http.POST(body);
+  Serial.printf("Device heartbeat: %d\n", code);
+  http.end();
 }
 
 // ─── Fingerprint ──────────────────────────────────────────
@@ -436,6 +498,7 @@ void setup() {
 
 // ─── Loop ─────────────────────────────────────────────────
 void loop() {
+  sendDeviceHeartbeat();
   checkRFID();
   checkFingerprint();
   delay(50);

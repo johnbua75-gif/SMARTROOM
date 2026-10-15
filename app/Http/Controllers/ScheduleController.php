@@ -44,7 +44,8 @@ class ScheduleController extends Controller
         $facultyCourses = Course::query()
             ->where(function ($query) use ($user): void {
                 $query->where('instructor_user_id', $user->id)
-                    ->orWhereHas('offerings', fn ($offeringQuery) => $offeringQuery->where('instructor_user_id', $user->id));
+                    ->orWhereHas('offerings', fn ($offeringQuery) => $offeringQuery->where('instructor_user_id', $user->id))
+                    ->orWhereHas('schedules', fn ($scheduleQuery) => $scheduleQuery->where('instructor_user_id', $user->id));
             })
             ->orderBy('code')
             ->get();
@@ -63,7 +64,7 @@ class ScheduleController extends Controller
             ->get();
 
         $facultySchedules = Schedule::query()
-            ->with(['classroom', 'course', 'courseOffering.instructor', 'courseOffering.classroom'])
+            ->with(['classroom', 'course', 'instructor', 'courseOffering.instructor', 'courseOffering.classroom'])
             ->forInstructor((int) $user->id)
             ->orderBy('start_at')
             ->get();
@@ -110,7 +111,7 @@ class ScheduleController extends Controller
         $view = $request->query('view', 'week');
 
         $query = Schedule::query()
-            ->with(['classroom', 'course.instructor', 'courseOffering.instructor', 'courseOffering.classroom']);
+            ->with(['classroom', 'course.instructor', 'instructor', 'courseOffering.instructor', 'courseOffering.classroom']);
 
         if ($filter !== 'all') {
             $query->where('status', $filter);
@@ -310,12 +311,17 @@ class ScheduleController extends Controller
     public function show(int $id): View
     {
         $schedule = Schedule::query()
-            ->with(['classroom', 'course.instructor', 'courseOffering.instructor', 'courseOffering.classroom'])
+            ->with(['classroom', 'course.instructor', 'instructor', 'courseOffering.instructor', 'courseOffering.classroom'])
             ->where(function ($query): void {
-                $query->whereHas('courseOffering.instructor', function ($scope): void {
+                $query->whereHas('instructor', function ($scope): void {
                     $this->scheduleService->applyItDepartmentScope($scope);
+                })->orWhere(function ($offeringQuery): void {
+                    $offeringQuery->whereNull('instructor_user_id')
+                        ->whereHas('courseOffering.instructor', function ($scope): void {
+                            $this->scheduleService->applyItDepartmentScope($scope);
+                        });
                 })->orWhere(function ($legacyQuery): void {
-                    $legacyQuery->whereNull('course_offering_id')
+                    $legacyQuery->whereNull('instructor_user_id')->whereNull('course_offering_id')
                         ->whereHas('course.instructor', function ($scope): void {
                             $this->scheduleService->applyItDepartmentScope($scope);
                         });

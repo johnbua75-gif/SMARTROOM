@@ -362,7 +362,7 @@ class FacultyController extends Controller
             ->values();
 
         $cancelledByRoom = Schedule::query()
-            ->with(['course.instructor', 'courseOffering.instructor', 'classroom'])
+            ->with(['course.instructor', 'instructor', 'courseOffering.instructor', 'classroom'])
             ->whereIn('classroom_id', $classrooms->pluck('id')->all())
             ->where('status', 'cancelled')
             ->orderByDesc('start_at')
@@ -384,7 +384,7 @@ class FacultyController extends Controller
 
                         return [
                             'subject' => (string) ($schedule->course?->title ?? 'Untitled Subject'),
-                            'instructor' => (string) (($schedule->courseOffering?->instructor ?? $schedule->course?->instructor)?->name ?? 'Unassigned Instructor'),
+                            'instructor' => (string) (($schedule->instructor ?? $schedule->courseOffering?->instructor ?? $schedule->course?->instructor)?->name ?? 'Unassigned Instructor'),
                             'time' => $timeRange,
                         ];
                     })

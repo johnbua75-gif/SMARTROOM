@@ -27,3 +27,9 @@ Thumbs.db
 
 # ESP32 firmware secrets (copy ESP32_SECRETS.example.h)
 ESP32_SECRETS.h
+
+# local debug dumps
+/api_and_frontend_output.txt
+/api_and_frontend_response.json
+/output_reservations.json
+/temp_access_test.php

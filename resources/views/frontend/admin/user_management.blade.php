@@ -789,7 +789,7 @@ body.editing-open {
   </div>
 @endif
 
-<script type="application/json" id="usersDataJson">{!! json_encode($usersData ?? []) !!}</script>
+<script type="application/json" id="usersDataJson">{!! json_encode($usersData ?? [], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) !!}</script>
 <div id="usersDataEndpoint" data-url="{{ route('admin.users.data') }}" hidden></div>
 <div id="createUserModalState" data-open="{{ ($errors->has('first_name') || $errors->has('last_name') || $errors->has('email') || $errors->has('department') || $errors->has('role')) ? '1' : '0' }}" hidden></div>
 <script>

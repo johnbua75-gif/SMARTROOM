@@ -238,6 +238,11 @@ class StudentController extends Controller
         }
 
         $requestState = DB::transaction(function () use ($course, $student, $offering, $instructorUserId): string {
+            $student = Student::query()
+                ->whereKey($student->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
             $enrollment = Enrollment::query()
                 ->where('student_id', $student->id)
                 ->where('course_id', $course->id)

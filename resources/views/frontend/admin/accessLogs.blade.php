@@ -644,10 +644,10 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
   </div>
 </div>
 
-<script type="application/json" id="accessLogsJson">{!! json_encode($logs ?? []) !!}</script>
-<script type="application/json" id="hoursJson">{!! json_encode($hours ?? []) !!}</script>
-<script type="application/json" id="grantedJson">{!! json_encode($grantedSeries ?? []) !!}</script>
-<script type="application/json" id="deniedJson">{!! json_encode($deniedSeries ?? []) !!}</script>
+<script type="application/json" id="accessLogsJson">{!! json_encode($logs ?? [], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) !!}</script>
+<script type="application/json" id="hoursJson">{!! json_encode($hours ?? [], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) !!}</script>
+<script type="application/json" id="grantedJson">{!! json_encode($grantedSeries ?? [], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) !!}</script>
+<script type="application/json" id="deniedJson">{!! json_encode($deniedSeries ?? [], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) !!}</script>
 <script>
 const toastWrap = (() => {
   let wrap = document.getElementById('toastWrap');

@@ -320,24 +320,6 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
 .faculty-group-head { display: flex; flex-direction: column; gap: 4px; }
 .faculty-group-instructor { font-size: 0.72rem; font-weight: 800; color: var(--navy-mid); text-transform: uppercase; letter-spacing: 0.08em; }
 .faculty-group-subject { font-size: 0.85rem; font-weight: 700; color: var(--text); }
-.js-unassign-course-btn {
-  padding: 6px 10px;
-  background: #b45309 !important;
-  color: white !important;
-  border: none !important;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.76rem;
-  font-weight: 600;
-  transition: background 0.2s ease;
-  white-space: nowrap;
-}
-.js-unassign-course-btn:hover {
-  background: #92400e !important;
-}
-.js-unassign-course-btn:active {
-  background: #78350f !important;
-}
 .faculty-group-items { display: flex; flex-direction: column; gap: 8px; }
 .faculty-class-item {
   border: 1px solid var(--border); border-radius: 10px;
@@ -597,12 +579,12 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
     @php
       $scheduledFacultySummaries = collect($schedules ?? [])
         ->groupBy(function ($schedule) {
-          $instructorId = (int) ($schedule->courseOffering?->instructor_user_id ?? $schedule->course?->instructor_user_id ?? 0);
+          $instructorId = (int) ($schedule->instructor_user_id ?? $schedule->courseOffering?->instructor_user_id ?? $schedule->course?->instructor_user_id ?? 0);
           return $instructorId > 0 ? $instructorId : 'unassigned';
         })
         ->map(function ($group, $instructorId) {
           $primary = $group->first();
-          $instructor = $primary?->courseOffering?->instructor ?? $primary?->course?->instructor;
+          $instructor = $primary?->instructor ?? $primary?->courseOffering?->instructor ?? $primary?->course?->instructor;
 
           if ($instructorId === 'unassigned') {
             return [
@@ -1208,17 +1190,21 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
 
 @php
   $roomSchedulesData = collect($schedules ?? [])->map(function ($schedule) {
+    $instructorUserId = $schedule->instructor_user_id ?? $schedule->courseOffering?->instructor_user_id ?? $schedule->course?->instructor_user_id;
+
     return [
       'id'                  => (int) $schedule->id,
       'classroom_id'        => $schedule->classroom_id,
       'classroom_name'      => (string) ($schedule->classroom?->name ?? 'Unknown Room'),
       'classroom_building'  => (string) ($schedule->classroom?->building ?? ''),
-      'instructor_user_id'  => $schedule->courseOffering?->instructor_user_id ?? $schedule->course?->instructor_user_id,
+      'instructor_user_id'  => $instructorUserId,
+      'effective_instructor_user_id' => $instructorUserId,
       'course_offering_id'  => $schedule->course_offering_id,
+      'class_type'          => (string) ($schedule->class_type ?? ''),
       'block_section'       => (string) ($schedule->courseOffering?->block_section ?? $schedule->block_section ?? ''),
       'course_code'         => (string) ($schedule->course?->code ?? 'N/A'),
       'subject'             => (string) ($schedule->course?->title ?? 'Untitled Subject'),
-      'faculty'             => (string) (($schedule->courseOffering?->instructor ?? $schedule->course?->instructor)?->name ?? 'Unassigned Faculty'),
+      'faculty'             => (string) (($schedule->instructor ?? $schedule->courseOffering?->instructor ?? $schedule->course?->instructor)?->name ?? 'Unassigned Faculty'),
       'start_at'            => optional($schedule->start_at)->toIso8601String(),
       'end_at'              => optional($schedule->end_at)->toIso8601String(),
       'status'              => (string) ($schedule->status ?? 'scheduled'),
@@ -1432,8 +1418,6 @@ function openFacultyModal(facultyId) {
 
       facultyModalClassList.innerHTML = Object.values(grouped).map((group) => {
         const sessionLabel = group.items.length === 1 ? '1 session' : `${group.items.length} sessions`;
-        const courseId = group.items[0]?.course_id || 0;
-        const offeringId = group.items[0]?.offering_id || 0;
         const items = group.items.map((row) => {
           const day   = formatFacultyDay(row.start_at);
           const start = formatFacultyTime(row.start_at);
@@ -1450,14 +1434,7 @@ function openFacultyModal(facultyId) {
 
         return `<div class="faculty-group">
           <div class="faculty-group-head">
-            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
-              <div style="min-width:0;flex:1;">
-                <div class="faculty-group-subject">${group.code} - ${group.subject}${group.section ? ` (${group.section})` : ''}</div>
-              </div>
-              <button class="js-unassign-course-btn" type="button" data-course-id="${courseId}" data-offering-id="${offeringId}" data-course-code="${group.code}" title="Unassign subject offering from instructor">
-                <i class="fas fa-unlink"></i> Unassign
-              </button>
-            </div>
+            <div class="faculty-group-subject">${group.code} - ${group.subject}${group.section ? ` (${group.section})` : ''}</div>
             <div class="faculty-class-meta">${sessionLabel}</div>
           </div>
           <div class="faculty-group-items">${items}</div>
@@ -1625,14 +1602,14 @@ function renderRoomSchedules(classroomId) {
   const selectedInstructorId = createInstructorSelect?.value || '';
   const rows = roomSchedulesData
     .filter((r) => String(r.classroom_id) === String(classroomId))
-    .filter((r) => !selectedInstructorId || String(r.instructor_user_id) === String(selectedInstructorId))
+    .filter((r) => !selectedInstructorId || String(r.effective_instructor_user_id ?? r.instructor_user_id) === String(selectedInstructorId))
     .sort((a, b) => new Date(a.start_at || 0) - new Date(b.start_at || 0));
   if (rows.length === 0) { roomScheduleList.innerHTML = '<div class="room-schedule-empty">No schedule yet for this room.</div>'; return; }
   roomScheduleList.innerHTML = rows.map((r) => `
     <div class="room-schedule-item">
       <div class="room-schedule-main">
-        <div class="room-schedule-subject">${r.course_code} - ${r.subject}</div>
-        <div class="room-schedule-meta">${r.faculty} • ${r.status}</div>
+        <div class="room-schedule-subject">${r.course_code} - ${r.subject}${r.class_type ? ` (${r.class_type})` : ''}</div>
+        <div class="room-schedule-meta">${r.block_section ? `${r.block_section} • ` : ''}${r.faculty} • ${r.status}</div>
       </div>
       <div class="room-schedule-time">${formatRoomTime(r.start_at)} - ${formatRoomTime(r.end_at)}</div>
     </div>`).join('');
@@ -1642,14 +1619,14 @@ function renderInstructorSchedules(instructorId) {
   if (!instructorScheduleList) return;
   if (!instructorId) { instructorScheduleList.innerHTML = '<div class="room-schedule-empty">Select an instructor to view assigned subjects and schedule time blocks.</div>'; return; }
   const rows = roomSchedulesData
-    .filter((r) => String(r.instructor_user_id) === String(instructorId))
+    .filter((r) => String(r.effective_instructor_user_id ?? r.instructor_user_id) === String(instructorId))
     .sort((a, b) => new Date(a.start_at || 0) - new Date(b.start_at || 0));
   if (rows.length === 0) { instructorScheduleList.innerHTML = '<div class="room-schedule-empty">No schedule yet for this instructor.</div>'; return; }
   instructorScheduleList.innerHTML = rows.map((r) => `
     <div class="room-schedule-item">
       <div class="room-schedule-main">
-        <div class="room-schedule-subject">${r.course_code} - ${r.subject}</div>
-        <div class="room-schedule-meta">${r.classroom_name || 'No room'} • ${r.status}</div>
+        <div class="room-schedule-subject">${r.course_code} - ${r.subject}${r.class_type ? ` (${r.class_type})` : ''}</div>
+        <div class="room-schedule-meta">${r.block_section ? `${r.block_section} • ` : ''}${r.classroom_name || 'No room'} • ${r.status}</div>
       </div>
       <div class="room-schedule-time">${formatRoomTime(r.start_at)} - ${formatRoomTime(r.end_at)}</div>
     </div>`).join('');
@@ -1830,23 +1807,6 @@ getScheduleCheckboxes().forEach((c) => {
   c.addEventListener('change', (e) => { e.stopPropagation(); updateSelectionState(); });
 });
 
-document.addEventListener('click', (e) => {
-  const btn = e.target instanceof HTMLElement ? e.target.closest('.js-unassign-course-btn') : null;
-  if (!btn) return;
-
-  const courseId = btn.getAttribute('data-course-id');
-  const offeringId = btn.getAttribute('data-offering-id');
-  const courseCode = btn.getAttribute('data-course-code') || 'this subject';
-  if (!courseId) return;
-
-  openWarningConfirm({
-    title: 'Unassign subject?',
-    message: `This will remove "${courseCode}" from this instructor.`,
-    confirmText: 'Unassign',
-    onConfirm: () => offeringId ? unassignCourseOffering(offeringId) : unassignCourse(courseId),
-  });
-});
-
 warningConfirmButton?.addEventListener('click', async () => {
   const action = pendingWarningAction;
   closeWarningConfirm();
@@ -1862,56 +1822,6 @@ warningConfirmCancel?.addEventListener('click', () => {
 warningConfirmOverlay?.addEventListener('click', (e) => {
   if (e.target === warningConfirmOverlay) closeWarningConfirm();
 });
-
-async function unassignCourse(courseId) {
-  try {
-    const response = await fetch(`/admin/courses/${courseId}/unassign`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'X-CSRF-TOKEN': "{{ csrf_token() }}",
-      },
-      body: JSON.stringify({}),
-    });
-
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      alert(data?.message || 'Failed to unassign subject.');
-      return;
-    }
-
-    alert('Subject unassigned successfully.');
-    window.location.reload();
-  } catch {
-    alert('Unable to unassign subject right now.');
-  }
-}
-
-async function unassignCourseOffering(offeringId) {
-  try {
-    const response = await fetch(`/admin/course-offerings/${offeringId}/unassign`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'X-CSRF-TOKEN': "{{ csrf_token() }}",
-      },
-      body: JSON.stringify({}),
-    });
-
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      alert(data?.message || 'Failed to unassign subject offering.');
-      return;
-    }
-
-    alert('Subject offering unassigned successfully.');
-    window.location.reload();
-  } catch {
-    alert('Unable to unassign subject offering right now.');
-  }
-}
 
 document.querySelectorAll('.schedule-card').forEach((card) => {
   card.addEventListener('click', (e) => {

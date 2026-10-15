@@ -15,11 +15,20 @@ class AccessCardController extends Controller
     public function index(Request $request)
     {
         $device = $request->attributes->get('device');
-        if ($device && ! $request->filled('rfid_uid')) {
+        $doorApi = $request->attributes->get('door_api', false);
+        if (($device || $doorApi) && ! $request->filled('rfid_uid')) {
             abort(422, 'A scanned RFID UID is required for device lookup.');
         }
 
         $query = AccessCard::query()->with(['user', 'classroom']);
+
+        if ($doorApi) {
+            $classroomIds = $request->attributes->get('door_classroom_ids', []);
+            $query->where(function ($classroomQuery) use ($classroomIds): void {
+                $classroomQuery->whereNull('classroom_id')
+                    ->orWhereIn('classroom_id', $classroomIds);
+            });
+        }
 
         if ($request->filled('status')) {
             $query->where('status', $request->string('status'));
@@ -36,27 +45,7 @@ class AccessCardController extends Controller
         }
 
         if ($request->filled('rfid_uid')) {
-            $rawUid = strtolower(trim((string) $request->string('rfid_uid')));
-            $normalizedUid = preg_replace('/^rfid[-_]?/', '', $rawUid) ?? $rawUid;
-            $compactUid = preg_replace('/[^a-z0-9]/', '', $normalizedUid) ?? $normalizedUid;
-            $colonUid = implode(':', str_split($compactUid, 2));
-            $hyphenUid = implode('-', str_split($compactUid, 2));
-            $query->where(function ($uidQuery) use ($normalizedUid, $compactUid, $colonUid, $hyphenUid): void {
-                $uidQuery->whereIn('rfid_uid', [
-                    $normalizedUid,
-                    strtoupper($normalizedUid),
-                    $compactUid,
-                    strtoupper($compactUid),
-                    $colonUid,
-                    strtoupper($colonUid),
-                    $hyphenUid,
-                    strtoupper($hyphenUid),
-                    'RFID-'.$normalizedUid,
-                    'RFID-'.strtoupper($normalizedUid),
-                    'RFID-'.$colonUid,
-                    'RFID-'.strtoupper($colonUid),
-                ]);
-            });
+            $query->whereNormalizedRfidUid((string) $request->string('rfid_uid'));
         }
 
         if ($request->filled('search')) {
@@ -71,7 +60,7 @@ class AccessCardController extends Controller
             });
         }
 
-        $cards = $device
+        $cards = $device || $doorApi
             ? $query->latest('id')->limit(1)->get()
             : $query->latest('id')->paginate($request->integer('per_page', 20));
 

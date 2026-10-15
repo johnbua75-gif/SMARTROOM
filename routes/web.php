@@ -27,13 +27,13 @@ Route::get('/landing', function () {
 Route::get('/login', [PageController::class, 'login'])->name('auth.login');
 
 Route::middleware('guest')->group(function (): void {
-    Route::post('/login', [AuthController::class, 'login'])->name('auth.login.submit');
+    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1')->name('auth.login.submit');
     Route::get('/signup', [PageController::class, 'signup'])->name('auth.signup');
-    Route::post('/signup', [AuthController::class, 'signup'])->name('auth.signup.submit');
+    Route::post('/signup', [AuthController::class, 'signup'])->middleware('throttle:10,1')->name('auth.signup.submit');
     Route::get('/forgot-password', [AuthController::class, 'forgotPassword'])->name('password.request');
-    Route::post('/forgot-password', [AuthController::class, 'sendResetLink'])->name('password.email');
+    Route::post('/forgot-password', [AuthController::class, 'sendResetLink'])->middleware('throttle:5,1')->name('password.email');
     Route::get('/reset-password/{token}', [AuthController::class, 'resetPassword'])->name('password.reset');
-    Route::post('/reset-password', [AuthController::class, 'updatePassword'])->name('password.update');
+    Route::post('/reset-password', [AuthController::class, 'updatePassword'])->middleware('throttle:10,1')->name('password.update');
 });
 
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
@@ -153,8 +153,6 @@ Route::middleware(['auth', 'active', 'password.changed', 'role:admin'])->group(f
 
     Route::post('/admin/courses', [AdminDataController::class, 'storeCourse'])->name('admin.courses.store');
     Route::match(['put', 'patch'], '/admin/courses/{course}', [AdminDataController::class, 'updateCourse'])->name('admin.courses.update');
-    Route::patch('/admin/courses/{course}/unassign', [AdminDataController::class, 'unassignCourse'])->name('admin.courses.unassign');
-    Route::patch('/admin/course-offerings/{courseOffering}/unassign', [AdminDataController::class, 'unassignCourseOffering'])->name('admin.course-offerings.unassign');
     Route::delete('/admin/courses/{course}', [AdminDataController::class, 'destroyCourse'])->name('admin.courses.destroy');
 
     Route::post('/admin/access-cards', [AdminDataController::class, 'storeAccessCard'])->name('admin.access-cards.store');

@@ -75,6 +75,8 @@ class CourseObserver
 
     private function hasHistory(Course $course): bool
     {
-        return $course->schedules()->exists() || $course->enrollments()->exists();
+        return $course->schedules()->exists()
+            || $course->enrollments()->exists()
+            || $course->offerings()->whereHas('enrollments')->exists();
     }
 }

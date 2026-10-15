@@ -8,6 +8,7 @@ use App\Models\Notification;
 use App\Models\Schedule;
 use App\Models\Student;
 use App\Models\User;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 use function Pest\Laravel\actingAs;
@@ -84,6 +85,28 @@ it('assigns separate sections of one subject to different faculty without changi
         ->and(Notification::query()->where('user_id', $blockBInstructor->id)->where('type', 'course_assignment')->where('data->course_offering_id', $offerings['Block B']->id)->exists())->toBeTrue();
 });
 
+it('removes instructor unassignment actions from the admin schedule page and routes', function () {
+    $admin = User::factory()->create([
+        'role' => 'admin',
+        'status' => 'active',
+        'must_change_password' => false,
+    ]);
+
+    $this->actingAs($admin)
+        ->get(route('admin.schedule'))
+        ->assertOk()
+        ->assertDontSee('js-unassign-course-btn')
+        ->assertDontSee('Unassign subject?');
+
+    $this->actingAs($admin)
+        ->patch('/admin/courses/1/unassign')
+        ->assertNotFound();
+
+    $this->actingAs($admin)
+        ->patch('/admin/course-offerings/1/unassign')
+        ->assertNotFound();
+});
+
 it('routes student enrollment requests to the selected offering instructor', function () {
     $catalogInstructor = User::factory()->create(['role' => 'faculty', 'status' => 'active']);
     $sectionInstructor = User::factory()->create(['role' => 'faculty', 'status' => 'active']);
@@ -121,4 +144,81 @@ it('routes student enrollment requests to the selected offering instructor', fun
         ->and($enrollment->course_offering_id)->toBe($offering->id)
         ->and(Notification::query()->where('type', 'enrollment_request')->where('user_id', $sectionInstructor->id)->where('data->enrollment_id', $enrollment->id)->exists())->toBeTrue()
         ->and(Notification::query()->where('type', 'enrollment_request')->where('user_id', $catalogInstructor->id)->exists())->toBeFalse();
+});
+
+it('rejects overlapping terms for the same subject section', function () {
+    $admin = User::factory()->create(['role' => 'admin', 'status' => 'active']);
+    $faculty = User::factory()->create(['role' => 'faculty', 'status' => 'active']);
+    $classroom = Classroom::query()->create([
+        'name' => 'Overlapping Offering Room',
+        'building' => 'Building C',
+        'capacity' => 40,
+        'status' => 'available',
+    ]);
+    $course = Course::query()->create([
+        'code' => 'OFFERING-OVERLAP-101',
+        'title' => 'Offering Overlap Test',
+        'instructor_user_id' => $faculty->id,
+        'capacity' => 40,
+    ]);
+    CourseOffering::query()->create([
+        'course_id' => $course->id,
+        'instructor_user_id' => $faculty->id,
+        'classroom_id' => $classroom->id,
+        'block_section' => 'Block A',
+        'term_start' => '2026-04-06',
+        'term_end' => '2026-06-30',
+    ]);
+
+    actingAs($admin)
+        ->post(route('admin.schedule.store'), [
+            'classroom_id' => $classroom->id,
+            'course_id' => $course->id,
+            'instructor_user_id' => $faculty->id,
+            'block_section' => 'Block A',
+            'semester_start' => '2026-06-01',
+            'semester_end' => '2026-08-30',
+        ])
+        ->assertSessionHasErrors('semester_start');
+
+    expect(CourseOffering::query()->where('course_id', $course->id)->count())->toBe(1);
+});
+
+it('enforces one enrollment per student and offering in the database', function () {
+    $faculty = User::factory()->create(['role' => 'faculty', 'status' => 'active']);
+    $studentUser = User::factory()->create(['role' => 'student', 'status' => 'active']);
+    $student = Student::query()->create([
+        'user_id' => $studentUser->id,
+        'student_id' => 'OFFERING-UNIQUE-01',
+        'name' => $studentUser->name,
+        'email' => $studentUser->email,
+        'status' => 'active',
+    ]);
+    $course = Course::query()->create([
+        'code' => 'OFFERING-UNIQUE-101',
+        'title' => 'Offering Unique Test',
+        'instructor_user_id' => $faculty->id,
+        'capacity' => 30,
+    ]);
+    $offering = CourseOffering::query()->create([
+        'course_id' => $course->id,
+        'instructor_user_id' => $faculty->id,
+        'block_section' => 'Block A',
+        'term_start' => '2026-04-06',
+        'term_end' => '2026-06-30',
+    ]);
+
+    Enrollment::query()->create([
+        'student_id' => $student->id,
+        'course_id' => $course->id,
+        'course_offering_id' => $offering->id,
+        'status' => 'pending',
+    ]);
+
+    expect(fn () => Enrollment::query()->create([
+        'student_id' => $student->id,
+        'course_id' => $course->id,
+        'course_offering_id' => $offering->id,
+        'status' => 'pending',
+    ]))->toThrow(QueryException::class);
 });

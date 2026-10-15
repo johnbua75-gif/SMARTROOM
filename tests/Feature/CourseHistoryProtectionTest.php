@@ -2,6 +2,7 @@
 
 use App\Models\Classroom;
 use App\Models\Course;
+use App\Models\CourseOffering;
 use App\Models\Enrollment;
 use App\Models\Schedule;
 use App\Models\Student;
@@ -254,4 +255,88 @@ it('blocks deleting faculty while assigned courses have history', function () {
 
     expect(User::query()->whereKey($faculty->id)->exists())->toBeTrue()
         ->and($course->refresh()->instructor_user_id)->toBe($faculty->id);
+});
+
+it('blocks faculty deletion and reassignment when an offering has enrollments but no schedules', function () {
+    $admin = User::factory()->create(['role' => 'admin', 'status' => 'active']);
+    $faculty = User::factory()->create(['role' => 'faculty', 'status' => 'active']);
+    $replacement = User::factory()->create(['role' => 'faculty', 'status' => 'active']);
+    $studentUser = User::factory()->create(['role' => 'student', 'status' => 'active']);
+    $student = Student::query()->create([
+        'user_id' => $studentUser->id,
+        'student_id' => 'OFFERING-HISTORY-STUDENT-01',
+        'name' => $studentUser->name,
+        'email' => $studentUser->email,
+        'status' => 'active',
+    ]);
+    $course = Course::query()->create([
+        'code' => 'OFFERING-HISTORY-101',
+        'title' => 'Offering Enrollment History',
+        'instructor_user_id' => $faculty->id,
+        'capacity' => 30,
+    ]);
+    $offering = CourseOffering::query()->create([
+        'course_id' => $course->id,
+        'instructor_user_id' => $faculty->id,
+        'block_section' => 'Block A',
+        'term_start' => '2026-04-06',
+        'term_end' => '2026-06-30',
+    ]);
+    Enrollment::query()->create([
+        'student_id' => $student->id,
+        'course_id' => $course->id,
+        'course_offering_id' => $offering->id,
+        'status' => 'active',
+        'enrolled_at' => now(),
+    ]);
+
+    actingAs($admin)
+        ->deleteJson(route('admin.users.destroy.reassign', $faculty), [
+            'replacement_user_id' => $replacement->id,
+        ])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('replacement_user_id');
+
+    actingAs($admin)
+        ->deleteJson(route('admin.users.destroy', $faculty))
+        ->assertUnprocessable();
+
+    expect($offering->refresh()->instructor_user_id)->toBe($faculty->id)
+        ->and(Enrollment::query()->where('course_offering_id', $offering->id)->exists())->toBeTrue();
+});
+
+it('prevents force deleting a course when an offering has enrollment history', function () {
+    $faculty = User::factory()->create(['role' => 'faculty', 'status' => 'active']);
+    $studentUser = User::factory()->create(['role' => 'student', 'status' => 'active']);
+    $student = Student::query()->create([
+        'user_id' => $studentUser->id,
+        'student_id' => 'FORCE-OFFERING-STUDENT-01',
+        'name' => $studentUser->name,
+        'email' => $studentUser->email,
+        'status' => 'active',
+    ]);
+    $course = Course::query()->create([
+        'code' => 'FORCE-OFFERING-101',
+        'title' => 'Force Delete Offering History',
+        'instructor_user_id' => $faculty->id,
+        'capacity' => 30,
+    ]);
+    $offering = CourseOffering::query()->create([
+        'course_id' => $course->id,
+        'instructor_user_id' => $faculty->id,
+        'block_section' => 'Block A',
+        'term_start' => '2026-04-06',
+        'term_end' => '2026-06-30',
+    ]);
+    Enrollment::query()->create([
+        'student_id' => $student->id,
+        'course_id' => $course->id,
+        'course_offering_id' => $offering->id,
+        'status' => 'active',
+        'enrolled_at' => now(),
+    ]);
+
+    expect(fn () => $course->forceDelete())->toThrow(ValidationException::class);
+    expect(Course::query()->whereKey($course->id)->exists())->toBeTrue()
+        ->and(CourseOffering::query()->whereKey($offering->id)->exists())->toBeTrue();
 });

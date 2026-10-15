@@ -9,6 +9,7 @@ use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\Student;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 
 class EnrollmentController extends Controller
 {
@@ -31,26 +32,34 @@ class EnrollmentController extends Controller
             return response()->json(['message' => 'Course not found'], 404);
         }
 
-        // Check if already enrolled
-        $existing = Enrollment::where('student_id', $student->id)
-            ->where('course_id', $course->id)
-            ->where('course_offering_id', $offeringId)
-            ->first();
+        [$enrollment, $alreadyEnrolled] = DB::transaction(function () use ($student, $course, $offeringId, $data): array {
+            Student::query()->whereKey($student->id)->lockForUpdate()->firstOrFail();
 
-        if ($existing) {
+            $existing = Enrollment::query()
+                ->where('student_id', $student->id)
+                ->where('course_id', $course->id)
+                ->where('course_offering_id', $offeringId)
+                ->first();
+
+            if ($existing) {
+                return [$existing, true];
+            }
+
+            return [Enrollment::create([
+                'student_id' => $student->id,
+                'course_id' => $course->id,
+                'course_offering_id' => $offeringId,
+                'enrolled_at' => now(),
+                'status' => $data['status'] ?? 'active',
+            ]), false];
+        });
+
+        if ($alreadyEnrolled) {
             return response()->json([
                 'message' => 'Student already enrolled in this course',
-                'enrollment' => new EnrollmentResource($existing),
+                'enrollment' => new EnrollmentResource($enrollment),
             ], 409);
         }
-
-        $enrollment = Enrollment::create([
-            'student_id' => $student->id,
-            'course_id' => $course->id,
-            'course_offering_id' => $offeringId,
-            'enrolled_at' => now(),
-            'status' => $data['status'] ?? 'active',
-        ]);
 
         return new EnrollmentResource($enrollment->load(['student', 'course', 'courseOffering']));
     }
@@ -102,28 +111,37 @@ class EnrollmentController extends Controller
                 continue;
             }
 
-            $existing = Enrollment::where('student_id', $student->id)
-                ->where('course_id', $course->id)
-                ->where('course_offering_id', $offeringId)
-                ->first();
+            [$enrollment, $alreadyEnrolled] = DB::transaction(function () use ($student, $course, $offeringId): array {
+                Student::query()->whereKey($student->id)->lockForUpdate()->firstOrFail();
 
-            if ($existing) {
+                $existing = Enrollment::query()
+                    ->where('student_id', $student->id)
+                    ->where('course_id', $course->id)
+                    ->where('course_offering_id', $offeringId)
+                    ->first();
+
+                if ($existing) {
+                    return [$existing, true];
+                }
+
+                return [Enrollment::create([
+                    'student_id' => $student->id,
+                    'course_id' => $course->id,
+                    'course_offering_id' => $offeringId,
+                    'enrolled_at' => now(),
+                    'status' => 'active',
+                ]), false];
+            });
+
+            if ($alreadyEnrolled) {
                 $results['already_enrolled'][] = [
                     'student_id' => $student->id,
                     'student_name' => $student->name,
-                    'enrollment_id' => $existing->id,
+                    'enrollment_id' => $enrollment->id,
                 ];
 
                 continue;
             }
-
-            $enrollment = Enrollment::create([
-                'student_id' => $student->id,
-                'course_id' => $course->id,
-                'course_offering_id' => $offeringId,
-                'enrolled_at' => now(),
-                'status' => 'active',
-            ]);
 
             $results['enrolled'][] = [
                 'student_id' => $student->id,

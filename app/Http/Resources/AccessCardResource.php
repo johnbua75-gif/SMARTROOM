@@ -14,6 +14,15 @@ class AccessCardResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        if ($request->attributes->get('door_api', false)) {
+            return [
+                'id' => $this->id,
+                'user_id' => $this->user_id,
+                'rfid_uid' => $this->rfid_uid,
+                'status' => $this->status,
+            ];
+        }
+
         if ($request->attributes->has('device')) {
             return [
                 'id' => $this->id,

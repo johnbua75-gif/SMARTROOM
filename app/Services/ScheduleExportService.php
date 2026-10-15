@@ -16,7 +16,7 @@ class ScheduleExportService
     public function exportFacultyIcs(User $user): StreamedResponse
     {
         $schedules = Schedule::query()
-            ->with(['classroom', 'course', 'courseOffering.instructor'])
+            ->with(['classroom', 'course', 'instructor', 'courseOffering.instructor'])
             ->forInstructor((int) $user->id)
             ->where(function (Builder $query): void {
                 $query->whereHas('courseOffering.instructor', function (Builder $instructorQuery): void {
@@ -66,7 +66,7 @@ class ScheduleExportService
                 $lines[] = 'DTEND:'.$endUtc;
                 $lines[] = 'SUMMARY:'.addcslashes($summary, ',;\\');
                 $lines[] = 'LOCATION:'.addcslashes($location, ',;\\');
-                $lines[] = 'DESCRIPTION:Instructor - '.addcslashes((string) $user->name, ',;\\');
+                $lines[] = 'DESCRIPTION:Instructor - '.addcslashes((string) ($schedule->instructor?->name ?? $user->name), ',;\\');
                 $lines[] = 'END:VEVENT';
             }
 
