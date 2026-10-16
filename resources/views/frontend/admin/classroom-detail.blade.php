@@ -264,7 +264,55 @@
   @media (max-width:1200px) { .stats-strip { grid-template-columns: repeat(2,1fr); } .content { padding: 24px 24px 48px; } }
   @media (max-width:768px)  { :root { --sidebar-w: 0px; } .sidebar { display: none; } }
   @media (max-width:600px) { .device-form { align-items: stretch; flex-direction: column; padding-inline: 16px; } }
-  </style>
+  
+  /* ===== ROOM DETAIL DESIGN REFRESH ===== */
+  .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+  .content { max-width: 1680px; width: 100%; margin-inline: auto; }
+  .topbar-avatar-initial { width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; background:var(--navy); color:var(--yellow); font-weight:800; font-size:.85rem; flex-shrink:0; }
+  .dot { display:inline-block; width:8px; height:8px; border-radius:50%; background:currentColor; flex-shrink:0; }
+
+  .flash { display:flex; align-items:flex-start; gap:10px; padding:12px 16px; border:1px solid; border-radius:12px; font-size:.86rem; font-weight:600; }
+  .flash i { margin-top:2px; }
+  .flash ul { margin:0; padding-left:18px; font-weight:500; }
+  .flash-success { background:#ecfdf5; border-color:#a7f3d0; color:#065f46; }
+  .flash-warn { background:#fffbeb; border-color:#fde68a; color:#92400e; }
+  .flash-error { background:#fef2f2; border-color:#fecaca; color:#991b1b; }
+
+  .detail-chips { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+  .chip.warn { background:#fffbeb; color:#b45309; border-color:#fde68a; }
+  .chip.info { background:#eef2ff; color:#3730a3; border-color:#c7d2fe; }
+  .chip.bad .dot, .chip.good .dot, .chip.warn .dot { box-shadow:0 0 0 3px rgba(0,0,0,.05); }
+
+  .stats-strip { grid-template-columns: repeat(4, 1fr); }
+  .stat-card { border-radius:18px; }
+  .stat-card-val { font-size:1.7rem; overflow-wrap:anywhere; }
+  .stat-bar { height:8px; margin-top:4px; border-radius:999px; background:var(--bg-alt); overflow:hidden; }
+  .stat-bar > span { display:block; height:100%; border-radius:999px; }
+  .stat-bar .ok { background:linear-gradient(90deg,#059669,#34d399); }
+  .stat-bar .mid { background:linear-gradient(90deg,#d97706,#fbbf24); }
+  .stat-bar .high { background:linear-gradient(90deg,#dc2626,#f87171); }
+
+  .section-block { border-radius:20px; overflow-x:auto; box-shadow:0 1px 2px rgba(13,17,40,.05), 0 10px 30px rgba(13,17,40,.06); }
+  .section-block-head { padding:20px 28px; }
+  .room-form { max-width:none; display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:18px 24px; padding:24px 28px; }
+  .room-form label.room-field:nth-of-type(3), .room-form > div { grid-column:1 / -1; }
+  .device-form { max-width:none; padding:20px 28px; }
+  .device-form .room-field { max-width:420px; }
+  .device-feedback { padding:0 28px 12px; }
+  .manage-table { min-width:640px; }
+  .manage-table thead th { padding:12px 20px; background:#f6f8fc; }
+  .manage-table thead th:first-child, .manage-table td:first-child { padding-left:28px; }
+  .manage-table thead th:last-child, .manage-table td:last-child { padding-right:28px; }
+  .manage-table tbody tr:hover { background:#f7f9ff; box-shadow: inset 3px 0 0 var(--navy); }
+  .btn-link { border:0; background:transparent; cursor:pointer; padding:8px; border-radius:8px; transition: background-color .15s; }
+  .btn-link:hover { background:#fee2e2; }
+  .log-note { padding:12px 28px; border-top:1px solid var(--border); background:#fafbfd; color:var(--text-secondary); font-size:.78rem; }
+  .room-input:focus-visible, .btn-primary:focus-visible, .btn-back:focus-visible, .btn-link:focus-visible { outline:3px solid #6785d4; outline-offset:2px; }
+
+  @media (max-width:1200px) { .stats-strip { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width:760px) { .room-form { grid-template-columns:1fr; padding:20px 16px; } .section-block-head { padding:16px; } .stats-strip { grid-template-columns:1fr; } .page-header { align-items:flex-start; flex-direction:column; } .device-form { padding-inline:16px; } .device-feedback { padding-inline:16px; } }
+  @media (prefers-reduced-motion: reduce) { .btn-link, .manage-table tbody tr { transition:none; } }
+</style>
 </head>
 <body>
 
@@ -289,7 +337,7 @@
         <i class="fas fa-calendar"></i>
         <span>{{ \Carbon\Carbon::now()->format('M j, Y') }}</span>
       </div>
-      <img src="https://randomuser.me/api/portraits/women/44.jpg" class="topbar-avatar" alt="Admin">
+      <div class="topbar-avatar-initial" aria-hidden="true">{{ strtoupper(mb_substr(auth()->user()->name ?? 'A', 0, 1)) }}</div>
     </div>
   </div>
 
@@ -301,11 +349,36 @@
       <div class="page-header-left">
         <div class="page-header-eyebrow">Room Management</div>
         <h1>{{ $classroom->name }}</h1>
+        @php
+          $detailLabels = ['available' => 'Available', 'occupied' => 'Occupied', 'reserved' => 'Reserved', 'maintenance' => 'Maintenance', 'unavailable' => 'Unavailable'];
+          $detailTone = match ($classroom->status) { 'available' => 'good', 'maintenance', 'unavailable' => 'bad', default => 'warn' };
+        @endphp
+        <div class="detail-chips">
+          <span class="chip {{ $detailTone }}"><i class="dot" aria-hidden="true"></i>{{ $detailLabels[$classroom->status] ?? ucfirst((string) $classroom->status) }}</span>
+          <span class="chip"><i class="fas fa-building" aria-hidden="true"></i>{{ $classroom->building }}{{ $classroom->floor ? " \u{00B7} ".$classroom->floor : '' }}</span>
+          <span class="chip {{ $classroom->access_mode === 'esp32' ? 'info' : '' }}"><i class="fas {{ $classroom->access_mode === 'esp32' ? 'fa-microchip' : 'fa-hand' }}" aria-hidden="true"></i>{{ $classroom->access_mode === 'esp32' ? 'ESP32-controlled' : 'Manual access' }}</span>
+        </div>
       </div>
       <a class="btn-back" href="{{ route('admin.classrooms') }}">
         <i class="fas fa-arrow-left"></i> Back to Classrooms
       </a>
     </div>
+
+    @if (session('status'))
+      <div class="flash flash-success" role="status"><i class="fas fa-circle-check" aria-hidden="true"></i><span>{{ session('status') }}</span></div>
+    @endif
+    @if (session('warning'))
+      <div class="flash flash-warn" role="status"><i class="fas fa-triangle-exclamation" aria-hidden="true"></i><span>{{ session('warning') }}</span></div>
+    @endif
+    @if ($errors->any())
+      <div class="flash flash-error" role="alert">
+        <i class="fas fa-circle-exclamation" aria-hidden="true"></i>
+        <div>
+          <div>Please fix the following:</div>
+          <ul>@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
+        </div>
+      </div>
+    @endif
 
     <!-- STAT CARDS -->
     <div class="stats-strip">
@@ -320,9 +393,21 @@
         <div class="stat-card-label">Floor</div>
       </div>
       <div class="stat-card">
+        @php
+          $capNow = (int) ($classroom->capacity ?? 0);
+          $occNow = (int) ($classroom->current_occupancy ?? 0);
+          $pctNow = $capNow > 0 ? (int) round($occNow / $capNow * 100) : 0;
+          $tone = $pctNow >= 90 ? 'high' : ($pctNow >= 70 ? 'mid' : 'ok');
+        @endphp
         <div class="stat-card-icon green"><i class="fas fa-user-group"></i></div>
-        <div class="stat-card-val">{{ $classroom->current_occupancy }}/{{ $classroom->capacity }}</div>
-        <div class="stat-card-label">Occupancy</div>
+        <div class="stat-card-val">{{ $occNow }}/{{ $capNow ?: "\u{2013}" }}</div>
+        <div class="stat-card-label">Occupancy ({{ $pctNow }}%)</div>
+        <div class="stat-bar" role="img" aria-label="{{ $pctNow }}% occupied"><span class="{{ $tone }}" style="width: {{ min(100, $pctNow) }}%"></span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-icon blue"><i class="fas fa-microchip"></i></div>
+        <div class="stat-card-val">{{ $classroom->devices->count() }}</div>
+        <div class="stat-card-label">Door {{ $classroom->devices->count() === 1 ? 'device' : 'devices' }}</div>
       </div>
     </div>
 
@@ -444,7 +529,7 @@
               </td>
             </tr>
           @empty
-            <tr><td colspan="5" class="td-muted" style="padding:24px 20px;">No schedules assigned.</td></tr>
+            <tr><td colspan="6" class="td-muted" style="padding:24px 20px;">No schedules assigned.</td></tr>
           @endforelse
         </tbody>
       </table>
@@ -617,14 +702,15 @@
           <tr><th>Time</th><th>User</th><th>Card</th><th>Direction</th><th>Result</th></tr>
         </thead>
         <tbody>
-          @forelse($classroom->accessLogs as $log)
+          @php $recentLogs = $classroom->accessLogs->sortByDesc('accessed_at')->take(25); @endphp
+          @forelse($recentLogs as $log)
             <tr>
               <td>{{ optional($log->accessed_at)->format('M d, Y H:i') }}</td>
               <td>{{ $log->user?->name ?? 'Unknown' }}</td>
               <td>{{ $log->accessCard?->card_number ?? '–' }}</td>
               <td>{{ $log->direction }}</td>
               <td>
-                <span class="chip {{ $log->result === 'granted' ? 'good' : 'bad' }}">
+                <span class="chip {{ $log->result === 'granted' ? 'good' : ($log->result === 'denied' ? 'bad' : 'warn') }}">
                   {{ $log->result }}
                 </span>
               </td>
@@ -634,6 +720,9 @@
           @endforelse
         </tbody>
       </table>
+      @if($classroom->accessLogs->count() > 25)
+        <div class="log-note">Showing the latest 25 of {{ $classroom->accessLogs->count() }} access events.</div>
+      @endif
     </div>
 
   </div><!-- /content -->

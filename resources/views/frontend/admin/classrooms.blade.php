@@ -463,6 +463,79 @@ body {
 /* ── RESPONSIVE ── */
 @media (max-width:1200px) { .stats-strip { grid-template-columns:repeat(2,1fr); } .room-grid { grid-template-columns:repeat(2,1fr); } .content { padding:24px 24px 48px; } }
 @media (max-width:768px)  { :root { --sidebar-w:0px; } .sidebar { display:none; } .room-grid { grid-template-columns:1fr; } .toolbar { flex-direction:column; align-items:stretch; } }
+
+  /* ===== ROOM MANAGEMENT DESIGN REFRESH ===== */
+  .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+  .content { max-width: 1680px; width: 100%; margin-inline: auto; }
+  .topbar-avatar-initial { width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; background:var(--navy); color:var(--yellow); font-weight:800; font-size:.85rem; flex-shrink:0; }
+
+  .flash { display:flex; align-items:flex-start; gap:10px; padding:12px 16px; border:1px solid; border-radius:12px; font-size:.86rem; font-weight:600; }
+  .flash i { margin-top:2px; }
+  .flash ul { margin:0; padding-left:18px; font-weight:500; }
+  .flash-success { background:#ecfdf5; border-color:#a7f3d0; color:#065f46; }
+  .flash-warn { background:#fffbeb; border-color:#fde68a; color:#92400e; }
+  .flash-error { background:#fef2f2; border-color:#fecaca; color:#991b1b; }
+
+  .section-block { border-radius:20px; box-shadow:0 1px 2px rgba(13,17,40,.05), 0 10px 30px rgba(13,17,40,.06); }
+  .section-block-head { padding:20px 28px; }
+  .table-scroll { overflow-x:auto; }
+  .room-table { min-width:880px; }
+  .room-table thead th { padding:12px 18px; background:#f6f8fc; }
+  .room-table thead th:first-child, .room-table td:first-child { padding-left:28px; }
+  .room-table thead th:last-child, .room-table td:last-child { padding-right:28px; }
+  .room-table td { padding:16px 18px; vertical-align:middle; }
+  .room-table tbody tr { transition: background-color .15s, box-shadow .15s; }
+  .room-table tbody tr:hover { background:#f7f9ff; box-shadow: inset 3px 0 0 var(--navy); }
+  .room-table tr[hidden] { display:none; }
+
+  .room-toolbar { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; padding:14px 28px; border-bottom:1px solid var(--border); background:#fafbfd; }
+  .room-chips { display:flex; flex-wrap:wrap; gap:8px; }
+  .room-chip { display:inline-flex; align-items:center; gap:7px; min-height:36px; padding:6px 14px; border:1px solid var(--border); border-radius:999px; background:#fff; color:var(--text-secondary); font:700 .78rem var(--font); cursor:pointer; transition: background-color .15s, border-color .15s, color .15s; }
+  .room-chip span { min-width:20px; padding:1px 7px; border-radius:999px; background:#eef1f7; color:var(--text); font-size:.7rem; text-align:center; }
+  .room-chip:hover { border-color:#c3cde0; }
+  .room-chip.is-active { background:var(--navy); border-color:var(--navy); color:#fff; }
+  .room-chip.is-active span { background:var(--yellow); color:var(--navy); }
+  .dot { display:inline-block; width:8px; height:8px; border-radius:50%; background:currentColor; flex-shrink:0; }
+  .dot-green { color:#10b981; } .dot-blue { color:#3b82f6; } .dot-amber { color:#f59e0b; } .dot-red { color:#ef4444; }
+  .room-chip.is-active .dot { box-shadow:0 0 0 2px rgba(255,255,255,.35); }
+  .room-search { display:flex; align-items:center; gap:9px; min-width:260px; padding:8px 14px; border:1.5px solid var(--border); border-radius:10px; background:#fff; transition: border-color .18s, box-shadow .18s; }
+  .room-search:focus-within { border-color: var(--blue-border); box-shadow:0 0 0 3px rgba(37,99,235,.08); }
+  .room-search i { color:var(--text-light); font-size:.8rem; }
+  .room-search input { flex:1; min-width:0; border:none; outline:none; background:transparent; font:500 .85rem var(--font); color:var(--text); }
+
+  .room-cell { display:flex; align-items:center; gap:12px; }
+  .room-avatar { width:40px; height:40px; flex:0 0 40px; display:flex; align-items:center; justify-content:center; border-radius:12px; background:linear-gradient(135deg,#e8ecfb,#dbe4fb); color:#1a2f80; font-size:.95rem; }
+  .room-name { font-weight:800; font-size:.92rem; color:var(--text); letter-spacing:-.01em; }
+  .room-sub { margin-top:2px; font-size:.76rem; color:var(--text-secondary); }
+
+  .access-chip { display:inline-flex; align-items:center; gap:6px; padding:5px 11px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--text-secondary); font-size:.74rem; font-weight:700; }
+  .access-chip.is-esp { background:#eef2ff; border-color:#c7d2fe; color:#3730a3; }
+  .device-state { display:inline-flex; align-items:center; gap:7px; font-size:.8rem; font-weight:700; color:var(--text-secondary); }
+  .device-state .dot { width:8px; height:8px; }
+  .device-good { color:#047857; } .device-bad { color:#b91c1c; } .device-warn { color:#b45309; } .device-muted { color:var(--text-secondary); }
+  .device-muted .dot { opacity:.45; }
+
+  .td-occ { min-width:170px; }
+  .occ { display:flex; flex-direction:column; gap:6px; }
+  .occ-meta { display:flex; justify-content:space-between; font-size:.76rem; color:var(--text-secondary); font-weight:700; }
+  .occ-meta strong { font-family:var(--font-mono); color:var(--text); font-weight:800; }
+  .occ-track { height:8px; border-radius:999px; background:var(--bg-alt); overflow:hidden; }
+  .occ-fill { height:100%; border-radius:999px; transition: width .5s ease; }
+  .occ-ok { background:linear-gradient(90deg,#059669,#34d399); }
+  .occ-mid { background:linear-gradient(90deg,#d97706,#fbbf24); }
+  .occ-high { background:linear-gradient(90deg,#dc2626,#f87171); }
+
+  .td-issue { max-width:260px; color:var(--text-secondary); font-size:.8rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .td-action { text-align:right; white-space:nowrap; }
+  .room-manage { display:inline-flex; align-items:center; gap:7px; padding:8px 14px; border:1px solid var(--navy); border-radius:9px; background:var(--navy); color:#fff; font:700 .78rem var(--font); text-decoration:none; transition: background-color .15s, transform .15s; }
+  .room-manage:hover { background:#16286b; transform:translateY(-1px); }
+
+  .room-empty { display:flex; flex-direction:column; align-items:center; gap:6px; padding:44px 20px; color:var(--text-secondary); font-size:.85rem; text-align:center; }
+  .room-empty i { font-size:1.8rem; color:#9da8b8; margin-bottom:6px; }
+  .room-empty strong { color:var(--text); font-size:.95rem; }
+
+  @media (max-width:768px) { .room-toolbar { padding:12px 16px; } .room-search { min-width:0; width:100%; } .section-block-head { padding:16px; } }
+  @media (prefers-reduced-motion: reduce) { .occ-fill, .room-chip, .room-manage, .room-table tbody tr { transition:none; } }
 </style>
 @include('frontend.admin.partials.minimal-ui-overrides')
 </head>
@@ -485,7 +558,7 @@ body {
 
     <div class="topbar-search">
       <i class="fas fa-magnifying-glass"></i>
-      <input aria-label="Search rooms, buildings, instructors" type="text" placeholder="Search rooms, buildings, instructors…">
+      <input id="roomSearchTop" aria-label="Filter rooms" type="search" placeholder="Search rooms, buildings, instructors…" autocomplete="off">
     </div>
 
     <div class="topbar-right">
@@ -493,7 +566,7 @@ body {
         <i class="fas fa-calendar"></i>
         <span>{{ \Carbon\Carbon::now()->format('M j, Y') }}</span>
       </div>
-      <img src="https://randomuser.me/api/portraits/women/44.jpg" class="topbar-avatar" alt="Admin">
+      <div class="topbar-avatar-initial" aria-hidden="true">{{ strtoupper(mb_substr(auth()->user()->name ?? 'A', 0, 1)) }}</div>
     </div>
   </div>
 
@@ -512,6 +585,22 @@ body {
         Add Room
       </button>
     </div>
+
+    @if (session('status'))
+      <div class="flash flash-success" role="status"><i class="fas fa-circle-check" aria-hidden="true"></i><span>{{ session('status') }}</span></div>
+    @endif
+    @if (session('warning'))
+      <div class="flash flash-warn" role="status"><i class="fas fa-triangle-exclamation" aria-hidden="true"></i><span>{{ session('warning') }}</span></div>
+    @endif
+    @if ($errors->any())
+      <div class="flash flash-error" role="alert">
+        <i class="fas fa-circle-exclamation" aria-hidden="true"></i>
+        <div>
+          <div>Please fix the following:</div>
+          <ul>@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
+        </div>
+      </div>
+    @endif
 
     <!-- STAT CARDS -->
     <div class="stats-strip">
@@ -561,26 +650,50 @@ body {
       </div>
     </div>
 
-    <!-- MANAGE TABLE -->
+    <!-- ROOM DIRECTORY -->
+    @php
+      $roomCounts = [
+        'all' => $classrooms->count(),
+        'available' => $roomStatuses->where('status', 'available')->count(),
+        'occupied' => $roomStatuses->where('status', 'occupied')->count(),
+        'reserved' => $roomStatuses->where('status', 'reserved')->count(),
+        'issues' => $roomStatuses->whereIn('status', ['maintenance', 'unavailable', 'closed'])->count(),
+      ];
+    @endphp
     <div class="section-block">
       <div class="section-block-head">
         <div>
           <div class="section-block-title">Room Overview</div>
           <div class="section-block-sub">Manage status and issue details for each classroom</div>
         </div>
-        <span class="section-block-badge">{{ $classrooms->count() }} rooms</span>
+        <span class="section-block-badge" id="roomCountBadge">{{ $classrooms->count() }} {{ $classrooms->count() === 1 ? 'room' : 'rooms' }}</span>
       </div>
-      <table class="manage-table">
+
+      <div class="room-toolbar">
+        <div class="room-chips" role="group" aria-label="Filter rooms by status">
+          <button type="button" class="room-chip is-active" data-room-filter="all" aria-pressed="true">All <span>{{ $roomCounts['all'] }}</span></button>
+          <button type="button" class="room-chip" data-room-filter="available" aria-pressed="false"><i class="dot dot-green" aria-hidden="true"></i>Available <span>{{ $roomCounts['available'] }}</span></button>
+          <button type="button" class="room-chip" data-room-filter="occupied" aria-pressed="false"><i class="dot dot-blue" aria-hidden="true"></i>In use <span>{{ $roomCounts['occupied'] }}</span></button>
+          <button type="button" class="room-chip" data-room-filter="reserved" aria-pressed="false"><i class="dot dot-amber" aria-hidden="true"></i>Reserved <span>{{ $roomCounts['reserved'] }}</span></button>
+          <button type="button" class="room-chip" data-room-filter="issues" aria-pressed="false"><i class="dot dot-red" aria-hidden="true"></i>Issues <span>{{ $roomCounts['issues'] }}</span></button>
+        </div>
+        <label class="room-search">
+          <i class="fas fa-magnifying-glass" aria-hidden="true"></i>
+          <input id="roomSearch" type="search" placeholder="Filter by room, building, instructor…" aria-label="Filter rooms" autocomplete="off">
+        </label>
+      </div>
+
+      <div class="table-scroll">
+      <table class="manage-table room-table" id="roomTable">
         <thead>
           <tr>
             <th>Room</th>
-            <th>Location</th>
             <th>Access</th>
             <th>Door device</th>
             <th>Occupancy</th>
             <th>Status</th>
             <th>Issue / Note</th>
-            <th></th>
+            <th><span class="sr-only">Actions</span></th>
           </tr>
         </thead>
         <tbody>
@@ -590,43 +703,60 @@ body {
               $activeDevice = $classroom->devices->firstWhere('status', 'active');
               $onlineDevice = $classroom->devices->first(fn ($device) => $device->status === 'active' && $device->last_seen_at?->gt(now()->subMinutes(5)));
               $deviceLabel = $classroom->access_mode !== 'esp32' ? 'Manual' : ($classroom->devices->isEmpty() ? 'Not installed' : ($onlineDevice ? 'Online' : ($activeDevice ? ($activeDevice->last_seen_at ? 'Offline' : 'Awaiting connection') : 'Disabled')));
+              $deviceTone = match ($deviceLabel) { 'Online' => 'good', 'Offline' => 'bad', 'Awaiting connection' => 'warn', default => 'muted' };
+              $cap = (int) ($classroom->capacity ?? 0);
+              $occ = (int) ($classroom->current_occupancy ?? 0);
+              $pct = $cap > 0 ? (int) round($occ / $cap * 100) : 0;
+              $occTone = $pct >= 90 ? 'high' : ($pct >= 70 ? 'mid' : 'ok');
+              $statusGroup = in_array($roomStatus['status'], ['maintenance', 'unavailable', 'closed'], true) ? 'issues' : $roomStatus['status'];
+              $instructors = $classroom->schedules->map(fn ($s) => $s->course?->instructor?->name)->filter()->unique()->implode(' ');
+              $note = $roomStatus['reason'] ?? $classroom->unavailable_reason;
+              $searchText = \Illuminate\Support\Str::lower(implode(' ', array_filter([$classroom->name, $classroom->building, $classroom->floor, $roomStatus['status_label'], $note, $instructors])));
             @endphp
-            <tr>
-              <td class="td-room">{{ $classroom->name }}</td>
-              <td class="td-loc">{{ $classroom->building }}{{ $classroom->floor ? ' · '.$classroom->floor : '' }}</td>
-              <td>{{ $classroom->access_mode === 'esp32' ? 'ESP32-controlled' : 'Manual' }}</td>
-              <td>{{ $deviceLabel }}</td>
-              <td style="width:180px;">
-                @php
-                  $cap = (int) ($classroom->capacity ?? 0);
-                  $occ = (int) ($classroom->current_occupancy ?? 0);
-                  $pct = $cap > 0 ? round($occ / $cap * 100) : 0;
-                @endphp
-                <div style="display:flex;flex-direction:column;gap:6px;">
-                  <div style="display:flex;justify-content:space-between;font-size:0.78rem;color:var(--text-secondary);font-weight:700;">
-                    <span style="font-size:0.78rem;color:var(--text-secondary);">{{ $occ }} / {{ $cap ?: '–' }}</span>
-                    <span style="font-family:var(--font-mono);font-weight:800;color:var(--text);">{{ $pct }}%</span>
-                  </div>
-                  <div style="height:8px;background:var(--bg-alt);border-radius:999px;overflow:hidden;">
-                    <div class="occupancy-bar-fill" data-width="{{ $pct }}"></div>
+            <tr data-status-group="{{ $statusGroup }}" data-search="{{ $searchText }}">
+              <td>
+                <div class="room-cell">
+                  <span class="room-avatar" aria-hidden="true"><i class="fas fa-door-open"></i></span>
+                  <div>
+                    <div class="room-name">{{ $classroom->name }}</div>
+                    <div class="room-sub">{{ $classroom->building }}{{ $classroom->floor ? ' · '.$classroom->floor : '' }}</div>
                   </div>
                 </div>
               </td>
               <td>
-                <span class="table-status-pill pill-{{ $roomStatus['status'] }}">
-                  {{ $roomStatus['status_label'] }}
+                <span class="access-chip {{ $classroom->access_mode === 'esp32' ? 'is-esp' : '' }}">
+                  <i class="fas {{ $classroom->access_mode === 'esp32' ? 'fa-microchip' : 'fa-hand' }}" aria-hidden="true"></i>
+                  {{ $classroom->access_mode === 'esp32' ? 'ESP32' : 'Manual' }}
                 </span>
               </td>
-              <td class="td-issue">{{ $roomStatus['reason'] ?? $classroom->unavailable_reason ?? '—' }}</td>
-              <td><a class="manage-link" href="{{ route('admin.classrooms.show', $classroom->id) }}"><i class="fas fa-arrow-up-right-from-square"></i> Manage</a></td>
+              <td><span class="device-state device-{{ $deviceTone }}"><i class="dot" aria-hidden="true"></i>{{ $deviceLabel }}</span></td>
+              <td class="td-occ">
+                <div class="occ">
+                  <div class="occ-meta"><span>{{ $occ }} / {{ $cap ?: '–' }}</span><strong>{{ $pct }}%</strong></div>
+                  <div class="occ-track" role="img" aria-label="{{ $pct }}% occupied"><div class="occ-fill occ-{{ $occTone }}" style="width: {{ min(100, $pct) }}%"></div></div>
+                </div>
+              </td>
+              <td>
+                <span class="table-status-pill pill-{{ $roomStatus['status'] }}">{{ $roomStatus['status_label'] }}</span>
+              </td>
+              <td class="td-issue" title="{{ $note }}">{{ $note ?: '—' }}</td>
+              <td class="td-action"><a class="room-manage" href="{{ route('admin.classrooms.show', $classroom->id) }}" aria-label="Manage {{ $classroom->name }}">Manage <i class="fas fa-arrow-right" aria-hidden="true"></i></a></td>
             </tr>
           @empty
             <tr>
-              <td colspan="8" style="color:var(--text-secondary);padding:24px 20px;font-size:0.85rem;">No rooms yet. Click <strong>Add Room</strong> to get started.</td>
+              <td colspan="7">
+                <div class="room-empty"><i class="fas fa-door-open" aria-hidden="true"></i><strong>No rooms yet</strong><span>Click <b>Add Room</b> to create your first classroom.</span></div>
+              </td>
             </tr>
           @endforelse
+          <tr id="roomNoMatch" hidden>
+            <td colspan="7">
+              <div class="room-empty"><i class="fas fa-filter-circle-xmark" aria-hidden="true"></i><strong>No rooms match</strong><span>Try a different status or search term.</span></div>
+            </td>
+          </tr>
         </tbody>
       </table>
+      </div>
     </div>
 
 
@@ -754,21 +884,48 @@ body {
   addRoomModal?.addEventListener('click', e => { if (e.target === addRoomModal) closeModal(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && addRoomModal?.classList.contains('is-open')) closeModal(); });
 
-  /* Filter tab interaction */
-  document.querySelectorAll('.filter-tab').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-    });
-  });
+  /* Directory filtering: status chips + live search (replaces the old non-functional filter code) */
+  (function () {
+    var rows = Array.prototype.slice.call(document.querySelectorAll('#roomTable tbody tr[data-search]'));
+    var chips = Array.prototype.slice.call(document.querySelectorAll('[data-room-filter]'));
+    var inputs = [document.getElementById('roomSearch'), document.getElementById('roomSearchTop')].filter(Boolean);
+    var noMatch = document.getElementById('roomNoMatch');
+    var badge = document.getElementById('roomCountBadge');
+    var filter = 'all';
+    var query = '';
 
-  /* View toggle */
-  document.querySelectorAll('.view-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+    function apply() {
+      var shown = 0;
+      rows.forEach(function (row) {
+        var okStatus = filter === 'all' || row.dataset.statusGroup === filter;
+        var okText = !query || row.dataset.search.indexOf(query) !== -1;
+        row.hidden = !(okStatus && okText);
+        if (!row.hidden) shown++;
+      });
+      if (noMatch) noMatch.hidden = !(rows.length > 0 && shown === 0);
+      if (badge) badge.textContent = shown + (shown === 1 ? ' room' : ' rooms');
+    }
+
+    chips.forEach(function (chip) {
+      chip.addEventListener('click', function () {
+        filter = chip.dataset.roomFilter;
+        chips.forEach(function (c) {
+          var active = c === chip;
+          c.classList.toggle('is-active', active);
+          c.setAttribute('aria-pressed', active ? 'true' : 'false');
+        });
+        apply();
+      });
     });
-  });
+
+    inputs.forEach(function (input) {
+      input.addEventListener('input', function () {
+        query = input.value.trim().toLowerCase();
+        inputs.forEach(function (other) { if (other !== input) other.value = input.value; });
+        apply();
+      });
+    });
+  })();
 
   addRoomForm?.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -802,7 +959,7 @@ body {
       if (!res.ok) {
         const err = await res.json().catch(()=>({}));
         console.error('Create room failed', err);
-        showToast(err?.message||'Failed to create room.','error');
+        const firstError = err?.errors ? Object.values(err.errors)[0]?.[0] : null; showToast(firstError || err?.message || 'Failed to create room.', 'error');
         return;
       }
 
