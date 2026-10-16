@@ -57,6 +57,7 @@ class StudentController extends Controller
                     ->orWhereIn('course_id', $legacyCourseIds);
             })
             ->whereNotNull('start_at')
+            ->where(fn ($statusQuery) => $statusQuery->whereNull('status')->orWhere('status', '!=', 'cancelled'))
             ->whereDate('start_at', today())
             ->with(['course.instructor', 'courseOffering.instructor', 'classroom'])
             ->orderBy('start_at')
@@ -108,6 +109,7 @@ class StudentController extends Controller
                         ->orWhereIn('course_id', $legacyCourseIds);
                 })
                 ->whereNotNull('start_at')
+                ->where(fn ($statusQuery) => $statusQuery->whereNull('status')->orWhere('status', '!=', 'cancelled'))
                 ->whereDate('start_at', today())
                 ->orderBy('start_at')
                 ->get(['start_at']);

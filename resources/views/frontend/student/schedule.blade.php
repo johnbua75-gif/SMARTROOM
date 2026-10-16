@@ -45,6 +45,8 @@ $nav = [
     .section-heading { color: var(--ink); font-family: var(--ff-head); font-size: 1rem; font-weight: 700; letter-spacing: -0.01em; }
     .schedule-row { padding: 16px 24px; border-bottom: 1px solid var(--line); transition: background 0.2s ease; }
     .schedule-row:last-child { border-bottom: none; }
+    .schedule-row.is-cancelled { opacity: .62; }
+    .schedule-row.is-cancelled .time-badge { text-decoration: line-through; }
     .schedule-row:hover { background: #f8f9fb; }
     .subject-list { border: 1px solid var(--line); border-radius: 14px; background: #fff; overflow: hidden; box-shadow: var(--shadow-sm, 0 2px 6px rgba(15,23,41,.06)); }
     .subject-item + .subject-item { border-top: 1px solid var(--line); }
@@ -108,12 +110,12 @@ $nav = [
           </button>
           <div id="{{ $subjectPanelId }}" class="subject-schedules" hidden>
             @foreach ($courseSchedules as $s)
-              <div class="schedule-row d-flex align-items-center gap-3">
+              <div class="schedule-row d-flex align-items-center gap-3{{ ($s->status ?? '') === 'cancelled' ? ' is-cancelled' : '' }}">
                 <div class="time-badge">
                   {{ $s->start_at ? \Carbon\Carbon::parse($s->start_at)->format('H:i') : 'N/A' }}
                 </div>
                 <div class="flex-grow-1">
-                  <div class="schedule-date">{{ $s->start_at?->format('l, F j, Y') ?? 'Date unavailable' }} <span class="badge bg-light text-secondary ms-1">{{ $s->courseOffering?->block_section ?? $s->block_section ?? 'N/A' }}</span>@if ($s->class_type) <span class="badge bg-light text-secondary ms-1">{{ $s->class_type }}</span>@endif</div>
+                  <div class="schedule-date">{{ $s->start_at?->format('l, F j, Y') ?? 'Date unavailable' }} <span class="badge bg-light text-secondary ms-1">{{ $s->courseOffering?->block_section ?? $s->block_section ?? 'N/A' }}</span>@if ($s->class_type) <span class="badge bg-light text-secondary ms-1">{{ $s->class_type }}</span>@endif @if (($s->status ?? '') === 'cancelled') <span class="badge ms-1" style="background:#fee2e2 !important;color:#b42318 !important;border-color:#fecaca !important">Cancelled</span>@endif</div>
                   <div class="schedule-meta">
                     <i class="bi bi-clock me-1"></i>{{ $s->start_at?->format('g:i A') ?? 'TBA' }} - {{ $s->end_at?->format('g:i A') ?? 'TBA' }}
                     <i class="bi bi-person ms-2 me-1"></i>{{ ($s->instructor ?? $s->courseOffering?->instructor ?? $s->course?->instructor)?->name ?? 'Instructor TBA' }}

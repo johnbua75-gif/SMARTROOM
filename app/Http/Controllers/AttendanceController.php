@@ -716,6 +716,10 @@ class AttendanceController extends Controller
                 return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
             }
 
+            if ((string) $schedule->status === 'cancelled') {
+                return response()->json(['success' => false, 'message' => 'This class was cancelled, so attendance cannot be started for it.'], 422);
+            }
+
             [$session, $message, $created] = $this->openOrResumeScheduleSession($schedule);
 
             if (! $session || ! $session->id) {
@@ -775,6 +779,10 @@ class AttendanceController extends Controller
 
         if ($schedule && ! Schedule::query()->forInstructor((int) $user->id)->whereKey($schedule->id)->exists()) {
             return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        if ($schedule && (string) $schedule->status === 'cancelled') {
+            return response()->json(['message' => 'This class was cancelled'], 422);
         }
 
         if ($schedule) {

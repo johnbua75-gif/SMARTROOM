@@ -11,21 +11,32 @@ $attendanceCards = collect($courses ?? [])->map(function ($course) {
   }
 
   $now = now();
-  $ongoing = $schedules->first(function ($schedule) use ($now) {
+  // A cancelled class is never "ongoing" or "upcoming": it stays cancelled and cannot be started.
+  $isCancelled = fn ($schedule) => ($schedule->status ?? '') === 'cancelled';
+  $active = $schedules->reject($isCancelled)->values();
+  $ongoing = $active->first(function ($schedule) use ($now) {
     return $schedule->start_at
       && $schedule->start_at->lte($now)
       && ($schedule->end_at === null || $schedule->end_at->gte($now));
   });
-  $upcoming = $schedules->first(function ($schedule) use ($now) {
+  $upcoming = $active->first(function ($schedule) use ($now) {
     return $schedule->start_at && $schedule->start_at->gte($now);
   });
-  $primary = $ongoing ?? $upcoming ?? $schedules->last();
+  // The soonest cancelled class that comes before the next active one is shown as "Cancelled"
+  // until that class's time is over, so the cancellation does not seem to disappear.
+  $nextCancelled = $schedules->first(function ($schedule) use ($now, $upcoming, $isCancelled) {
+    return $isCancelled($schedule)
+      && $schedule->start_at
+      && (($schedule->end_at ?? $schedule->start_at)->gte($now))
+      && (! $upcoming || $schedule->start_at->lt($upcoming->start_at));
+  });
+  $primary = $ongoing ?? $nextCancelled ?? $upcoming ?? $active->last() ?? $schedules->last();
 
   if (! $primary) {
     return null;
   }
 
-  $status = $ongoing ? 'ongoing' : ($upcoming ? 'upcoming' : 'finished');
+  $status = $ongoing ? 'ongoing' : ($nextCancelled ? 'cancelled' : ($upcoming ? 'upcoming' : 'finished'));
   $courseCode = (string) ($course->code ?? 'N/A');
   $courseTitle = (string) ($course->title ?? 'Untitled Subject');
   $roomName = (string) ($primary->classroom?->name ?? 'Room N/A');
@@ -43,6 +54,7 @@ $attendanceCards = collect($courses ?? [])->map(function ($course) {
       : 'TBA',
     'status' => $status,
     'status_label' => ucfirst($status),
+    'date' => $primary->start_at ? $primary->start_at->format('D, M j') : '',
     'search' => strtolower(trim($courseCode . ' ' . $courseTitle . ' ' . $section . ' ' . $roomName . ' ' . $building)),
   ];
 })->filter()->values();
@@ -583,21 +595,27 @@ $attendanceCards = collect($courses ?? [])->map(function ($course) {
                 <td>
                   <span class="room-tag"><i class="fas fa-location-dot"></i>{{ $class['room'] }}</span>
                 </td>
-                <td>{{ $class['time'] }}</td>
+                <td>{{ $class['time'] }}@if (! empty($class['date']))<div class="course-sub">{{ $class['date'] }}</div>@endif</td>
                 <td>
                   @if($class['status'] === 'ongoing')
                     <span class="status-pill status-open"><span class="status-dot"></span>Ongoing</span>
                   @elseif($class['status'] === 'upcoming')
                     <span class="status-pill" style="background:var(--amber-bg);color:var(--amber-text);border:1px solid var(--amber-border)"><span class="status-dot"></span>Upcoming</span>
+                  @elseif($class['status'] === 'cancelled')
+                    <span class="status-pill" style="background:var(--red-bg);color:var(--red);border:1px solid var(--red-border)"><span class="status-dot"></span>Cancelled</span>
                   @else
                     <span class="status-pill status-closed"><span class="status-dot"></span>Finished</span>
                   @endif
                 </td>
                 <td>
                   <div class="actions">
-                    <button type="button" class="action-btn view js-open-attendance" data-schedule-id="{{ $class['schedule_id'] }}">
-                      <i class="fas fa-bolt"></i> Check Attendance
-                    </button>
+                    @if($class['status'] === 'cancelled')
+                      <button type="button" class="action-btn" disabled title="This class was cancelled" style="opacity:.6;cursor:not-allowed"><i class="fas fa-ban"></i> Cancelled</button>
+                    @else
+                      <button type="button" class="action-btn view js-open-attendance" data-schedule-id="{{ $class['schedule_id'] }}">
+                        <i class="fas fa-bolt"></i> Check Attendance
+                      </button>
+                    @endif
                   </div>
                 </td>
               </tr>
