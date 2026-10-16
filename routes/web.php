@@ -79,6 +79,7 @@ Route::middleware(['auth', 'active', 'password.changed', 'role:faculty'])->group
     Route::get('/faculty-schedule/export/ics', [ScheduleController::class, 'exportFacultyIcs'])->name('faculty.schedule.export.ics');
     Route::post('/faculty-schedule', [ScheduleController::class, 'facultyStore'])->name('faculty.schedule.store');
     Route::patch('/faculty-schedule/{schedule}/cancel', [ScheduleController::class, 'facultyCancel'])->name('faculty.schedule.cancel');
+    Route::patch('/faculty-schedule/{schedule}', [ScheduleController::class, 'facultyUpdate'])->name('faculty.schedule.update');
 
     Route::get('/faculty_schedule', [ScheduleController::class, 'facultyIndex']);
 

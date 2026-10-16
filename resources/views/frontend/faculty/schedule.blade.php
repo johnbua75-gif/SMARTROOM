@@ -84,11 +84,18 @@ foreach ($facultySchedules as $entry) {
   // Keep the weekly grid deduplicated so repeated semester occurrences don't stack visually.
   $weekKey = sprintf('%s|%s|%s|%s', $courseCode, $start->format('H:i'), $end?->format('H:i') ?? '', (int) ($entry->classroom_id ?? 0));
   if (!isset($byDay[$isoDay]['seen'][$weekKey])) {
-    $byDay[$isoDay]['seen'][$weekKey] = true;
+    $byDay[$isoDay]['seen'][$weekKey] = count($byDay[$isoDay]['classes']);
     if ($end) {
       $byDay[$isoDay]['total_minutes'] += max(0, $start->diffInMinutes($end));
     }
     $byDay[$isoDay]['classes'][] = $classData;
+  } else {
+    // Prefer the next upcoming occurrence of a weekly slot over one that already happened.
+    $slotIndex = $byDay[$isoDay]['seen'][$weekKey];
+    $shown = $byDay[$isoDay]['classes'][$slotIndex];
+    if (($shown['sort_at'] ?? 0) < $now->timestamp && $classData['sort_at'] >= $now->timestamp) {
+      $byDay[$isoDay]['classes'][$slotIndex] = $classData;
+    }
   }
 }
 
@@ -1094,6 +1101,20 @@ html[data-theme="dark"] .sch-btn-primary{background:var(--blue);border-color:var
 html[data-theme="dark"] .conflict-alert{color:#fca5a5}
 html[data-theme="dark"] .cls-card.has-conflict{background:var(--red-lt)}
 html[data-theme="dark"] .nc-btn-primary{color:#0b1640}
+/* ── Edit one class (move date / time / room) ───────────────── */
+.session-edit{margin:14px 0 4px;padding-top:14px;border-top:1px solid var(--border)}
+.session-edit[hidden],.session-edit [hidden]{display:none !important}
+.edit-open-btn{display:inline-flex;align-items:center;gap:7px;min-height:38px;padding:0 14px;border:1px solid var(--blue-bdr);border-radius:9px;background:var(--blue-lt);color:var(--blue-dk);font:700 .84rem var(--ff);cursor:pointer;transition:background-color .15s}
+.edit-open-btn:hover{background:#dde9ff}
+.edit-open-btn i{font-size:15px}
+.edit-note{margin:0 0 12px;font-size:.82rem;line-height:1.5;color:var(--tx-2)}
+.edit-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:12px}
+.edit-grid label{display:flex;flex-direction:column;gap:5px;font-size:.74rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--tx-3)}
+.edit-grid input,.edit-grid select{width:100%;min-height:40px;padding:0 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--tx);font:500 .9rem var(--ff);text-transform:none;letter-spacing:0}
+.edit-grid input:focus,.edit-grid select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+.edit-room{grid-column:1 / -1}
+.edit-actions{display:flex;justify-content:flex-end;gap:10px}
+@media (max-width:560px){.edit-grid{grid-template-columns:1fr 1fr}.edit-grid label:first-child{grid-column:1 / -1}}
 </style>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -1742,6 +1763,29 @@ $gridCols = implode(' ', array_map(function ($d) {
         <div class="makeup-title">Make-up Suggestions</div>
         <div class="makeup-list" id="makeupList" aria-busy="true"><div class="makeup-skeleton" aria-hidden="true"><span></span><span></span><span></span></div></div>
       </div>
+      <div class="session-edit" id="sessionEditWrap" hidden>
+        <button type="button" class="edit-open-btn" id="editToggleBtn"><i class="ti ti-pencil" aria-hidden="true"></i> Edit this class</button>
+        <form id="sessionEditForm" method="POST" hidden>
+          @csrf @method('PATCH')
+          <p class="edit-note">Move <strong>only this class</strong> to another date, time or room. The rest of the semester stays the same. We check room and schedule conflicts before saving.</p>
+          <div class="edit-grid">
+            <label>Date<input type="date" name="date" id="editDate" required></label>
+            <label>Start time<input type="time" name="start_time" id="editStart" min="06:00" max="17:00" required></label>
+            <label>End time<input type="time" name="end_time" id="editEnd" min="06:00" max="17:00" required></label>
+            <label class="edit-room">Room
+              <select name="classroom_id" id="editRoom" required>
+                @foreach ($classrooms as $editRoom)
+                  <option value="{{ $editRoom->id }}">{{ $editRoom->name }}{{ $editRoom->building ? ' - '.$editRoom->building : '' }}</option>
+                @endforeach
+              </select>
+            </label>
+          </div>
+          <div class="edit-actions">
+            <button type="button" class="btn-remind" id="editKeepBtn">Keep as is</button>
+            <button type="submit" class="btn-primary" id="editSaveBtn">Save changes</button>
+          </div>
+        </form>
+      </div>
       <form id="sessionCancelForm" method="POST">
         @csrf @method('PATCH')
         <div class="session-info-item" style="margin:12px 0">
@@ -1772,6 +1816,7 @@ const classrooms = JSON.parse(document.getElementById('classroomData').textConte
 const availEndpoint = "{{ url('/api/v1/room-availability/check') }}";
 const roomStatusEndpoint = "{{ url('/api/v1/room-statuses') }}";
 const cancelEndpoint = "{{ route('faculty.schedule.cancel', ['schedule' => '__ID__']) }}";
+const updateEndpoint = "{{ route('faculty.schedule.update', ['schedule' => '__ID__']) }}";
 const cancellationReason = document.getElementById('cancellationReason');
 
 // ── Helpers ───────────────────────────────────────────────────
@@ -2207,6 +2252,7 @@ function openSessionModal(data) {
   cancelForm.action = cancelEndpoint.replace('__ID__', data.id);
   document.getElementById('cancelBtn').disabled = ['cancelled','completed'].includes(data.status);
   if (cancellationReason) cancellationReason.value = '';
+  setupEditPanel(data);
 
   const makeupList = document.getElementById('makeupList');
   makeupList.setAttribute('aria-busy', 'true');
@@ -2216,6 +2262,57 @@ function openSessionModal(data) {
   closeModal('dayModal');
   setTimeout(() => openModal('sessionModal'), 100);
 }
+
+// ── Edit one class (move date / time / room) ─────────────────
+const editWrap = document.getElementById('sessionEditWrap');
+const editForm = document.getElementById('sessionEditForm');
+const editToggleBtn = document.getElementById('editToggleBtn');
+
+function setupEditPanel(data) {
+  if (!editWrap || !editForm) return;
+  const iso = /^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})/;
+  const s = iso.exec(data.startAt || '');
+  const e = iso.exec(data.endAt || '');
+  const startsInFuture = data.startAt && new Date(data.startAt) > new Date();
+  const editable = data.status === 'scheduled' && s && e && startsInFuture;
+
+  editForm.hidden = true;
+  if (editToggleBtn) editToggleBtn.hidden = false;
+  editWrap.hidden = !editable;
+  if (!editable) return;
+
+  editForm.action = updateEndpoint.replace('__ID__', data.id);
+  const dateInput = document.getElementById('editDate');
+  dateInput.min = toDateKey(new Date());
+  dateInput.value = s[1];
+  document.getElementById('editStart').value = s[2];
+  document.getElementById('editEnd').value = e[2];
+  const room = document.getElementById('editRoom');
+  if (room && data.roomId) room.value = String(data.roomId);
+}
+
+editToggleBtn?.addEventListener('click', () => {
+  editForm.hidden = false;
+  editToggleBtn.hidden = true;
+  document.getElementById('editDate')?.focus();
+});
+document.getElementById('editKeepBtn')?.addEventListener('click', () => {
+  editForm.hidden = true;
+  editToggleBtn.hidden = false;
+});
+editForm?.addEventListener('submit', (ev) => {
+  if (editForm.dataset.confirmed === '1') { delete editForm.dataset.confirmed; return; }
+  ev.preventDefault();
+  const submitter = ev.submitter;
+  const roomSelect = document.getElementById('editRoom');
+  const roomName = roomSelect?.selectedOptions?.[0]?.textContent?.trim() || 'the selected room';
+  const message = `Move this class to ${document.getElementById('editDate').value}, ${document.getElementById('editStart').value} to ${document.getElementById('editEnd').value}, in ${roomName}?\n\nOnly this class changes. The rest of the semester stays the same.`;
+  SmartUI.confirm(message, { title: 'Move this class?', confirmText: 'Move class' }).then((ok) => {
+    if (!ok) return;
+    editForm.dataset.confirmed = '1';
+    if (editForm.requestSubmit) { editForm.requestSubmit(submitter || undefined); } else { editForm.submit(); }
+  });
+});
 
 async function loadMakeupSuggestions(data, el) {
   if (!data.roomId || !data.startAt || !data.endAt) {

@@ -7,6 +7,7 @@ use App\Http\Requests\Api\UpdateScheduleRequest;
 use App\Http\Requests\BulkDestroyScheduleRequest;
 use App\Http\Requests\FacultyCancelScheduleRequest;
 use App\Http\Requests\FacultyStoreScheduleRequest;
+use App\Http\Requests\FacultyUpdateScheduleRequest;
 use App\Http\Requests\ImportScheduleRequest;
 use App\Http\Requests\SubjectsByYearLevelRequest;
 use App\Models\Classroom;
@@ -98,6 +99,23 @@ class ScheduleController extends Controller
         );
 
         return redirect()->route('faculty.schedule')->with('status', 'Class cancelled successfully. The room is available for other teachers during this time.');
+    }
+
+    public function facultyUpdate(FacultyUpdateScheduleRequest $request, Schedule $schedule): RedirectResponse
+    {
+        $updated = $this->scheduleService->updateFacultySchedule(
+            $request->user(),
+            $schedule,
+            $request->validated()
+        );
+        $updated->loadMissing('classroom');
+
+        return redirect()->route('faculty.schedule')->with(
+            'status',
+            'Class moved to '.$updated->start_at->format('D, M j').', '
+            .$updated->start_at->format('g:i A').' - '.$updated->end_at->format('g:i A')
+            .($updated->classroom ? ' in '.$updated->classroom->name : '').'.'
+        );
     }
 
     public function exportFacultyIcs(Request $request): StreamedResponse

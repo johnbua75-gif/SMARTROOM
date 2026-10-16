@@ -258,6 +258,110 @@ class ScheduleService
         ]);
     }
 
+    /**
+     * Move a single class occurrence (date, time and/or room) for the signed-in instructor.
+     * Only the instructor's own, still-scheduled, not-yet-started classes can be moved, and every
+     * move is checked against room schedules, room reservations, blocked rooms and the instructor's
+     * own other classes.
+     *
+     * @param  array{date: string, start_time: string, end_time: string, classroom_id: int|string}  $validated
+     */
+    public function updateFacultySchedule(User $user, Schedule $schedule, array $validated): Schedule
+    {
+        return DB::transaction(function () use ($user, $schedule, $validated): Schedule {
+            $owned = Schedule::query()
+                ->whereKey($schedule->id)
+                ->forInstructor((int) $user->id)
+                ->firstOrFail();
+
+            if ($owned->status === 'cancelled') {
+                throw ValidationException::withMessages([
+                    'schedule' => ['A cancelled class can no longer be edited.'],
+                ]);
+            }
+
+            if ($owned->status === 'completed') {
+                throw ValidationException::withMessages([
+                    'schedule' => ['A completed class can no longer be edited.'],
+                ]);
+            }
+
+            if ($owned->status === 'ongoing' || ($owned->start_at && $owned->start_at->lte(now()))) {
+                throw ValidationException::withMessages([
+                    'schedule' => ['A class that has already started can no longer be edited.'],
+                ]);
+            }
+
+            $startAt = Carbon::parse($validated['date'].' '.$validated['start_time']);
+            $endAt = Carbon::parse($validated['date'].' '.$validated['end_time']);
+
+            if ($startAt->lte(now())) {
+                throw ValidationException::withMessages([
+                    'start_time' => ['Choose a start time in the future.'],
+                ]);
+            }
+
+            if ($startAt->format('H:i') < '06:00' || $endAt->format('H:i') > '17:00') {
+                throw ValidationException::withMessages([
+                    'start_time' => ['Classes must be within room operating hours: 6:00 AM to 5:00 PM.'],
+                ]);
+            }
+
+            $classroomId = (int) $validated['classroom_id'];
+
+            $roomConflict = $this->availabilityService->checkOfficialScheduleConflict(
+                $classroomId,
+                $startAt,
+                $endAt,
+                (int) $owned->id,
+                true
+            );
+
+            if ($roomConflict['has_conflict']) {
+                throw ValidationException::withMessages([
+                    'classroom_id' => [$roomConflict['message'] ?? 'That room is not available at the selected time.'],
+                ]);
+            }
+
+            $reservationConflict = $this->availabilityService->checkReservationConflict(
+                $classroomId,
+                $startAt,
+                $endAt,
+                null,
+                true
+            );
+
+            if ($reservationConflict['has_conflict']) {
+                throw ValidationException::withMessages([
+                    'classroom_id' => ['That room is already reserved at the selected time.'],
+                ]);
+            }
+
+            if ($this->availabilityService->hasInstructorScheduleConflict(
+                (int) $user->id,
+                $startAt,
+                $endAt,
+                (int) $owned->id,
+                true
+            )) {
+                throw ValidationException::withMessages([
+                    'start_time' => [
+                        'You already have another class scheduled during '.$startAt->format('M d, Y g:i A').'.',
+                    ],
+                ]);
+            }
+
+            $owned->update([
+                'classroom_id' => $classroomId,
+                'start_at' => $startAt,
+                'end_at' => $endAt,
+                'day_of_week' => (int) $startAt->dayOfWeek,
+            ]);
+
+            return $owned->refresh();
+        });
+    }
+
     public function storeSchedule(array $payload): array
     {
         unset($payload['year_level']);
