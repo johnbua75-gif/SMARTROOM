@@ -973,6 +973,127 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
 .cls-card[data-status="cancelled"]{background:#fafafa;opacity:.82}
 .cls-card[data-status="cancelled"] .cls-time{text-decoration:none;color:var(--tx-3)}
 .cls-card[data-status="cancelled"] .cls-name{text-decoration:none;color:var(--tx-2)}
+
+/* ══════════════════════════════════════
+   SCHEDULE LAYOUT v3  (matches the reference design)
+══════════════════════════════════════ */
+.content{padding:28px 32px 56px;gap:18px;max-width:1520px;width:100%;margin-inline:auto}
+
+/* Header */
+.sch-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.sch-head h1{font-family:var(--ff-head);font-size:1.8rem;font-weight:800;letter-spacing:-.03em;line-height:1.15;color:var(--tx)}
+.sch-head p{margin-top:5px;font-size:.92rem;color:var(--tx-3)}
+.sch-head-actions{display:flex;gap:10px;flex-wrap:wrap}
+.sch-btn{display:inline-flex;align-items:center;gap:7px;min-height:40px;padding:0 16px;border:1px solid var(--border);border-radius:10px;background:var(--surface);color:var(--tx);font:600 .86rem var(--ff);cursor:pointer;text-decoration:none;transition:background-color .15s,border-color .15s}
+.sch-btn:hover{background:var(--surface-2);border-color:var(--border-2)}
+.sch-btn i{font-size:16px}
+.sch-btn-primary{background:var(--navy);border-color:var(--navy);color:#fff}
+.sch-btn-primary:hover{background:var(--navy-mid);border-color:var(--navy-mid)}
+
+/* Next class hero */
+.next-class{position:relative;display:grid;grid-template-columns:auto minmax(0,1fr) auto;overflow:hidden;border-radius:18px;background:linear-gradient(120deg,#0b1640 0%,#15266f 100%);color:#fff;box-shadow:0 12px 32px rgba(11,22,64,.2)}
+.next-class::after{content:'';position:absolute;right:-70px;top:-70px;width:280px;height:280px;border-radius:50%;border:36px solid rgba(255,255,255,.04);pointer-events:none}
+.nc-date{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-width:160px;padding:22px 26px;background:var(--yellow);color:var(--navy);text-align:center}
+.nc-day{font-size:.84rem;font-weight:700}
+.nc-time{font-family:var(--ff-head);font-size:2.6rem;font-weight:800;letter-spacing:-.04em;line-height:1}
+.nc-range{font-size:.76rem;font-weight:700;opacity:.82}
+.nc-body{display:flex;flex-direction:column;justify-content:center;gap:10px;min-width:0;padding:22px 28px}
+.nc-top{display:flex;align-items:center;gap:10px}
+.nc-label{font-size:.84rem;font-weight:600;color:rgba(255,255,255,.74)}
+.nc-pill{padding:3px 11px;border-radius:999px;background:rgba(255,255,255,.15);font-size:.76rem;font-weight:700}
+.nc-title{font-family:var(--ff-head);font-size:1.65rem;font-weight:800;letter-spacing:-.02em;line-height:1.2}
+.nc-chips{display:flex;flex-wrap:wrap;gap:8px}
+.nc-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid rgba(255,255,255,.22);border-radius:9px;background:rgba(255,255,255,.07);font-size:.82rem;font-weight:600}
+.nc-chip i{font-size:15px;opacity:.85}
+.nc-actions{position:relative;z-index:1;display:flex;flex-direction:column;justify-content:center;gap:10px;min-width:220px;padding:22px 28px}
+.nc-btn{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:0 18px;border:1px solid rgba(255,255,255,.32);border-radius:10px;background:transparent;color:#fff;font:700 .86rem var(--ff);cursor:pointer;text-decoration:none;transition:background-color .15s}
+.nc-btn:hover{background:rgba(255,255,255,.12)}
+.nc-btn-primary{background:#fff;border-color:#fff;color:var(--navy)}
+.nc-btn-primary:hover{background:#eef1fb}
+
+/* KPI row */
+.kpi-row{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+.kpi{display:flex;align-items:center;gap:14px;padding:16px 18px;border:1px solid var(--border);border-radius:14px;background:var(--surface);box-shadow:var(--shadow-sm)}
+.kpi-ic{display:flex;align-items:center;justify-content:center;flex:0 0 46px;width:46px;height:46px;border-radius:12px;font-size:21px}
+.kpi.blue .kpi-ic{background:var(--blue-lt);color:var(--blue)}
+.kpi.violet .kpi-ic{background:var(--violet-lt);color:var(--violet)}
+.kpi.emerald .kpi-ic{background:var(--emerald-lt);color:var(--emerald)}
+.kpi.amber .kpi-ic{background:var(--amber-lt);color:var(--amber)}
+.kpi-val{font-family:var(--ff-head);font-size:1.7rem;font-weight:800;letter-spacing:-.03em;line-height:1.05;color:var(--tx)}
+.kpi-lab{margin-top:3px;font-size:.8rem;font-weight:600;line-height:1.25;color:var(--tx-3)}
+
+/* Conflict alert */
+.conflict-alert{display:flex;align-items:flex-start;gap:10px;padding:12px 16px;border:1px solid var(--red-bdr);border-radius:12px;background:var(--red-lt);color:#b42318;font-size:.88rem;font-weight:600;line-height:1.45}
+.conflict-alert i{font-size:18px;margin-top:1px}
+
+/* Filter bar */
+.filter-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.filter-bar .search-box{flex:1 1 320px;min-height:44px;padding:0 14px;border:1px solid var(--border);border-radius:10px;background:var(--surface)}
+.filter-bar .search-box input{font-size:.9rem}
+.filter-bar .view-switcher{margin:0;padding:3px;border:1px solid var(--border);border-radius:10px;background:var(--surface-2)}
+.filter-bar .vs-btn{min-height:36px;padding:0 16px;font-size:.86rem;color:var(--tx-2)}
+.filter-bar .vs-btn.active{border:1px solid var(--border);background:var(--surface);color:var(--tx);box-shadow:0 1px 3px rgba(10,17,40,.1)}
+
+/* Week grid: widths come from --cols so busy days get more room */
+.sched-grid{grid-template-columns:var(--cols,repeat(5,minmax(0,1fr)));gap:14px}
+.day-col{border-radius:14px;box-shadow:none}
+.day-col-header{flex-direction:row;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:8px;padding:16px 16px 12px;border-bottom:0;background:transparent}
+.day-head-text{min-width:0}
+.day-name{font-family:var(--ff-head);font-size:1rem;font-weight:800;color:var(--tx)}
+.day-hrs{margin:3px 0 0;font-size:.8rem;font-weight:500;color:var(--tx-3)}
+.today-pill{padding:3px 11px;border-radius:999px;background:var(--blue);color:#fff;font:700 .72rem var(--ff)}
+.today-col .day-name::after{content:none !important}
+.day-col.today-col{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.day-col.today-col .day-col-header{background:transparent}
+.day-classes{padding:0 12px 14px;gap:10px}
+.no-class{padding:22px 8px;font-size:.88rem;color:var(--tx-2)}
+.no-class i{display:none}
+
+/* Class cards */
+.cls-card{padding:12px 14px;border:1px solid var(--border);border-left:4px solid var(--card-c);border-radius:10px;background:var(--surface);box-shadow:none}
+.cls-card::before{display:none}
+.cls-card:last-child{border-bottom:1px solid var(--border)}
+.cls-card:hover{background:var(--surface-2);box-shadow:none;transform:none}
+.cls-card.has-conflict{border:1.5px solid var(--red)}
+.cls-timebar{margin-bottom:6px}
+.cls-time{font-size:.8rem}
+.cls-name{margin:0 0 3px;font-size:.98rem;font-weight:700}
+.cls-sub{margin-bottom:10px;font-size:.76rem;color:var(--tx-3)}
+.cls-meta{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:0;border-top:0;font-size:.8rem}
+.cls-card[data-status="cancelled"]{background:var(--surface-2)}
+
+/* Responsive */
+@media (max-width:1180px){
+  .kpi-row{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+  .next-class{grid-template-columns:1fr}
+  .nc-date{flex-direction:row;justify-content:flex-start;gap:14px;padding:14px 22px}
+  .nc-actions{flex-direction:row;flex-wrap:wrap;min-width:0;padding:0 22px 22px}
+  .sched-grid{grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+}
+@media (max-width:640px){
+  .content{padding:20px 14px 40px}
+  .sch-head-actions{width:100%}
+  .sch-btn{flex:1;justify-content:center}
+  .filter-bar .view-switcher{width:100%}
+  .filter-bar .vs-btn{flex:1;justify-content:center}
+  .nc-title{font-size:1.3rem}
+}
+
+/* Dark mode (toggle in the header, remembered in localStorage) */
+html[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0e1322;--surface:#161c30;--surface-2:#1c2340;--border:#273055;--border-2:#34406b;
+  --tx:#e9edf9;--tx-2:#b9c1de;--tx-3:#8c96bb;--tx-4:#6a7498;
+  --blue-lt:#1a2650;--blue-bdr:#2b3f86;--blue-dk:#8fb0ff;
+  --violet-lt:#261d4a;--violet-bdr:#41318a;
+  --emerald-lt:#0f2a26;--emerald-bdr:#14523f;
+  --amber-lt:#2e2410;--amber-bdr:#6b4e14;
+  --red-lt:#2d1517;--red-bdr:#6b2328;
+}
+html[data-theme="dark"] .sch-btn-primary{background:var(--blue);border-color:var(--blue)}
+html[data-theme="dark"] .conflict-alert{color:#fca5a5}
+html[data-theme="dark"] .cls-card.has-conflict{background:var(--red-lt)}
+html[data-theme="dark"] .nc-btn-primary{color:#0b1640}
 </style>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -981,6 +1102,37 @@ document.addEventListener('DOMContentLoaded', function () {
     el.setAttribute('role', 'button');
     el.addEventListener('keydown', function (e) {
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el.click(); }
+    });
+  });
+});
+</script>
+<script>
+(function () {
+  try { if (localStorage.getItem('schedTheme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark'); } catch (e) {}
+})();
+document.addEventListener('DOMContentLoaded', function () {
+  var root = document.documentElement;
+  var btn = document.getElementById('themeToggle');
+  function sync() {
+    if (!btn) return;
+    var dark = root.getAttribute('data-theme') === 'dark';
+    btn.setAttribute('aria-pressed', dark ? 'true' : 'false');
+    var label = btn.querySelector('span'); if (label) label.textContent = dark ? 'Light mode' : 'Dark mode';
+    var icon = btn.querySelector('i'); if (icon) icon.className = 'ti ' + (dark ? 'ti-sun' : 'ti-moon');
+  }
+  if (btn) {
+    btn.addEventListener('click', function () {
+      var dark = root.getAttribute('data-theme') === 'dark';
+      if (dark) root.removeAttribute('data-theme'); else root.setAttribute('data-theme', 'dark');
+      try { localStorage.setItem('schedTheme', dark ? 'light' : 'dark'); } catch (e) {}
+      sync();
+    });
+    sync();
+  }
+  document.querySelectorAll('[data-open-class]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var card = document.querySelector('.cls-card[data-id="' + b.getAttribute('data-open-class') + '"]');
+      if (card) card.click();
     });
   });
 });
@@ -1105,53 +1257,150 @@ document.addEventListener('DOMContentLoaded', function () {
       <div class="flash flash-err">{{ $errors->first() }}</div>
     @endif
 
-    <!-- Page Header -->
-    <div class="page-header">
-      <div class="ph-left">
-        <div class="ph-icon"><i class="ti ti-calendar-week"></i></div>
-        <div class="ph-title">
-          <h1>Semester Schedule</h1>
-          <p>
-            <i class="ti ti-user" style="font-size:12px"></i>
-            <?= htmlspecialchars($facultyName) ?> &nbsp;·&nbsp; <?= htmlspecialchars($semester) ?>
-          </p>
-        </div>
+<?php
+// ── Derived data for the redesigned header (all computed from the schedule already loaded above) ──
+$parseMin = function (?string $iso): ?int {
+  if (!$iso) return null;
+  $c = \Carbon\Carbon::parse($iso);
+  return (int) ($c->hour * 60 + $c->minute);
+};
+$fmtMin = fn (int $m): string => \Carbon\Carbon::today()->addMinutes($m)->format('g:i A');
+
+// Overlapping (non-cancelled) classes on the same weekday
+$conflictIds = [];
+$conflictNotes = [];
+foreach ($schedule as $dayRow) {
+  $list = array_values(array_filter($dayRow['classes'], fn ($c) => ($c['status'] ?? '') !== 'cancelled' && !empty($c['end_at'])));
+  for ($i = 0; $i < count($list); $i++) {
+    for ($j = $i + 1; $j < count($list); $j++) {
+      $aS = $parseMin($list[$i]['start_at']); $aE = $parseMin($list[$i]['end_at']);
+      $bS = $parseMin($list[$j]['start_at']); $bE = $parseMin($list[$j]['end_at']);
+      if ($aS !== null && $bS !== null && $aE !== null && $bE !== null && $aS < $bE && $bS < $aE) {
+        $conflictIds[] = $list[$i]['id'];
+        $conflictIds[] = $list[$j]['id'];
+        $fromTxt = $fmtMin(max($aS, $bS));
+        $toTxt = $fmtMin(min($aE, $bE));
+        if (substr($fromTxt, -2) === substr($toTxt, -2)) { $fromTxt = substr($fromTxt, 0, -3); }
+        $conflictNotes[] = ['day' => $dayRow['day'], 'from' => $fromTxt, 'to' => $toTxt];
+      }
+    }
+  }
+}
+
+// Next upcoming class (skips cancelled ones)
+$nowTs = now();
+$upcoming = collect($calendarSchedule)
+  ->filter(fn ($c) => ($c['status'] ?? '') !== 'cancelled' && !empty($c['start_at']) && \Carbon\Carbon::parse($c['start_at'])->gt($nowTs))
+  ->sortBy('sort_at')
+  ->first();
+$nextCard = null;
+$nextIn = '';
+if ($upcoming) {
+  $uStart = \Carbon\Carbon::parse($upcoming['start_at']);
+  $uEnd = !empty($upcoming['end_at']) ? \Carbon\Carbon::parse($upcoming['end_at']) : null;
+  $dayIdx = $uStart->dayOfWeekIso - 1;
+  foreach (($schedule[$dayIdx]['classes'] ?? []) as $c) {
+    if ($c['code'] === $upcoming['code'] && \Carbon\Carbon::parse($c['start_at'])->format('H:i') === $uStart->format('H:i')) { $nextCard = $c; break; }
+  }
+  $daysAway = (int) round(abs($nowTs->copy()->startOfDay()->diffInDays($uStart->copy()->startOfDay())));
+  if ($daysAway === 0) {
+    $mins = (int) floor(abs($nowTs->diffInMinutes($uStart)));
+    $hrsAway = (int) round($mins / 60);
+    $nextIn = $mins < 60 ? 'In ' . max(1, $mins) . ' min' : 'In ' . $hrsAway . ' hr' . ($hrsAway === 1 ? '' : 's');
+  } elseif ($daysAway === 1) {
+    $nextIn = 'Tomorrow';
+  } else {
+    $nextIn = 'In ' . $daysAway . ' days';
+  }
+}
+
+// Weekly teaching time
+$weekHours = array_sum(array_column($byDay, 'total_minutes')) / 60;
+$weekHoursLabel = $weekHours > 0
+  ? (fmod($weekHours, 1.0) === 0.0 ? (string) ((int) $weekHours) : number_format($weekHours, 1)) . ' hrs'
+  : '0 hrs';
+
+$kpis = [
+  ['v' => (string) $classesPerWeek,              'l' => 'Classes per week',     'i' => 'ti-calendar-week', 'c' => 'blue'],
+  ['v' => (string) $totalUniqueStudents,         'l' => 'Students enrolled',    'i' => 'ti-users',         'c' => 'violet'],
+  ['v' => (string) count($facultyCourses),       'l' => 'Subjects',             'i' => 'ti-books',         'c' => 'emerald'],
+  ['v' => $weekHoursLabel,                       'l' => 'Teaching time / week', 'i' => 'ti-clock',         'c' => 'amber'],
+  ['v' => (string) (count($facultyCourses) * 3), 'l' => 'Total units',          'i' => 'ti-bolt',          'c' => 'blue'],
+];
+
+// Day column widths: busy days get more room, free days stay narrow
+$gridCols = implode(' ', array_map(function ($d) {
+  if (!empty($d['classes'])) return 'minmax(0,1.6fr)';
+  return (($d['abbr'] ?? '') === now()->format('D')) ? 'minmax(96px,.9fr)' : 'minmax(96px,.65fr)';
+}, $schedule));
+?>
+    <div class="sch-head">
+      <div class="sch-head-text">
+        <h1>Semester Schedule</h1>
+        <p><?= htmlspecialchars($facultyName) ?> &bull; <?= htmlspecialchars($semester) ?></p>
       </div>
-      <div class="stats-grid">
-      <?php foreach ($stats as $s): ?>
-      <div class="stat-card <?= htmlspecialchars($s['color']) ?>">
-        <div class="stat-top">
-          <div class="stat-val"><?= htmlspecialchars($s['value']) ?></div>
-          <div class="stat-ic"><i class="ti <?= htmlspecialchars($s['icon']) ?>"></i></div>
-        </div>
-        <div class="stat-label"><?= htmlspecialchars($s['label']) ?></div>
-        <div class="stat-sub"><?= htmlspecialchars($s['sub']) ?></div>
-        <div class="stat-accent-bar"></div>
-      </div>
-      <?php endforeach ?>
+      <div class="sch-head-actions">
+        <button type="button" class="sch-btn" id="themeToggle" aria-pressed="false"><i class="ti ti-moon" aria-hidden="true"></i><span>Dark mode</span></button>
+        <a class="sch-btn" href="{{ route('faculty.schedule.export.ics') }}"><i class="ti ti-file-export" aria-hidden="true"></i>Export</a>
+        <button type="button" class="sch-btn sch-btn-primary" id="openAddModal2"><i class="ti ti-plus" aria-hidden="true"></i>Add schedule</button>
       </div>
     </div>
 
-    <!-- Toolbar -->
-    <div class="toolbar">
-      <div class="search-box">
-        <i class="ti ti-search"></i>
-        <input type="text" id="classFilter" placeholder="Filter classes…">
+    <?php if ($upcoming): ?>
+    <section class="next-class" aria-label="Next class">
+      <div class="nc-date">
+        <span class="nc-day"><?= htmlspecialchars($uStart->format('l')) ?></span>
+        <span class="nc-time"><?= htmlspecialchars($uStart->format('g:i')) ?></span>
+        <span class="nc-range"><?= htmlspecialchars($uStart->format('A')) ?><?= $uEnd ? ' - ' . htmlspecialchars($uEnd->format('g:i A')) : '' ?></span>
       </div>
-      <div class="spacer"></div>
-      <div class="sem-badge"><i class="ti ti-calendar" style="font-size:12px"></i> <?= htmlspecialchars($semester) ?></div>
-      <div class="view-switcher">
-        <button class="vs-btn active" id="btnGrid" type="button"><i class="ti ti-layout-grid"></i> Grid</button>
-        <button class="vs-btn" id="btnCal" type="button"><i class="ti ti-calendar-month"></i> Calendar</button>
-        <button class="vs-btn" id="btnTl" type="button"><i class="ti ti-list-details"></i> Timeline</button>
+      <div class="nc-body">
+        <div class="nc-top"><span class="nc-label">Next class</span><span class="nc-pill"><?= htmlspecialchars($nextIn) ?></span></div>
+        <h2 class="nc-title"><?= htmlspecialchars($upcoming['subject']) ?></h2>
+        <div class="nc-chips">
+          <span class="nc-chip"><i class="ti ti-book-2" aria-hidden="true"></i><?= htmlspecialchars($upcoming['code']) ?></span>
+          <span class="nc-chip"><i class="ti ti-map-pin" aria-hidden="true"></i><?= htmlspecialchars($upcoming['location']) ?></span>
+          <?php if ($upcoming['section'] !== ''): ?><span class="nc-chip"><i class="ti ti-layout-grid" aria-hidden="true"></i><?= htmlspecialchars($upcoming['section']) ?></span><?php endif ?>
+          <span class="nc-chip"><i class="ti ti-users" aria-hidden="true"></i><?= (int) $upcoming['students'] ?> students</span>
+        </div>
       </div>
-      <a class="tb-action-btn" href="{{ route('faculty.schedule.export.ics') }}">
-        <i class="ti ti-file-export"></i> Export
-      </a>
-      <button class="tb-add-btn" id="openAddModal2" type="button">
-        <i class="ti ti-plus"></i> Add Schedule
-      </button>
+      <div class="nc-actions">
+        <?php if ($nextCard): ?><button type="button" class="nc-btn nc-btn-primary" data-open-class="<?= (int) $nextCard['id'] ?>">View class</button><?php endif ?>
+        <a class="nc-btn" href="{{ route('faculty.attendance') }}">Open attendance</a>
+      </div>
+    </section>
+    <?php endif ?>
+
+    <div class="kpi-row">
+      <?php foreach ($kpis as $k): ?>
+      <div class="kpi <?= htmlspecialchars($k['c']) ?>">
+        <div class="kpi-ic"><i class="ti <?= htmlspecialchars($k['i']) ?>" aria-hidden="true"></i></div>
+        <div>
+          <div class="kpi-val"><?= htmlspecialchars($k['v']) ?></div>
+          <div class="kpi-lab"><?= htmlspecialchars($k['l']) ?></div>
+        </div>
+      </div>
+      <?php endforeach ?>
     </div>
+
+    <?php if (!empty($conflictNotes)): $cn = $conflictNotes[0]; ?>
+    <div class="conflict-alert" role="alert">
+      <i class="ti ti-alert-triangle" aria-hidden="true"></i>
+      <span>Schedule conflict on <?= htmlspecialchars($cn['day']) ?>: two classes overlap from <?= htmlspecialchars($cn['from']) ?> to <?= htmlspecialchars($cn['to']) ?>.<?= count($conflictNotes) > 1 ? ' (+' . (count($conflictNotes) - 1) . ' more)' : '' ?> Move one of them to avoid double booking.</span>
+    </div>
+    <?php endif ?>
+
+    <div class="filter-bar">
+      <label class="search-box">
+        <i class="ti ti-search" aria-hidden="true"></i>
+        <input type="text" id="classFilter" placeholder="Filter by subject, room or block" aria-label="Filter classes by subject, room or block">
+      </label>
+      <div class="view-switcher" role="group" aria-label="Schedule view">
+        <button class="vs-btn active" id="btnGrid" type="button">Grid</button>
+        <button class="vs-btn" id="btnCal" type="button">Calendar</button>
+        <button class="vs-btn" id="btnTl" type="button">Timeline</button>
+      </div>
+    </div>
+
 
     <!-- ══════ CALENDAR VIEW ══════ -->
     <div class="calendar-section" id="calendarView" style="display:none">
@@ -1184,17 +1433,17 @@ document.addEventListener('DOMContentLoaded', function () {
     </div>
 
     <!-- ══════ SCHEDULE GRID VIEW ══════ -->
-    <div class="sched-grid" id="gridView">
+    <div class="sched-grid" id="gridView" style="--cols: <?= $gridCols ?>">
       <?php foreach ($schedule as $di => $day):
         $delay = round(.14 + $di * .05, 2);
       ?>
       <div class="day-col<?= ($day['abbr'] ?? '') === now()->format('D') ? ' today-col' : '' ?>" style="--d:<?= $delay ?>s">
         <div class="day-col-header">
-          <div class="day-abbr"><?= htmlspecialchars($day['abbr']) ?></div>
-          <div>
+          <div class="day-head-text">
             <div class="day-name"><?= htmlspecialchars($day['day']) ?></div>
+            <div class="day-hrs"><?php $cc = count($day['classes']); ?><?= $cc > 0 ? $cc . ' ' . ($cc === 1 ? 'class' : 'classes') . ' &bull; ' . htmlspecialchars($day['total_hrs']) : 'Free day' ?></div>
           </div>
-          <div class="day-hrs"><?php $cc = count($day['classes']); if ($cc > 0): ?><span><?= $cc ?> <?= $cc === 1 ? 'class' : 'classes' ?></span><span class="day-hrs-sep">&middot;</span><i class="ti ti-clock"></i> <?= htmlspecialchars($day['total_hrs']) ?><?php endif ?></div>
+          <?php if (($day['abbr'] ?? '') === now()->format('D')): ?><span class="today-pill">Today</span><?php endif ?>
         </div>
         <div class="day-classes">
           <?php if (empty($day['classes'])): ?>
@@ -1204,7 +1453,7 @@ document.addEventListener('DOMContentLoaded', function () {
             </div>
           <?php else: ?>
             <?php foreach ($day['classes'] as $cls): ?>
-            <div class="cls-card <?= htmlspecialchars($cls['color']) ?>"
+            <div class="cls-card <?= htmlspecialchars($cls['color']) ?><?= in_array($cls['id'], $conflictIds, true) ? ' has-conflict' : '' ?>"
               data-id="<?= htmlspecialchars((string) $cls['id']) ?>"
               data-room-id="<?= htmlspecialchars((string) $cls['classroom_id']) ?>"
               data-subject="<?= htmlspecialchars($cls['subject']) ?>"
@@ -1223,13 +1472,12 @@ document.addEventListener('DOMContentLoaded', function () {
                   <span class="status-badge status-cancelled"><i class="ti ti-x" style="font-size:11px"></i> Cancelled</span>
                 <?php elseif (!empty($cls['status']) && $cls['status'] === 'ongoing'): ?>
                   <span class="status-badge status-ongoing"><i class="live-dot"></i> Live now</span>
+                <?php elseif (in_array($cls['id'], $conflictIds, true)): ?>
+                  <span class="status-badge status-cancelled"><i class="ti ti-alert-triangle" style="font-size:11px"></i> Conflict</span>
                 <?php endif ?>
               </div>
               <div class="cls-name"><?= htmlspecialchars($cls['subject']) ?></div>
-              <div class="cls-tags">
-                <span class="cls-code"><?= htmlspecialchars($cls['code']) ?></span>
-                <?php if ($cls['section'] !== ''): ?><span class="block-badge"><?= htmlspecialchars($cls['section']) ?></span><?php endif ?>
-              </div>
+              <div class="cls-sub"><?= htmlspecialchars($cls['code']) ?><?= $cls['section'] !== '' ? ' &bull; ' . htmlspecialchars($cls['section']) : '' ?></div>
               <div class="cls-meta">
                 <span class="cls-room"><i class="ti ti-map-pin"></i><?= htmlspecialchars($cls['location']) ?></span>
                 <span class="cls-students" title="Enrolled students"><i class="ti ti-users"></i><span><?= htmlspecialchars($cls['students']) ?></span></span>
