@@ -3,7 +3,7 @@
     $token = $session->token;
 @endphp
 <!doctype html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -20,7 +20,7 @@
           <div class="alert alert-warning mb-0">This attendance session is closed or expired. Ask your instructor to open a new session.</div>
         @else
           <p>Tap the button below to mark yourself present.</p>
-          <button id="checkinBtn" class="btn btn-primary">Check In</button>
+          <button type="button" id="checkinBtn" class="btn btn-primary">Check In</button>
         @endif
         <div id="status" class="mt-3"></div>
       </div>

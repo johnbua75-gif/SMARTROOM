@@ -2,7 +2,7 @@
 $faculty_name     = $faculty_name ?? request()->user()?->name ?? 'Faculty';
 $faculty_dept     = $faculty_dept ?? request()->user()?->department ?? 'Department';
 $faculty_initials = $faculty_initials ?? strtoupper(substr((string) $faculty_name, 0, 1));
-$semester         = $semester ?? "1st Semester 2025â€“2026";
+$semester         = $semester ?? "1st Semester 2025–2026";
 
 $facultyName     = $facultyName     ?? $faculty_name;
 $facultyDept     = $facultyDept     ?? $faculty_dept;
@@ -25,7 +25,7 @@ $dayMeta = [
 $now = now();
 $monday = $now->copy()->startOfWeek();
 $friday = $monday->copy()->addDays(4);
-$weekRange = $monday->format('M d') . ' â€“ ' . $friday->format('M d, Y');
+$weekRange = $monday->format('M d') . ' – ' . $friday->format('M d, Y');
 
 $palette = ['blue', 'violet', 'emerald', 'amber'];
 
@@ -58,7 +58,7 @@ foreach ($facultySchedules as $entry) {
 
   $durationText = $start->format('g:i A');
   if ($end) {
-    $durationText .= ' â€“ ' . $end->format('g:i A');
+    $durationText .= ' – ' . $end->format('g:i A');
   }
 
   $classData = [
@@ -173,7 +173,7 @@ $classroomOptions = collect($classrooms)->map(fn($c) => [
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>SmartDoor â€” Semester Schedule</title>
+<title>SmartDoor — Semester Schedule</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -226,9 +226,9 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
 ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:var(--border-2);border-radius:99px}
 ::-webkit-scrollbar-track{background:transparent}
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* ══════════════════════════════════════
    SIDEBAR
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+══════════════════════════════════════ */
 .sidebar {
   position: fixed; left: 0; top: 0;
   width: var(--sidebar-w); height: 100vh;
@@ -321,9 +321,9 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
 }
 .sidebar-logout-btn:hover { color: #f87171; background: rgba(244,63,94,0.08); }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* ══════════════════════════════════════
    MAIN
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+══════════════════════════════════════ */
 .main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh}
 
 /* Topbar */
@@ -373,9 +373,9 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
 }
 .prof-signout:hover{background:#fee2e2}
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* ══════════════════════════════════════
    CONTENT
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+══════════════════════════════════════ */
 .content{padding:26px 30px 60px;display:flex;flex-direction:column;gap:20px}
 
 /* Page header */
@@ -497,9 +497,9 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
 .tb-add-btn:hover{background:var(--navy-mid)}
 .tb-add-btn i{font-size:13px}
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* ══════════════════════════════════════
    CALENDAR VIEW
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+══════════════════════════════════════ */
 .calendar-section{
   background:var(--surface);border:1px solid var(--border);
   border-radius:var(--r);overflow:hidden;
@@ -558,9 +558,9 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
 .wvh-right{display:flex;align-items:center;gap:16px;font-size:.85rem;color:var(--tx-3)}
 .wvh-right strong{color:var(--blue);font-weight:700}
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* ══════════════════════════════════════
    SCHEDULE GRID
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+══════════════════════════════════════ */
 .sched-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;align-items:start}
 .day-col{
   background:var(--surface);border:1px solid var(--border);
@@ -631,9 +631,9 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
 .status-ongoing{background:var(--blue-lt);border:1px solid var(--blue-bdr);color:var(--blue-dk)}
 .block-badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:4px;background:var(--surface-2);border:1px solid var(--border);color:var(--tx-2);font-size:.58rem;font-weight:600}
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* ══════════════════════════════════════
    TIMELINE VIEW
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+══════════════════════════════════════ */
 .timeline-section{display:none;flex-direction:column;gap:14px}
 .tl-day-block{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow-sm)}
 .tl-day-hd{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--surface-2)}
@@ -663,9 +663,9 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
 }
 .tl-no-class{padding:16px;font-size:.75rem;color:var(--tx-4)}
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* ══════════════════════════════════════
    SUBJECT OVERVIEW
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+══════════════════════════════════════ */
 .subj-section{
   background:var(--surface);border:1px solid var(--border);
   border-radius:var(--r);padding:20px;box-shadow:var(--shadow-sm);
@@ -698,16 +698,16 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
 .sc-val{font-weight:700;color:var(--tx-2);font-family:var(--ff-mono)}
 .sc-status{margin-top:9px;padding:6px 8px;border-radius:6px;background:var(--amber-lt);border:1px solid var(--amber-bdr);color:var(--amber);font-size:.66rem;font-weight:600;line-height:1.3}
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* ══════════════════════════════════════
    ADD SCHEDULE CARD
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+══════════════════════════════════════ */
 .add-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;box-shadow:var(--shadow-sm)}
 .add-card-title{font-size:.85rem;font-weight:700;color:var(--tx);margin-bottom:2px}
 .add-card-note{font-size:.72rem;color:var(--tx-3)}
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   MODALS â€” BASE
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+/* ══════════════════════════════════════
+   MODALS — BASE
+══════════════════════════════════════ */
 .modal-overlay{
   position:fixed;inset:0;z-index:2000;display:none;
   align-items:center;justify-content:center;
@@ -845,9 +845,9 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
 </head>
 <body>
 
-<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+<!-- ═══════════════════════════════════════════
      SIDEBAR
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+═══════════════════════════════════════════ -->
 <div class="sidebar">
   <a href="<?= htmlspecialchars(url('/dashboard')) ?>" class="sidebar-logo">
     <div class="logo-mark"><i class="fas fa-door-open"></i></div>
@@ -923,7 +923,7 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
   </div>
 </div>
 
-<!-- â•â•â•â•â•â•â•â•â•â•â• MAIN â•â•â•â•â•â•â•â•â•â•â• -->
+<!-- ═══════════ MAIN ═══════════ -->
 <div class="main">
   <!-- Topbar -->
   <div class="topbar">
@@ -969,7 +969,7 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
           <h1>Semester Schedule</h1>
           <p>
             <i class="ti ti-user" style="font-size:12px"></i>
-            <?= htmlspecialchars($facultyName) ?> &nbsp;Â·&nbsp; <?= htmlspecialchars($semester) ?>
+            <?= htmlspecialchars($facultyName) ?> &nbsp;·&nbsp; <?= htmlspecialchars($semester) ?>
           </p>
         </div>
       </div>
@@ -992,7 +992,7 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
     <div class="toolbar">
       <div class="search-box">
         <i class="ti ti-search"></i>
-        <input type="text" id="classFilter" placeholder="Filter classesâ€¦">
+        <input type="text" id="classFilter" placeholder="Filter classes…">
       </div>
       <div class="spacer"></div>
       <div class="sem-badge"><i class="ti ti-calendar" style="font-size:12px"></i> <?= htmlspecialchars($semester) ?></div>
@@ -1009,7 +1009,7 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
       </button>
     </div>
 
-    <!-- â•â•â•â•â•â• CALENDAR VIEW â•â•â•â•â•â• -->
+    <!-- ══════ CALENDAR VIEW ══════ -->
     <div class="calendar-section" id="calendarView" style="display:none">
       <div class="cal-header">
         <div class="cal-header-left">
@@ -1020,9 +1020,9 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
           </div>
         </div>
         <div class="cal-month-nav">
-          <button class="cal-nav-btn" id="calPrev"><i class="ti ti-chevron-left"></i></button>
+          <button aria-label="Previous month" type="button" class="cal-nav-btn" id="calPrev"><i class="ti ti-chevron-left"></i></button>
           <div class="cal-month-label" id="calMonthLabel"></div>
-          <button class="cal-nav-btn" id="calNext"><i class="ti ti-chevron-right"></i></button>
+          <button aria-label="Next month" type="button" class="cal-nav-btn" id="calNext"><i class="ti ti-chevron-right"></i></button>
         </div>
       </div>
       <div class="cal-grid">
@@ -1039,7 +1039,7 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
       </div>
     </div>
 
-    <!-- â•â•â•â•â•â• SCHEDULE GRID VIEW â•â•â•â•â•â• -->
+    <!-- ══════ SCHEDULE GRID VIEW ══════ -->
     <div class="sched-grid" id="gridView">
       <?php foreach ($schedule as $di => $day):
         $delay = round(.14 + $di * .05, 2);
@@ -1096,7 +1096,7 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
       <?php endforeach ?>
     </div>
 
-    <!-- â•â•â•â•â•â• TIMELINE VIEW â•â•â•â•â•â• -->
+    <!-- ══════ TIMELINE VIEW ══════ -->
     <div class="timeline-section" id="timelineView">
       <?php foreach ($schedule as $day): ?>
       <div class="tl-day-block">
@@ -1153,7 +1153,7 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
   </div><!-- /content -->
 </div><!-- /main -->
 
-<!-- â•â•â•â•â•â•â•â•â•â•â• ADD SCHEDULE MODAL â•â•â•â•â•â•â•â•â•â•â• -->
+<!-- ═══════════ ADD SCHEDULE MODAL ═══════════ -->
 @php
   $bsitCatalog=[['code'=>'A_CC 101','title'=>'Introduction to Computing'],['code'=>'A_CC 102','title'=>'Fundamental of Programming'],['code'=>'A_CC 103','title'=>'Intermediate Programming'],['code'=>'A_CC 104','title'=>'Data Structures and Algorithms'],['code'=>'A_CC 105','title'=>'Information Management 1'],['code'=>'A_CC 106','title'=>'Application Development & Emerging Tech'],['code'=>'A_OOP 101','title'=>'Object Oriented Programming'],['code'=>'A_WD 101','title'=>'Web Development'],['code'=>'A_WS 101','title'=>'Web Systems and Technologies 1'],['code'=>'A_NET 101','title'=>'Networking 1'],['code'=>'A_NET 102','title'=>'Networking 2'],['code'=>'A_SAD 101','title'=>'System Analysis and Design'],['code'=>'A_HCI 101','title'=>'Human Computer Interaction 1'],['code'=>'A_HCI 102','title'=>'Human Computer Interaction 2'],['code'=>'A_MD 101','title'=>'Mobile Application Development 1'],['code'=>'A_IM 102','title'=>'Information Management 2'],['code'=>'A_CAP 101','title'=>'Capstone Project 1'],['code'=>'A_CAP 102','title'=>'Capstone Project 2'],['code'=>'A_IAS 101','title'=>'Information Assurance and Security 1'],['code'=>'A_IAS 102','title'=>'Information Assurance and Security 2'],['code'=>'A_IPT 101','title'=>'Integrative Programming and Technologies'],['code'=>'A_SIA 101','title'=>'Systems Integration and Architecture'],['code'=>'A_OS 101','title'=>'Operating System Applications'],['code'=>'A_SA 101','title'=>'System Administration and Maintenance'],['code'=>'A_MT 101','title'=>'Multimedia Technologies'],['code'=>'A_MS 101','title'=>'Discrete Mathematics'],['code'=>'A_MS 102','title'=>'Quantitative Methods'],['code'=>'A_SP 101','title'=>'Social and Professional Issues'],['code'=>'A_GE 1','title'=>'Understanding the Self'],['code'=>'A_GE 2','title'=>'Readings in Philippine History'],['code'=>'A_GE 3','title'=>'Art Appreciation'],['code'=>'A_GE 4','title'=>'Purposive Communication'],['code'=>'A_GE 5','title'=>'The Contemporary World'],['code'=>'A_GE 6','title'=>'Science, Technology and Society'],['code'=>'A_GE 7','title'=>'Mathematics in the Modern World'],['code'=>'A_GE_8','title'=>'Ethics'],['code'=>'A_GE_9','title'=>'The Life and Works of Rizal'],['code'=>'A_CO 101','title'=>'Computer Organization'],['code'=>'A_ELEC1','title'=>'Elective 1'],['code'=>'A_ELEC2','title'=>'Elective 2'],['code'=>'A_ELEC3','title'=>'Elective 3'],['code'=>'A_ELEC4','title'=>'Elective 4'],['code'=>'A_TECH 101','title'=>'Technopreneurship'],['code'=>'A_GEE 1','title'=>'Living in the IT Era'],['code'=>'A_GEE 2','title'=>'The Entrepreneurial Mind'],['code'=>'A_GEE 3','title'=>'Reading Visual Art'],['code'=>'A_GEE 4','title'=>'Global Citizenship'],['code'=>'A_IC 1','title'=>'Personality Development'],['code'=>'A_NSTP 1','title'=>'ROTC/CWTS 1'],['code'=>'A_NSTP 2','title'=>'ROTC/CWTS 2'],['code'=>'A_PE1','title'=>'PATH-FIT I'],['code'=>'A_PE2','title'=>'PATH-FIT II'],['code'=>'A_PE3','title'=>'PATH-FIT III'],['code'=>'A_PE4','title'=>'PATH-FIT IV']];
   $facultyLookup=collect($facultyCourses??[])->keyBy(fn($c)=>(string)($c->code??''));
@@ -1185,7 +1185,7 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
         <div class="modal-title" id="addModalTitle">Add Schedule For My Subject</div>
         <div class="modal-sub">Only subjects assigned to your account can be scheduled.</div>
       </div>
-      <button class="modal-close" id="closeAddModal" type="button"><i class="ti ti-x"></i></button>
+      <button aria-label="Close dialog" class="modal-close" id="closeAddModal" type="button"><i class="ti ti-x"></i></button>
     </div>
     <div class="modal-body">
       @if($facultyOfferings->isEmpty())
@@ -1198,7 +1198,7 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
         <div class="fg full">
           <label class="flabel" for="facultyOfferingSelect">Subject Offering</label>
           <select id="facultyOfferingSelect" name="course_offering_id" class="fselect" required>
-            <option value="">Select an assigned subject offeringâ€¦</option>
+            <option value="">Select an assigned subject offering…</option>
             @foreach($facultyOfferings as $offering)
               <option
                 value="{{ $offering->id }}"
@@ -1208,7 +1208,7 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
                 data-block-section="{{ $offering->block_section }}"
                 {{ (string) old('course_offering_id') === (string) $offering->id ? 'selected' : '' }}
               >
-                {{ $offering->course?->code }} â€“ {{ $offering->course?->title }} | {{ $offering->block_section }} | {{ $offering->term_start->format('M j, Y') }} to {{ $offering->term_end->format('M j, Y') }}
+                {{ $offering->course?->code }} – {{ $offering->course?->title }} | {{ $offering->block_section }} | {{ $offering->term_start->format('M j, Y') }} to {{ $offering->term_end->format('M j, Y') }}
               </option>
             @endforeach
           </select>
@@ -1219,17 +1219,17 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
         </div>
         <div class="fg">
           <label class="flabel">Semester Start</label>
-          <input type="date" name="semester_start" class="finput" value="{{ old('semester_start') }}" readonly required>
+          <input aria-label="Semester start" type="date" name="semester_start" class="finput" value="{{ old('semester_start') }}" readonly required>
         </div>
         <div class="fg">
           <label class="flabel">Semester End</label>
-          <input type="date" name="semester_end" class="finput" value="{{ old('semester_end') }}" readonly required>
+          <input aria-label="Semester end" type="date" name="semester_end" class="finput" value="{{ old('semester_end') }}" readonly required>
         </div>
 
         <div class="form-row">
           <div class="fg"><label class="flabel">Day 1</label>
-            <select name="day1" class="fselect">
-              <option value="">Select dayâ€¦</option>
+            <select aria-label="Day 1" name="day1" class="fselect">
+              <option value="">Select day…</option>
               <option value="1" {{ old('day1')=='1'?'selected':'' }}>Monday</option>
               <option value="2" {{ old('day1')=='2'?'selected':'' }}>Tuesday</option>
               <option value="3" {{ old('day1')=='3'?'selected':'' }}>Wednesday</option>
@@ -1238,17 +1238,17 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
             </select>
           </div>
           <div class="fg"><label class="flabel">Day 1 Start</label>
-            <input type="time" name="day1_start" class="finput" value="{{ old('day1_start') }}">
+            <input aria-label="Day 1 start" type="time" name="day1_start" class="finput" value="{{ old('day1_start') }}">
           </div>
           <div class="fg"><label class="flabel">Day 1 End</label>
-            <input type="time" name="day1_end" class="finput" value="{{ old('day1_end') }}">
+            <input aria-label="Day 1 end" type="time" name="day1_end" class="finput" value="{{ old('day1_end') }}">
           </div>
         </div>
 
         <div class="form-row">
           <div class="fg"><label class="flabel">Day 2</label>
-            <select name="day2" class="fselect">
-              <option value="">Select dayâ€¦</option>
+            <select aria-label="Day 2" name="day2" class="fselect">
+              <option value="">Select day…</option>
               <option value="1" {{ old('day2')=='1'?'selected':'' }}>Monday</option>
               <option value="2" {{ old('day2')=='2'?'selected':'' }}>Tuesday</option>
               <option value="3" {{ old('day2')=='3'?'selected':'' }}>Wednesday</option>
@@ -1257,16 +1257,16 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
             </select>
           </div>
           <div class="fg"><label class="flabel">Day 2 Start</label>
-            <input type="time" name="day2_start" class="finput" value="{{ old('day2_start') }}">
+            <input aria-label="Day 2 start" type="time" name="day2_start" class="finput" value="{{ old('day2_start') }}">
           </div>
           <div class="fg"><label class="flabel">Day 2 End</label>
-            <input type="time" name="day2_end" class="finput" value="{{ old('day2_end') }}">
+            <input aria-label="Day 2 end" type="time" name="day2_end" class="finput" value="{{ old('day2_end') }}">
           </div>
         </div>
 
         <div class="fg">
           <label class="flabel">Expected Enrolled</label>
-          <input type="number" min="0" name="enrolled" class="finput" value="{{ old('enrolled', 0) }}">
+          <input aria-label="Enrolled" type="number" min="0" name="enrolled" class="finput" value="{{ old('enrolled', 0) }}">
         </div>
 
         <!-- Availability Preview -->
@@ -1287,15 +1287,15 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
   </div>
 </div>
 
-<!-- â•â•â•â•â•â•â•â•â•â•â• DAY CLASSES MODAL â•â•â•â•â•â•â•â•â•â•â• -->
+<!-- ═══════════ DAY CLASSES MODAL ═══════════ -->
 <div class="modal-overlay" id="dayModal" aria-hidden="true">
   <div class="modal day-modal" role="dialog" aria-labelledby="dayModalTitle">
     <div class="modal-head">
       <div>
-        <div class="modal-title" id="dayModalTitle">Classes on â€”</div>
+        <div class="modal-title" id="dayModalTitle">Classes on —</div>
         <div class="modal-sub" id="dayModalSub"></div>
       </div>
-      <button class="modal-close" id="closeDayModal" type="button"><i class="ti ti-x"></i></button>
+      <button aria-label="Close dialog" class="modal-close" id="closeDayModal" type="button"><i class="ti ti-x"></i></button>
     </div>
     <div class="modal-body">
       <div class="day-modal-date" id="dayModalDate"></div>
@@ -1304,7 +1304,7 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
   </div>
 </div>
 
-<!-- â•â•â•â•â•â•â•â•â•â•â• SESSION MODAL â•â•â•â•â•â•â•â•â•â•â• -->
+<!-- ═══════════ SESSION MODAL ═══════════ -->
 <div class="modal-overlay" id="sessionModal" aria-hidden="true">
   <div class="modal session-modal" role="dialog" aria-labelledby="sessionModalTitle">
     <div class="modal-head">
@@ -1312,7 +1312,7 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
         <div class="modal-title" id="sessionModalTitle">Class Session</div>
         <div class="modal-sub" id="sessionModalSub"></div>
       </div>
-      <button class="modal-close" id="closeSessionModal" type="button"><i class="ti ti-x"></i></button>
+      <button aria-label="Close dialog" class="modal-close" id="closeSessionModal" type="button"><i class="ti ti-x"></i></button>
     </div>
     <div class="modal-body">
       <div class="session-detail-header" id="sessionHeader">
@@ -1370,17 +1370,17 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
 <script type="application/json" id="scheduleData">@json($calendarSchedule)</script>
 
 <script>
-// â”€â”€ Schedule data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Schedule data ─────────────────────────────────────────────
 const schedule = JSON.parse(document.getElementById('scheduleData').textContent || '[]');
 const classrooms = JSON.parse(document.getElementById('classroomData').textContent || '[]');
 
-// â”€â”€ Endpoints â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Endpoints ─────────────────────────────────────────────────
 const availEndpoint = "{{ url('/api/v1/room-availability/check') }}";
 const roomStatusEndpoint = "{{ url('/api/v1/room-statuses') }}";
 const cancelEndpoint = "{{ route('faculty.schedule.cancel', ['schedule' => '__ID__']) }}";
 const cancellationReason = document.getElementById('cancellationReason');
 
-// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Helpers ───────────────────────────────────────────────────
 function toDateKey(d) {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
@@ -1407,7 +1407,7 @@ async function checkAvail(roomId, start, end) {
   } catch { return null; }
 }
 
-// â”€â”€ Modals â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Modals ────────────────────────────────────────────────────
 function openModal(id) {
   const el = document.getElementById(id);
   if (!el) return;
@@ -1429,7 +1429,7 @@ function closeModal(id) {
   });
 });
 
-// â”€â”€ Add Schedule Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Add Schedule Modal ─────────────────────────────────────────
 ['openAddModal','openAddModal2'].forEach(id => {
   document.getElementById(id)?.addEventListener('click', () => {
     openModal('addModal');
@@ -1467,7 +1467,7 @@ async function runAvailCheck() {
     return;
   }
 
-  availList.innerHTML = '<div style="font-size:.72rem;color:var(--tx-3)">Checkingâ€¦</div>';
+  availList.innerHTML = '<div style="font-size:.72rem;color:var(--tx-3)">Checking…</div>';
 
   const configs = [
     {label:'Day 1', isoDay: parseInt(day1), start: day1s, end: day1e},
@@ -1489,7 +1489,7 @@ async function runAvailCheck() {
     if (!av) continue;
 
     const status = av.status || (av.available ? 'available' : 'occupied');
-    items.push({ label: cfg.label, dateLabel: `${dk} ${cfg.start}â€“${cfg.end}`, status, reason: av.reason });
+    items.push({ label: cfg.label, dateLabel: `${dk} ${cfg.start}–${cfg.end}`, status, reason: av.reason });
 
     if (!av.available) {
       const dur = (minsFromTime(cfg.end)||0) - (minsFromTime(cfg.start)||0);
@@ -1511,7 +1511,7 @@ async function runAvailCheck() {
     <div class="avail-item">
       <div>
         <div class="avail-name">${i.label}</div>
-        <div class="avail-meta">${i.dateLabel}${i.reason?` Â· ${i.reason}`:''}</div>
+        <div class="avail-meta">${i.dateLabel}${i.reason?` · ${i.reason}`:''}</div>
       </div>
       <span class="avail-status is-${i.status}">${i.status}</span>
     </div>`).join('') || '<div style="font-size:.72rem;color:var(--tx-4)">No data.</div>';
@@ -1519,10 +1519,10 @@ async function runAvailCheck() {
   suggestList.innerHTML = timeSugg.map(s => `
     <div class="suggest-item">
       <div>
-        <div style="font-size:.77rem;font-weight:600;color:var(--tx)">${s.dayKey} Â· ${s.start}â€“${s.end}</div>
+        <div style="font-size:.77rem;font-weight:600;color:var(--tx)">${s.dayKey} · ${s.start}–${s.end}</div>
         <div style="font-size:.68rem;color:var(--tx-3)">Suggested slot on ${s.dk}</div>
       </div>
-      <button class="suggest-btn" data-day="${s.dayKey}" data-start="${s.start}" data-end="${s.end}">Apply</button>
+      <button type="button" class="suggest-btn" data-day="${s.dayKey}" data-start="${s.start}" data-end="${s.end}">Apply</button>
     </div>`).join('') || '<div style="font-size:.72rem;color:var(--tx-4)">No time suggestions.</div>';
 
 }
@@ -1568,8 +1568,8 @@ document.querySelector('#addModal form')?.addEventListener('submit', e => {
   const day2Start = form.querySelector('[name=day2_start]')?.value;
   const day2End = form.querySelector('[name=day2_end]')?.value;
   const sessions = [
-    day1 && day1Start && day1End ? `${day1} ${day1Start}â€“${day1End}` : null,
-    day2 && day2Start && day2End ? `${day2} ${day2Start}â€“${day2End}` : null,
+    day1 && day1Start && day1End ? `${day1} ${day1Start}–${day1End}` : null,
+    day2 && day2Start && day2End ? `${day2} ${day2Start}–${day2End}` : null,
   ].filter(Boolean).join(', ');
 
   const message = [
@@ -1585,7 +1585,7 @@ document.querySelector('#addModal form')?.addEventListener('submit', e => {
     e.preventDefault();
   }
 });
-// â”€â”€ View Switcher â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── View Switcher ─────────────────────────────────────────────
 const gridView = document.getElementById('gridView');
 const calView = document.getElementById('calendarView');
 const tlView = document.getElementById('timelineView');
@@ -1608,7 +1608,7 @@ btnCal.addEventListener('click', () => setView('cal'));
 btnTl.addEventListener('click', () => setView('tl'));
 setView('grid');
 
-// â”€â”€ Class filter â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Class filter ─────────────────────────────────────────────
 document.getElementById('classFilter')?.addEventListener('input', function() {
   const q = this.value.toLowerCase();
   document.querySelectorAll('.cls-card').forEach(c => {
@@ -1620,7 +1620,7 @@ document.getElementById('classFilter')?.addEventListener('input', function() {
   });
 });
 
-// â”€â”€ Calendar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Calendar ──────────────────────────────────────────────────
 let calYear, calMonth;
 const now = new Date();
 const scheduleDates = schedule
@@ -1711,13 +1711,13 @@ document.getElementById('calNext')?.addEventListener('click', () => {
   renderCalendar();
 });
 
-// â”€â”€ Day Classes Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Day Classes Modal ─────────────────────────────────────────
 function openDayModal(dateKey, classes) {
   const d = new Date(dateKey + 'T12:00:00');
   const dayName = d.toLocaleDateString('en-US', {weekday:'long', month:'long', day:'numeric', year:'numeric'});
   document.getElementById('dayModalTitle').textContent = 'Classes on ' + d.toLocaleDateString('en-US',{weekday:'long'});
   document.getElementById('dayModalSub').textContent = d.toLocaleDateString('en-US',{month:'long', day:'numeric', year:'numeric'});
-  document.getElementById('dayModalDate').innerHTML = `<i class="ti ti-calendar"></i> ${dayName} Â· ${classes.length} class${classes.length>1?'es':''}`;
+  document.getElementById('dayModalDate').innerHTML = `<i class="ti ti-calendar"></i> ${dayName} · ${classes.length} class${classes.length>1?'es':''}`;
 
   const list = document.getElementById('dayClsList');
   if (!classes.length) {
@@ -1765,7 +1765,7 @@ function openDayModal(dateKey, classes) {
 
 document.getElementById('closeDayModal')?.addEventListener('click', () => closeModal('dayModal'));
 
-// â”€â”€ Session Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Session Modal ─────────────────────────────────────────────
 function openSessionFromEl(el) {
   const data = {
     id: el.dataset.id||'',
@@ -1786,7 +1786,7 @@ function openSessionFromEl(el) {
 
 function openSessionModal(data) {
   document.getElementById('sessionModalTitle').textContent = data.subject;
-  document.getElementById('sessionModalSub').textContent = `${data.code} Â· ${data.status.charAt(0).toUpperCase()+data.status.slice(1)}`;
+  document.getElementById('sessionModalSub').textContent = `${data.code} · ${data.status.charAt(0).toUpperCase()+data.status.slice(1)}`;
   document.getElementById('sessName').textContent = data.subject;
   document.getElementById('sessCode').textContent = data.code;
   document.getElementById('sessDate').textContent = data.date;
@@ -1833,7 +1833,7 @@ async function loadMakeupSuggestions(data, el) {
     const em = nd.getHours()*60+nd.getMinutes()+dur;
     const te = `${String(Math.floor(em/60)).padStart(2,'0')}:${String(em%60).padStart(2,'0')}`;
     const av = await checkAvail(data.roomId, buildDT(dk,ts), buildDT(dk,te));
-    if (av?.available) sugg.push(`${dk} ${ts}â€“${te}`);
+    if (av?.available) sugg.push(`${dk} ${ts}–${te}`);
   }
   el.innerHTML = sugg.length
     ? sugg.map(s=>`<div class="makeup-item"><span class="makeup-item-lbl"><i class="ti ti-calendar-check" style="font-size:12px"></i> ${s}</span><span class="makeup-meta">Available</span></div>`).join('')
@@ -1856,14 +1856,14 @@ document.querySelectorAll('.cls-card, .tl-item').forEach(el => {
   el.addEventListener('click', () => openSessionFromEl(el));
 });
 
-// â”€â”€ Profile dropdown â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Profile dropdown ──────────────────────────────────────────
 document.getElementById('profileToggle')?.addEventListener('click', e => {
   e.stopPropagation();
   document.getElementById('profileDropdown')?.classList.toggle('open');
 });
 document.addEventListener('click', () => document.getElementById('profileDropdown')?.classList.remove('open'));
 
-// â”€â”€ Escape key â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Escape key ────────────────────────────────────────────────
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
     ['sessionModal','dayModal','addModal'].forEach(closeModal);

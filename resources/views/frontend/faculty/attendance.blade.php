@@ -633,11 +633,11 @@ $attendanceCards = collect($courses ?? [])->map(function ($course) {
             <input type="text" placeholder="Search sessions…" id="session-search">
           </div>
           <div class="filter-tabs" id="sessions-filter-tabs">
-            <button class="ftab active" onclick="filterSessions('all',this)">All</button>
-            <button class="ftab" onclick="filterSessions('open',this)">
+            <button type="button" class="ftab active" onclick="filterSessions('all',this)">All</button>
+            <button type="button" class="ftab" onclick="filterSessions('open',this)">
               <i class="fas fa-circle" style="font-size:.42rem;color:var(--green-text)"></i> Open
             </button>
-            <button class="ftab" onclick="filterSessions('closed',this)">Closed</button>
+            <button type="button" class="ftab" onclick="filterSessions('closed',this)">Closed</button>
           </div>
         </div>
       </div>

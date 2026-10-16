@@ -339,7 +339,7 @@
         @method('PATCH')
         <label class="room-field">
           <span class="room-label">Door access</span>
-          <select name="access_mode" class="room-input" required>
+          <select aria-label="Access mode" name="access_mode" class="room-input" required>
             <option value="manual" {{ $classroom->access_mode === 'manual' ? 'selected' : '' }}>Manual access</option>
             <option value="esp32" {{ $classroom->access_mode === 'esp32' ? 'selected' : '' }}>ESP32-controlled</option>
           </select>
@@ -347,7 +347,7 @@
         </label>
         <label class="room-field">
           <span class="room-label">Status</span>
-          <select name="status" class="room-input" required>
+          <select aria-label="Status" name="status" class="room-input" required>
             <option value="available"   {{ $classroom->status === 'available'   ? 'selected' : '' }}>Available</option>
             <option value="occupied"    {{ $classroom->status === 'occupied'    ? 'selected' : '' }}>Occupied</option>
             <option value="reserved"    {{ $classroom->status === 'reserved'    ? 'selected' : '' }}>Reserved</option>
@@ -356,7 +356,7 @@
         </label>
         <label class="room-field">
           <span class="room-label">Issue Notes <span style="font-weight:400;text-transform:none;letter-spacing:0;">(required for unavailable)</span></span>
-          <textarea name="unavailable_reason" rows="3" class="room-input room-textarea"
+          <textarea aria-label="Unavailable reason" name="unavailable_reason" rows="3" class="room-input room-textarea"
             placeholder="e.g., Electrical issue in panel board, AC repair ongoing, projector replacement pending"
           >{{ old('unavailable_reason', $classroom->unavailable_reason) }}</textarea>
           <div class="room-hint">This note appears in room availability so faculty know why the room is blocked.</div>
@@ -383,7 +383,7 @@
           @csrf
           <label class="room-field">
             <span class="room-label">New device name</span>
-            <input class="room-input" name="name" maxlength="255" placeholder="e.g. Main Door" required>
+            <input aria-label="Name" class="room-input" name="name" maxlength="255" placeholder="e.g. Main Door" required>
           </label>
           <button type="submit" class="btn-primary"><i class="fas fa-plus"></i> Register device</button>
         </form>
@@ -438,7 +438,7 @@
               <td>{{ $schedule->course?->instructor?->name }}</td>
               <td><span class="chip">{{ $schedule->status }}</span></td>
               <td>
-                <button data-id="{{ $schedule->id }}" class="btn-link delete-schedule-btn" title="Delete schedule">
+                <button type="button" data-id="{{ $schedule->id }}" class="btn-link delete-schedule-btn" title="Delete schedule">
                   <i class="fas fa-trash" style="color:#ef4444"></i>
                 </button>
               </td>

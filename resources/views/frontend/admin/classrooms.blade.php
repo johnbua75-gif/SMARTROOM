@@ -485,7 +485,7 @@ body {
 
     <div class="topbar-search">
       <i class="fas fa-magnifying-glass"></i>
-      <input type="text" placeholder="Search rooms, buildings, instructors…">
+      <input aria-label="Search rooms, buildings, instructors" type="text" placeholder="Search rooms, buildings, instructors…">
     </div>
 
     <div class="topbar-right">
@@ -507,7 +507,7 @@ body {
         <h1>Classroom Directory</h1>
         <p>Real-time availability and status for all campus rooms.</p>
       </div>
-      <button id="addRoomBtn" class="btn-primary">
+      <button type="button" id="addRoomBtn" class="btn-primary">
         <i class="fas fa-plus"></i>
         Add Room
       </button>

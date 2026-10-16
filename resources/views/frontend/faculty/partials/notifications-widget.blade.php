@@ -302,3 +302,58 @@ body.faculty-sidebar-collapsed .faculty-sidebar-toggle{right:-13px;transform:tra
   });
 })();
 </script>
+
+{{-- Shared mobile navigation: faculty pages hide/lose the sidebar on small screens, so this bar takes over.
+     It only activates when the page has a .sidebar and does not already ship its own .mobile-nav. --}}
+<style>
+.fac-mobile-bar{display:none}
+@media (max-width:960px){
+  body.fac-mobile-nav{padding-top:58px}
+  body.fac-mobile-nav .sidebar{display:none!important}
+  body.fac-mobile-nav .main{margin-left:0!important}
+  body.fac-mobile-nav .fac-mobile-bar{position:fixed;top:0;left:0;right:0;z-index:1250;display:flex;align-items:center;justify-content:space-between;min-height:58px;padding:9px 16px;background:#0b1640;box-shadow:0 2px 8px rgba(15,23,42,.18)}
+}
+.fac-mobile-brand{display:flex;align-items:center;gap:9px;color:#fff;text-decoration:none;font:700 .92rem 'Plus Jakarta Sans',sans-serif}
+.fac-mobile-brand span.mark{width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:8px;background:#f5c518;color:#0b1640}
+.fac-mobile-menu{position:relative}
+.fac-mobile-menu summary{display:flex;align-items:center;gap:8px;min-height:40px;padding:8px 12px;border:1px solid rgba(255,255,255,.24);border-radius:8px;color:#fff;cursor:pointer;font:700 .82rem 'DM Sans',sans-serif;list-style:none}
+.fac-mobile-menu summary::-webkit-details-marker{display:none}
+.fac-mobile-menu summary i{color:#f5c518}
+.fac-mobile-menu summary:focus-visible,.fac-mobile-link:focus-visible{outline:3px solid #6785d4;outline-offset:2px}
+.fac-mobile-panel{position:absolute;top:calc(100% + 8px);right:0;display:grid;gap:3px;width:min(270px,calc(100vw - 32px));padding:8px;border:1px solid #e2e8f0;border-radius:10px;background:#fff;box-shadow:0 10px 26px rgba(15,23,42,.18)}
+.fac-mobile-link{display:flex;align-items:center;gap:10px;width:100%;min-height:42px;padding:9px 11px;border:0;border-radius:7px;background:transparent;color:#101828;text-decoration:none;font:500 .86rem 'DM Sans',sans-serif;text-align:left;cursor:pointer}
+.fac-mobile-link i{width:18px;color:#1a2f80;text-align:center}
+.fac-mobile-link:hover,.fac-mobile-link.active{color:#0b1640;background:#e8ecfb}
+.fac-mobile-link.active{font-weight:700}
+</style>
+<nav class="fac-mobile-bar" aria-label="Faculty navigation">
+  <a href="{{ route('faculty.dashboard') }}" class="fac-mobile-brand"><span class="mark"><i class="fas fa-door-open" aria-hidden="true"></i></span><span>SmartRoom</span></a>
+  <details class="fac-mobile-menu" id="facMobileMenu">
+    <summary aria-label="Open faculty navigation"><i class="fas fa-bars" aria-hidden="true"></i>Menu</summary>
+    <div class="fac-mobile-panel">
+      <a class="fac-mobile-link {{ request()->routeIs('faculty.dashboard') ? 'active' : '' }}" href="{{ route('faculty.dashboard') }}"><i class="fas fa-chart-line" aria-hidden="true"></i>Dashboard</a>
+      <a class="fac-mobile-link {{ request()->routeIs('faculty.rooms') ? 'active' : '' }}" href="{{ route('faculty.rooms') }}"><i class="fas fa-door-open" aria-hidden="true"></i>Rooms</a>
+      <a class="fac-mobile-link {{ request()->routeIs('faculty.schedule') ? 'active' : '' }}" href="{{ route('faculty.schedule') }}"><i class="fas fa-clock" aria-hidden="true"></i>Schedule</a>
+      <a class="fac-mobile-link {{ request()->routeIs('faculty.attendance*') ? 'active' : '' }}" href="{{ route('faculty.attendance') }}"><i class="fas fa-clipboard-check" aria-hidden="true"></i>Attendance</a>
+      <a class="fac-mobile-link {{ request()->routeIs('faculty.rfid.verification') ? 'active' : '' }}" href="{{ route('faculty.rfid.verification') }}"><i class="fas fa-id-card" aria-hidden="true"></i>RFID</a>
+      <a class="fac-mobile-link {{ request()->routeIs('faculty.notifications') ? 'active' : '' }}" href="{{ route('faculty.notifications') }}"><i class="fas fa-bell" aria-hidden="true"></i>Notifications</a>
+      <a class="fac-mobile-link {{ request()->routeIs('faculty.reports') ? 'active' : '' }}" href="{{ route('faculty.reports') }}"><i class="fas fa-chart-bar" aria-hidden="true"></i>Reports</a>
+      <form method="POST" action="{{ route('logout') }}">
+        @csrf
+        <button type="submit" class="fac-mobile-link"><i class="fas fa-arrow-right-from-bracket" aria-hidden="true"></i>Sign out</button>
+      </form>
+    </div>
+  </details>
+</nav>
+<script>
+(function () {
+  var bar = document.querySelector('.fac-mobile-bar');
+  if (!bar) return;
+  if (document.querySelector('.mobile-nav') || !document.querySelector('.sidebar')) { bar.remove(); return; }
+  document.body.classList.add('fac-mobile-nav');
+  document.addEventListener('click', function (event) {
+    var menu = document.getElementById('facMobileMenu');
+    if (menu && menu.open && !event.target.closest('#facMobileMenu')) menu.open = false;
+  });
+})();
+</script>

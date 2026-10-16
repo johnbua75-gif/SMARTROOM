@@ -480,7 +480,7 @@ section { position: relative; z-index: 2; }
     </li>
   </ul>
 
-  <button class="nav-hamburger" id="hamburger" aria-label="Menu">
+  <button type="button" class="nav-hamburger" id="hamburger" aria-label="Menu">
     <span></span><span></span><span></span>
   </button>
 </nav>
@@ -907,8 +907,8 @@ section { position: relative; z-index: 2; }
       <div class="footer-newsletter-title">Stay in the Loop</div>
       <p class="footer-newsletter-desc">Get updates on SmartRoom announcements and system upgrades.</p>
       <div class="footer-input-row">
-        <input type="email" class="footer-email-input" placeholder="Your email address" />
-        <button class="footer-subscribe-btn">Subscribe</button>
+        <input type="email" class="footer-email-input" aria-label="Your email address" placeholder="Your email address" />
+        <button type="button" class="footer-subscribe-btn">Subscribe</button>
       </div>
       <div class="footer-socials">
         <!-- Facebook -->

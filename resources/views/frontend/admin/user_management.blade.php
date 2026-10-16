@@ -563,7 +563,7 @@ body.editing-open {
         <h1>User Management</h1>
         <p>Manage all system users, roles, and access permissions.</p>
       </div>
-      <button class="btn-primary" onclick="openModal()">
+      <button type="button" class="btn-primary" onclick="openModal()">
         <i class="fas fa-plus"></i>
         Add New User
       </button>
@@ -628,8 +628,8 @@ body.editing-open {
           <option>Inactive</option>
           <option>Suspended</option>
         </select>
-        <button class="btn-icon" title="Export CSV" onclick="exportCSV()"><i class="fas fa-arrow-down-to-line"></i></button>
-        <button class="btn-icon" title="Refresh" onclick="refreshUsersData()"><i class="fas fa-rotate-right"></i></button>
+        <button type="button" class="btn-icon" title="Export CSV" onclick="exportCSV()"><i class="fas fa-arrow-down-to-line"></i></button>
+        <button type="button" class="btn-icon" title="Refresh" onclick="refreshUsersData()"><i class="fas fa-rotate-right"></i></button>
       </div>
     </div>
 
@@ -661,13 +661,13 @@ body.editing-open {
       <div class="pagination">
         <div class="pagination-info" id="paginationInfo">Showing <strong>1-{{ count($usersData ?? []) }}</strong> of <strong>{{ $summary['total'] ?? count($usersData ?? []) }}</strong> users</div>
         <div class="pagination-btns">
-          <button class="page-btn" disabled><i class="fas fa-chevron-left"></i></button>
-          <button class="page-btn active">1</button>
-          <button class="page-btn">2</button>
-          <button class="page-btn">3</button>
+          <button aria-label="Previous page" type="button" class="page-btn" disabled><i class="fas fa-chevron-left"></i></button>
+          <button type="button" class="page-btn active">1</button>
+          <button type="button" class="page-btn">2</button>
+          <button type="button" class="page-btn">3</button>
           <span style="color:var(--text-light);padding:0 4px;font-size:0.84rem;">…</span>
-          <button class="page-btn">11</button>
-          <button class="page-btn"><i class="fas fa-chevron-right"></i></button>
+          <button type="button" class="page-btn">11</button>
+          <button aria-label="Next page" type="button" class="page-btn"><i class="fas fa-chevron-right"></i></button>
         </div>
       </div>
     </div>
@@ -680,7 +680,7 @@ body.editing-open {
   <div class="modal" id="modalBox">
     <div class="modal-header">
       <div class="modal-title">Add New User</div>
-      <button class="modal-close" onclick="closeModal()"><i class="fas fa-xmark"></i></button>
+      <button aria-label="Close dialog" type="button" class="modal-close" onclick="closeModal()"><i class="fas fa-xmark"></i></button>
     </div>
     <form method="POST" action="{{ route('admin.users.store') }}">
       @csrf
@@ -745,19 +745,19 @@ body.editing-open {
           @method('PATCH')
           <div>
             <label class="form-label" style="display:block;margin-bottom:6px;">Full Name</label>
-            <input class="form-input" type="text" name="name" value="{{ old('name', $editUser->name) }}" required>
+            <input aria-label="Name" class="form-input" type="text" name="name" value="{{ old('name', $editUser->name) }}" required>
           </div>
           <div>
             <label class="form-label" style="display:block;margin-bottom:6px;">Email Address</label>
-            <input class="form-input" type="email" name="email" value="{{ old('email', $editUser->email) }}" required>
+            <input aria-label="Email" class="form-input" type="email" name="email" value="{{ old('email', $editUser->email) }}" required>
           </div>
           <div>
             <label class="form-label" style="display:block;margin-bottom:6px;">Department</label>
-            <input class="form-input" type="text" name="department" value="{{ old('department', $editUser->department) }}">
+            <input aria-label="Department" class="form-input" type="text" name="department" value="{{ old('department', $editUser->department) }}">
           </div>
           <div>
             <label class="form-label" style="display:block;margin-bottom:6px;">Role</label>
-            <select class="form-select" name="role" required>
+            <select aria-label="Role" class="form-select" name="role" required>
               @php($currentRole = strtolower((string) old('role', $editUser->role)))
               <option value="admin" {{ $currentRole === 'admin' ? 'selected' : '' }}>Admin</option>
               <option value="faculty" {{ $currentRole === 'faculty' ? 'selected' : '' }}>Faculty</option>
@@ -767,7 +767,7 @@ body.editing-open {
           <div>
             <label class="form-label" style="display:block;margin-bottom:6px;">Account Status</label>
             @php($currentStatus = strtolower((string) old('status', $editUser->status ?? 'active')))
-            <select class="form-select" name="status" required>
+            <select aria-label="Status" class="form-select" name="status" required>
               <option value="active" {{ $currentStatus === 'active' ? 'selected' : '' }}>Active</option>
               <option value="suspended" {{ $currentStatus === 'suspended' ? 'selected' : '' }}>Suspended</option>
               <option value="inactive" {{ $currentStatus === 'inactive' ? 'selected' : '' }}>Inactive</option>
@@ -841,7 +841,7 @@ function renderRows(data) {
       <td style="color:var(--text-secondary);font-size:0.84rem;">${u.last}</td>
       <td>
         <div class="action-btns" style="justify-content:center;">
-          <button class="act-btn" title="View"><i class="fas fa-eye"></i></button>
+          <button type="button" class="act-btn" title="View"><i class="fas fa-eye"></i></button>
           <a class="act-btn act-edit" href="/admin/users/${u.user_id}/edit" title="Edit" style="text-decoration:none;"><i class="fas fa-pen"></i></a>
           <form method="POST" action="/admin/users/${u.user_id}" style="display:inline;">
             <input type="hidden" name="_token" value="{{ csrf_token() }}">

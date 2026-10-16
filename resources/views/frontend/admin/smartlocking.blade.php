@@ -436,7 +436,7 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
       <button type="button" class="tab-btn active" id="cardsTab">
         <i class="fas fa-credit-card"></i> RFID Access Cards
       </button>
-      <button class="tab-btn" onclick="window.location.href='/admin/accessLogs';">
+      <button type="button" class="tab-btn" onclick="window.location.href='/admin/accessLogs';">
         <i class="fas fa-wave-square"></i> Access Logs
       </button>
       <button type="button" class="tab-btn" id="settingsTab">
@@ -454,7 +454,7 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;">
         <div class="search-inline">
           <i class="fas fa-search"></i>
-          <input type="text" placeholder="Search instructors, RFID tags, rooms...">
+          <input aria-label="Search instructors, RFID tags, rooms" type="text" placeholder="Search instructors, RFID tags, rooms...">
         </div>
         <button type="button" class="btn-add-card" id="openAddCardModal"><i class="fas fa-plus"></i> Add RFID Card</button>
       </div>
@@ -473,15 +473,15 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
           <div class="form-errors" id="addCardErrors"></div>
           <div class="card-form-grid">
             <label>Card number
-              <input name="card_number" required maxlength="255" placeholder="CARD-0002">
+              <input aria-label="Card number" name="card_number" required maxlength="255" placeholder="CARD-0002">
             </label>
             <label>RFID UID
-              <input name="rfid_uid" required maxlength="255" placeholder="87:3E:D2:06" autocomplete="off">
+              <input aria-label="Rfid uid" name="rfid_uid" required maxlength="255" placeholder="87:3E:D2:06" autocomplete="off">
               <small style="color:var(--text-secondary);font-size:.68rem;font-weight:500;">Use the reader UID only. Do not include RFID-.</small>
             </label>
           </div>
           <label>Instructor
-            <select name="user_id" required>
+            <select aria-label="User id" name="user_id" required>
               <option value="">Select instructor</option>
               @foreach(($instructors ?? []) as $instructor)
                 <option value="{{ $instructor->id }}">{{ $instructor->name }}{{ $instructor->department ? ' · '.$instructor->department : '' }}</option>
@@ -489,10 +489,10 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
             </select>
           </label>
           <label>Expires on
-            <input type="date" name="expires_at">
+            <input aria-label="Expires at" type="date" name="expires_at">
           </label>
           <label>Status
-            <select name="status">
+            <select aria-label="Status" name="status">
               <option value="active">Active</option>
               <option value="pending">Pending</option>
             </select>
@@ -653,10 +653,10 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
             <p>These rules apply when a valid RFID card is presented.</p>
             <div class="settings-field-grid">
               <label class="settings-field">Default unlock duration
-                <select name="unlock_duration"><option value="3">3 seconds</option><option value="5">5 seconds</option><option value="10">10 seconds</option></select>
+                <select aria-label="Unlock duration" name="unlock_duration"><option value="3">3 seconds</option><option value="5">5 seconds</option><option value="10">10 seconds</option></select>
               </label>
               <label class="settings-field">Access mode
-                <select name="access_mode"><option value="scheduled">Scheduled access</option><option value="always">Always allow active cards</option></select>
+                <select aria-label="Access mode" name="access_mode"><option value="scheduled">Scheduled access</option><option value="always">Always allow active cards</option></select>
               </label>
             </div>
           </div>
@@ -670,10 +670,10 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
             <h3>Reader connection</h3>
             <div class="settings-field-grid">
               <label class="settings-field">Reader device
-                <input name="reader_name" value="SmartDoor Reader 01" maxlength="100">
+                <input aria-label="Reader name" name="reader_name" value="SmartDoor Reader 01" maxlength="100">
               </label>
               <label class="settings-field">Heartbeat interval
-                <select name="heartbeat"><option value="15">Every 15 seconds</option><option value="30">Every 30 seconds</option><option value="60">Every minute</option></select>
+                <select aria-label="Heartbeat" name="heartbeat"><option value="15">Every 15 seconds</option><option value="30">Every 30 seconds</option><option value="60">Every minute</option></select>
               </label>
             </div>
           </div>

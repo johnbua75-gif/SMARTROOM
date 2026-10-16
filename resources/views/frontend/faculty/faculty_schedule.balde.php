@@ -175,7 +175,7 @@ body{
 
     <div class="topbar">
         <div>Dashboard</div>
-        <button class="btn btn-primary">Add Schedule</button>
+        <button type="button" class="btn btn-primary">Add Schedule</button>
     </div>
 
     <div class="page-header">

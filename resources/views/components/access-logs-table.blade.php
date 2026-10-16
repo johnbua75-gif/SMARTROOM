@@ -32,12 +32,12 @@
   <div class="table-footer">
     <div class="table-footer-info">Showing <span>1-12</span> of <span>47</span> events</div>
     <div class="pagination">
-      <button class="page-btn" disabled><i class="fas fa-chevron-left"></i></button>
-      <button class="page-btn active">1</button>
-      <button class="page-btn">2</button>
-      <button class="page-btn">3</button>
-      <button class="page-btn">4</button>
-      <button class="page-btn"><i class="fas fa-chevron-right"></i></button>
+      <button aria-label="Previous page" type="button" class="page-btn" disabled><i class="fas fa-chevron-left"></i></button>
+      <button type="button" class="page-btn active">1</button>
+      <button type="button" class="page-btn">2</button>
+      <button type="button" class="page-btn">3</button>
+      <button type="button" class="page-btn">4</button>
+      <button aria-label="Next page" type="button" class="page-btn"><i class="fas fa-chevron-right"></i></button>
     </div>
   </div>
 </div>
@@ -47,7 +47,7 @@
   <div class="modal">
     <div class="modal-header">
       <h3>Access Event Detail</h3>
-      <button class="modal-close" onclick="closeModalBtn()"><i class="fas fa-xmark"></i></button>
+      <button aria-label="Close dialog" type="button" class="modal-close" onclick="closeModalBtn()"><i class="fas fa-xmark"></i></button>
     </div>
     <div class="modal-body" id="modalBody">
       <!- injected by JS ->
@@ -111,7 +111,7 @@ function renderTable(data) {
       <td>${durBar(l.dur)}</td>
       <td>${methodBadge(l.method)}</td>
       <td>${statusBadge(l.status)}</td>
-      <td><button class="btn-view-detail" onclick="openModal(${l.id})"><i class="fas fa-eye"></i></button></td>
+      <td><button aria-label="View details" type="button" class="btn-view-detail" onclick="openModal(${l.id})"><i class="fas fa-eye"></i></button></td>
     </tr>
   `).join('');
 }

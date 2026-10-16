@@ -29,7 +29,7 @@ function amenity_icon($amenity) {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Room Availability â€“ SmartDoor</title>
+<title>Room Availability – SmartDoor</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -69,7 +69,7 @@ function amenity_icon($amenity) {
 
 body { font-family:var(--fb); background:var(--bg); color:var(--text); min-height:100vh; display:flex; -webkit-font-smoothing:antialiased; }
 
-/* â•â• SIDEBAR (UNCHANGED) â•â• */
+/* ══ SIDEBAR (UNCHANGED) ══ */
 .sidebar{position:fixed;left:0;top:0;width:var(--sidebar-w);height:100vh;background:var(--navy);display:flex;flex-direction:column;overflow:hidden;z-index:100}
 .sidebar::before{content:'';position:absolute;inset:0;background:linear-gradient(160deg,rgba(245,197,24,.06) 0%,transparent 55%);pointer-events:none}
 .sidebar::after{content:'';position:absolute;bottom:-60px;right:-60px;width:180px;height:180px;border-radius:50%;border:1px solid rgba(245,197,24,.08);pointer-events:none}
@@ -97,10 +97,10 @@ body { font-family:var(--fb); background:var(--bg); color:var(--text); min-heigh
 .sidebar-logout-btn{display:flex;align-items:center;gap:10px;padding:9px 12px;color:rgba(255,255,255,.4);font-size:.84rem;font-weight:500;border-radius:var(--r-sm);transition:all .22s;width:100%;background:none;border:none;cursor:pointer;font-family:inherit}
 .sidebar-logout-btn:hover{color:#f87171;background:rgba(244,63,94,.08)}
 
-/* â•â• MAIN â•â• */
+/* ══ MAIN ══ */
 .main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh}
 
-/* â”€â”€ TOPBAR â”€â”€ */
+/* ── TOPBAR ── */
 .topbar{background:var(--white);border-bottom:1px solid var(--border);padding:0 32px;height:56px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:50}
 .topbar-search{flex:1;max-width:420px;display:none!important;display:flex;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--border);border-radius:var(--r-sm);padding:8px 16px;transition:border-color .2s,box-shadow .2s}
 .topbar-search:focus-within{border-color:#93c5fd;box-shadow:0 0 0 3px rgba(59,130,246,.09)}
@@ -124,10 +124,10 @@ body { font-family:var(--fb); background:var(--bg); color:var(--text); min-heigh
 .profile-signout-btn{width:100%;margin-top:4px;border:none;outline:none;border-radius:999px;padding:7px 10px;font-size:.82rem;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px;background:var(--red-bg);color:var(--red);cursor:pointer;transition:background .16s,transform .08s;font-family:inherit}
 .profile-signout-btn:hover{background:#fee2e2;transform:translateY(-1px)}
 
-/* â•â• CONTENT â•â• */
+/* ══ CONTENT ══ */
 .content{padding:28px 32px 52px;display:flex;flex-direction:column;gap:22px}
 
-/* â”€â”€ PAGE HEADER â”€â”€ */
+/* ── PAGE HEADER ── */
 /* -- HERO BANNER -- */
 .hero-banner{position:relative;border-radius:0;overflow:hidden;min-height:250px;display:flex;flex-direction:column;justify-content:flex-end;background:linear-gradient(135deg,#0b1640 0%,rgba(26,47,128,.78) 40%,rgba(11,22,64,.12) 100%),url('/images/map.png') center/cover no-repeat;margin:-28px -32px -10px}
 .hero-banner::before{content:'';position:absolute;inset:0;background:linear-gradient(to right,rgba(11,22,64,.92) 0%,rgba(11,22,64,.7) 45%,rgba(11,22,64,.2) 75%,transparent 100%);z-index:1}
@@ -196,7 +196,7 @@ body { font-family:var(--fb); background:var(--bg); color:var(--text); min-heigh
 @media(max-width:1000px){.booking-toolbar{grid-template-columns:1fr 1fr;align-items:end}.booking-toolbar-copy{grid-column:1/-1}.booking-toolbar-sub{max-width:none}.booking-result{grid-column:1/-1}}
 @media(max-width:768px){.reservation-list{grid-template-columns:1fr}.booking-toolbar{grid-template-columns:1fr;padding:16px}.booking-toolbar-copy,.booking-result{grid-column:auto}.booking-field{min-width:100%}.booking-search-btn{width:100%}.my-reservations{padding:18px}.my-reservations-head{align-items:flex-start}.my-reservations-sub{max-width:190px}.reservation-item{align-items:flex-start}.reservation-side{margin-left:auto}}
 
-/* â”€â”€ SEARCH + FILTER â”€â”€ */
+/* ── SEARCH + FILTER ── */
 .search-filter-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .search-wrap{flex:1;position:relative;min-width:200px}
 .search-wrap i{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--text-4);font-size:.8rem;pointer-events:none}
@@ -210,7 +210,7 @@ body { font-family:var(--fb); background:var(--bg); color:var(--text); min-heigh
 .filter-btn:hover{background:#e8ecfb;color:var(--accent2);border-color:#c7d2fe}
 .filter-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
 
-/* â”€â”€ CAMPUS MAP â”€â”€ */
+/* ── CAMPUS MAP ── */
 /* -- CAMPUS MAP -- */
 .map-card{background:var(--white);border-radius:var(--r);border:1px solid var(--border);overflow:hidden}
 .map-card-header{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--white)}
@@ -241,7 +241,7 @@ body { font-family:var(--fb); background:var(--bg); color:var(--text); min-heigh
 .legend-row{display:flex;align-items:center;gap:7px;font-size:.7rem;font-weight:600;color:rgba(255,255,255,.85);padding:2px 0}
 .legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;box-shadow:0 0 6px currentColor}
 
-/* â”€â”€ ROOMS SECTION â”€â”€ */
+/* ── ROOMS SECTION ── */
 .rooms-header{display:flex;align-items:center;justify-content:space-between}
 .rooms-section-title{font-family:var(--fh);font-size:.95rem;font-weight:700;color:var(--text)}
 .rooms-count-badge{font-size:.76rem;color:var(--text-3);background:var(--white);padding:4px 12px;border-radius:var(--r-xs);border:1px solid var(--border);font-weight:500}
@@ -294,7 +294,7 @@ body { font-family:var(--fb); background:var(--bg); color:var(--text); min-heigh
 .btn-view-temp{flex:1;padding:9px;border-radius:var(--r-sm);font-size:.78rem;font-weight:600;font-family:var(--fb);border:1px solid #10b981;background:#f0fdf4;color:#059669;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;transition:all .15s}
 .btn-view-temp:hover{background:#dcfce7}
 
-/* â”€â”€ CHECK AVAILABILITY OVERLAY â”€â”€ */
+/* ── CHECK AVAILABILITY OVERLAY ── */
 .check-result{display:none;font-size:.77rem;border-radius:8px;padding:8px 10px;border:1px solid var(--border);background:#f8fafc;color:var(--text-2)}
 .check-result.is-visible{display:block}
 .check-result.ok{background:#ecfdf5;border-color:#86efac;color:#166534}
@@ -305,7 +305,7 @@ body { font-family:var(--fb); background:var(--bg); color:var(--text); min-heigh
 .check-cancelled-list{display:flex;flex-direction:column;gap:6px}
 .check-cancelled-item{font-size:.76rem;color:var(--text-2);background:#f9fafb;border:1px solid var(--border);border-radius:7px;padding:7px 8px}
 
-/* â”€â”€ ANIMATIONS â”€â”€ */
+/* ── ANIMATIONS ── */
 @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
 .hero-banner      {animation:fadeUp .35s both .02s}
 .search-filter-row{animation:fadeUp .35s both .07s}
@@ -318,7 +318,7 @@ body { font-family:var(--fb); background:var(--bg); color:var(--text); min-heigh
 @media(max-width:768px){:root{--sidebar-w:0px}.sidebar{display:none}}
 @media(max-width:900px){.room-card{flex-direction:column}.room-thumb{width:100%;min-height:100px}.card-right{width:100%;border-left:none;border-top:1px solid var(--border);flex-direction:row;align-items:center;padding:12px 16px}.card-right .card-actions{flex-direction:row}.card-right .btn-check,.card-right .btn-res{flex:1;width:auto}}
 
-/* â”€â”€ RESERVE OVERLAY â”€â”€ */
+/* ── RESERVE OVERLAY ── */
 .reserve-overlay{position:fixed;inset:0;background:rgba(0,0,0,.3);backdrop-filter:blur(2px);display:none;align-items:center;justify-content:center;z-index:2100;padding:18px}
 .reserve-overlay.is-open{display:flex}
 .reserve-modal{width:min(440px,100%);background:var(--white);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:0 16px 40px rgba(0,0,0,.12);overflow:hidden}
@@ -430,7 +430,7 @@ body { font-family:var(--fb); background:var(--bg); color:var(--text); min-heigh
 .temp-schedule-list{max-height:400px;overflow-y:auto}
 .temp-schedule-list .check-cancelled-item{margin-bottom:10px}
 
-/* â”€â”€ TOAST â”€â”€ */
+/* ── TOAST ── */
 .toast-wrap{position:fixed;right:18px;bottom:18px;display:flex;flex-direction:column;gap:8px;z-index:2200;pointer-events:none}
 .toast{min-width:240px;max-width:360px;padding:10px 12px;border-radius:10px;border:1px solid var(--border);box-shadow:var(--shadow-md);font-size:.8rem;font-weight:600;opacity:0;transform:translateY(10px);transition:opacity .2s,transform .2s;background:var(--white);color:var(--text-2)}
 .toast.is-visible{opacity:1;transform:translateY(0)}
@@ -770,7 +770,7 @@ body{
 </head>
 <body>
 
-<!-- â•â•â• SIDEBAR â€” DO NOT CHANGE â•â•â• -->
+<!-- ═══ SIDEBAR — DO NOT CHANGE ═══ -->
 <div class="sidebar">
   <a href="<?= htmlspecialchars(url('/dashboard')) ?>" class="sidebar-logo">
     <div class="logo-mark"><i class="fas fa-door-open"></i></div>
@@ -839,14 +839,14 @@ body{
   </div>
 </div>
 
-<!-- â•â•â• MAIN â•â•â• -->
+<!-- ═══ MAIN ═══ -->
 <div class="main">
 
   <!-- TOPBAR -->
   <div class="topbar">
     <div class="topbar-search">
       <i class="fas fa-search"></i>
-      <input type="text" placeholder="Search for classrooms, faculty, or subjects...">
+      <input aria-label="Search for classrooms, faculty, or subjects" type="text" placeholder="Search for classrooms, faculty, or subjects...">
     </div>
     <div class="topbar-right">
       <div class="topbar-profile">
@@ -918,7 +918,7 @@ body{
       <div class="search-filter-row">
         <div class="search-wrap">
           <i class="fas fa-magnifying-glass"></i>
-          <input type="text" name="search" placeholder="Search by room name or buildingâ€¦" value="<?= htmlspecialchars($search) ?>">
+          <input aria-label="Search by room name or building" type="text" name="search" placeholder="Search by room name or building…" value="<?= htmlspecialchars($search) ?>">
         </div>
         <div class="sf-divider"></div>
         <span class="filter-label"><i class="fas fa-filter"></i>&nbsp; Show:</span>
@@ -1047,10 +1047,10 @@ body{
             </div>
           </div>
           <div class="card-actions">
-            <button class="btn-check js-check-btn" data-room-id="<?= (int) $room['id'] ?>" data-room-name="<?= htmlspecialchars($room['name'], ENT_QUOTES) ?>">
+            <button type="button" class="btn-check js-check-btn" data-room-id="<?= (int) $room['id'] ?>" data-room-name="<?= htmlspecialchars($room['name'], ENT_QUOTES) ?>">
               <i class="fas fa-magnifying-glass-clock"></i> Check
             </button>
-            <button class="btn-res js-reserve-btn <?= $a ? 'on' : 'off' ?>" data-room-id="<?= (int) $room['id'] ?>" data-room-name="<?= htmlspecialchars($room['name'], ENT_QUOTES) ?>" <?= $a ? '' : 'disabled' ?>>
+            <button type="button" class="btn-res js-reserve-btn <?= $a ? 'on' : 'off' ?>" data-room-id="<?= (int) $room['id'] ?>" data-room-name="<?= htmlspecialchars($room['name'], ENT_QUOTES) ?>" <?= $a ? '' : 'disabled' ?>>
               <i class="fas fa-calendar-plus"></i> Reserve
             </button>
           </div>

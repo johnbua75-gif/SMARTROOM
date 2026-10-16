@@ -514,20 +514,20 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
             <option value="{{ $classroom->id }}">Door {{ $classroom->id }} — {{ $classroom->name }}</option>
           @endforeach
         </select>
-        <select class="filter-select">
+        <select class="filter-select" aria-label="Filter by instructor">
           <option>All Instructors</option>
           <option>Prof. Maria Santos</option>
           <option>Dr. Roberto Cruz</option>
           <option>Prof. Ana Reyes</option>
           <option>Dr. Carlos Mendoza</option>
         </select>
-        <select class="filter-select">
+        <select class="filter-select" aria-label="Filter by status">
           <option>All Statuses</option>
           <option>Granted</option>
           <option>Denied</option>
           <option>Timeout</option>
         </select>
-        <input type="date" class="date-input" value="2025-03-29">
+        <input type="date" class="date-input" aria-label="Filter by date" value="2025-03-29">
       </div>
       <div style="display:flex;align-items:center;gap:10px;">
         <div class="search-logs">
@@ -539,7 +539,7 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
           <option value="pdf">PDF (.pdf)</option>
           <option value="pptx" <?= empty($can_export_pptx) ? 'disabled' : '' ?>>PPTX (.pptx)<?= empty($can_export_pptx) ? ' - Unavailable' : '' ?></option>
         </select>
-        <button class="btn-export" id="exportBtn" onclick="exportLogs()"><i class="fas fa-file-arrow-down"></i> Export CSV</button>
+        <button type="button" class="btn-export" id="exportBtn" onclick="exportLogs()"><i class="fas fa-file-arrow-down"></i> Export CSV</button>
       </div>
     </div>
 
@@ -574,9 +574,9 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
       <div class="table-footer">
         <div class="table-footer-info" id="paginationInfo"></div>
         <div class="pagination" id="paginationControls">
-          <button class="page-btn" data-page-action="previous" aria-label="Previous page"><i class="fas fa-chevron-left"></i></button>
+          <button type="button" class="page-btn" data-page-action="previous" aria-label="Previous page"><i class="fas fa-chevron-left"></i></button>
           <div id="paginationPages"></div>
-          <button class="page-btn" data-page-action="next" aria-label="Next page"><i class="fas fa-chevron-right"></i></button>
+          <button type="button" class="page-btn" data-page-action="next" aria-label="Next page"><i class="fas fa-chevron-right"></i></button>
         </div>
       </div>
     </div>
@@ -636,7 +636,7 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
   <div class="modal">
     <div class="modal-header">
       <h3>Access Event Detail</h3>
-      <button class="modal-close" onclick="closeModalBtn()"><i class="fas fa-xmark"></i></button>
+      <button aria-label="Close dialog" type="button" class="modal-close" onclick="closeModalBtn()"><i class="fas fa-xmark"></i></button>
     </div>
     <div class="modal-body" id="modalBody">
       <!-- injected by JS -->
@@ -753,11 +753,11 @@ function renderTable(data) {
       <td>${durBar(l.dur)}</td>
       <td>${methodBadge(l.method)}</td>
       <td>${statusBadge(l.status)}${l.reason ? `<div class="live-log-reason">${escapeHtml(l.reason)}</div>` : ''}</td>
-      <td><button class="btn-view-detail" onclick="openModal(${l.id})"><i class="fas fa-eye"></i></button></td>
+      <td><button aria-label="View details" type="button" class="btn-view-detail" onclick="openModal(${l.id})"><i class="fas fa-eye"></i></button></td>
     </tr>
   `).join('');
   document.getElementById('paginationInfo').innerHTML = data.length ? `Showing <span>${((currentPage - 1) * logsPerPage) + 1}-${Math.min(currentPage * logsPerPage, data.length)}</span> of <span>${data.length}</span> events` : 'No events found';
-  document.getElementById('paginationPages').innerHTML = Array.from({ length: totalPages }, (_, index) => `<button class="page-btn ${index + 1 === currentPage ? 'active' : ''}" data-page="${index + 1}">${index + 1}</button>`).join('');
+  document.getElementById('paginationPages').innerHTML = Array.from({ length: totalPages }, (_, index) => `<button type="button" class="page-btn ${index + 1 === currentPage ? 'active' : ''}" data-page="${index + 1}">${index + 1}</button>`).join('');
   document.querySelector('[data-page-action="previous"]').disabled = currentPage === 1;
   document.querySelector('[data-page-action="next"]').disabled = currentPage === totalPages;
   document.querySelectorAll('[data-page]').forEach(button => button.addEventListener('click', () => { currentPage = Number(button.dataset.page); renderTable(filteredLogs); }));

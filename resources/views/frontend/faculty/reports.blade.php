@@ -326,6 +326,26 @@ svg.lc{width:100%;overflow:visible;display:block}
 .bottom-row   {animation:fadeUp .35s both .20s}
 
 /* ── RESPONSIVE ── */
+@media (max-width:1180px){
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .bottom-row{grid-template-columns:1fr}
+}
+@media (max-width:960px){
+  :root{--sidebar-w:0px}
+  .content{padding:22px 20px 44px}
+  .charts-row{grid-template-columns:1fr}
+  .chart-card,.donut-card,.reports-card{padding:18px}
+}
+@media (max-width:600px){
+  .content{padding:18px 14px 40px;gap:16px}
+  .stats-grid{grid-template-columns:1fr}
+  .page-header{flex-direction:column;align-items:stretch}
+  .header-actions{flex-wrap:wrap}
+  .header-actions .btn-outline,.header-actions .btn-primary{flex:1 1 140px;justify-content:center}
+  .report-item{flex-wrap:wrap}
+  .bars-row{gap:3px}
+  .bar-x-label{font-size:.62rem}
+}
 
 </style>
 @include('partials.pro-motion')
@@ -415,7 +435,7 @@ svg.lc{width:100%;overflow:visible;display:block}
   <header class="topbar">
     <div class="topbar-search">
       <i class="fas fa-magnifying-glass"></i>
-      <input type="text" placeholder="Search for classrooms, faculty, or subjects…"/>
+      <input aria-label="Search for classrooms, faculty, or subjects" type="text" placeholder="Search for classrooms, faculty, or subjects…"/>
     </div>
     <div class="topbar-right">
       <div class="topbar-profile">
@@ -440,8 +460,8 @@ svg.lc{width:100%;overflow:visible;display:block}
         <div class="page-sub">Comprehensive overview of PSU SmartRoom utilization and efficiency.</div>
       </div>
       <div class="header-actions">
-        <button class="btn-outline"><i class="fas fa-sliders"></i> Filter</button>
-        <button class="btn-primary" onclick="window.location.href='<?= htmlspecialchars(route('faculty.reports.export.csv')) ?>'"><i class="fas fa-file-arrow-down"></i> Export CSV</button>
+        <button type="button" class="btn-outline"><i class="fas fa-sliders"></i> Filter</button>
+        <button type="button" class="btn-primary" onclick="window.location.href='<?= htmlspecialchars(route('faculty.reports.export.csv')) ?>'"><i class="fas fa-file-arrow-down"></i> Export CSV</button>
       </div>
     </div>
 
@@ -627,7 +647,7 @@ svg.lc{width:100%;overflow:visible;display:block}
               <span class="report-type-badge" style="background:<?=$r['type']==='PDF'?'#fee2e2':'#dcfce7'?>;color:<?=$r['type_color']?>"><?=$r['type']?></span>
             </div>
           </div>
-          <button class="dl-btn" title="Download" onclick="window.location.href='<?= htmlspecialchars(route('faculty.reports.export.csv')) ?>'"><i class="fas fa-arrow-down"></i></button>
+          <button type="button" class="dl-btn" title="Download" onclick="window.location.href='<?= htmlspecialchars(route('faculty.reports.export.csv')) ?>'"><i class="fas fa-arrow-down"></i></button>
         </div>
         <?php endforeach; ?>
       </div>

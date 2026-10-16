@@ -321,7 +321,7 @@ body { font-family: var(--font-body); background: var(--bg); color: var(--text);
         <i class="fas fa-file-csv"></i> Export CSV
       </a>
       @if($isOpen)
-      <button class="btn btn-danger btn-sm" id="closeSessionBtn">
+      <button type="button" class="btn btn-danger btn-sm" id="closeSessionBtn">
         <i class="fas fa-lock"></i> Close Session
       </button>
       @endif
@@ -426,7 +426,7 @@ body { font-family: var(--font-body); background: var(--bg); color: var(--text);
             <input type="text" id="rosterSearch" placeholder="Search students…" autocomplete="off">
           </div>
           @if($isOpen)
-          <button class="btn btn-primary btn-sm" onclick="showAddStudentModal()">
+          <button type="button" class="btn btn-primary btn-sm" onclick="showAddStudentModal()">
             <i class="fas fa-user-plus"></i> Add Student
           </button>
           @endif
@@ -436,9 +436,9 @@ body { font-family: var(--font-body); background: var(--bg); color: var(--text);
       @if($isOpen)
       <div class="mark-all-bar">
         <span class="mark-all-label">Mark all as:</span>
-        <button class="mark-all-btn present" onclick="markAll('present')"><i class="fas fa-check"></i> Present</button>
-        <button class="mark-all-btn absent"  onclick="markAll('absent')"><i class="fas fa-xmark"></i> Absent</button>
-        <button class="mark-all-btn late"    onclick="markAll('late')"><i class="fas fa-clock"></i> Late</button>
+        <button type="button" class="mark-all-btn present" onclick="markAll('present')"><i class="fas fa-check"></i> Present</button>
+        <button type="button" class="mark-all-btn absent"  onclick="markAll('absent')"><i class="fas fa-xmark"></i> Absent</button>
+        <button type="button" class="mark-all-btn late"    onclick="markAll('late')"><i class="fas fa-clock"></i> Late</button>
       </div>
       @endif
 
@@ -483,7 +483,7 @@ body { font-family: var(--font-body); background: var(--bg); color: var(--text);
               <td><input type="time" class="time-in-input" id="timein-{{ $i }}" value="{{ $rec['time_in'] }}" {{ !$isOpen ? 'disabled' : '' }}></td>
               <td><input type="text" class="remarks-input" id="rmk-{{ $i }}" value="{{ $rec['remarks'] }}" placeholder="Optional…" {{ !$isOpen ? 'disabled' : '' }}></td>
               @if($isOpen)
-              <td><button class="row-del-btn" onclick="deleteRow({{ $i }})" title="Remove"><i class="fas fa-trash-can"></i></button></td>
+              <td><button type="button" class="row-del-btn" onclick="deleteRow({{ $i }})" title="Remove"><i class="fas fa-trash-can"></i></button></td>
               @endif
             </tr>
             @empty
@@ -500,7 +500,7 @@ body { font-family: var(--font-body); background: var(--bg); color: var(--text);
                     @endif
                   </div>
                   @if($isOpen)
-                  <button class="btn btn-primary btn-sm" style="margin-top:8px" onclick="addRow()">
+                  <button type="button" class="btn btn-primary btn-sm" style="margin-top:8px" onclick="addRow()">
                     <i class="fas fa-plus"></i> Add Student
                   </button>
                   @endif
@@ -513,7 +513,7 @@ body { font-family: var(--font-body); background: var(--bg); color: var(--text);
           <tfoot>
             <tr class="add-row-row">
               <td colspan="6">
-                <button class="add-row-btn" onclick="addRow()">
+                <button type="button" class="add-row-btn" onclick="addRow()">
                   <i class="fas fa-plus"></i> Add Another Student
                 </button>
               </td>
@@ -536,7 +536,7 @@ body { font-family: var(--font-body); background: var(--bg); color: var(--text);
       <a href="{{ route('faculty.attendance') }}" class="btn btn-outline btn-sm">
         <i class="fas fa-arrow-left"></i> Back
       </a>
-      <button class="btn btn-primary" id="saveBtn" onclick="saveRecords()">
+      <button type="button" class="btn btn-primary" id="saveBtn" onclick="saveRecords()">
         <i class="fas fa-floppy-disk"></i> Save Attendance
       </button>
     </div>
@@ -553,15 +553,15 @@ body { font-family: var(--font-body); background: var(--bg); color: var(--text);
         <div class="modal-title">Close Attendance Session?</div>
         <div class="modal-sub">Once closed, no further edits can be made.</div>
       </div>
-      <button class="modal-close-btn" id="closeModalDismiss"><i class="fas fa-xmark"></i></button>
+      <button aria-label="Close dialog" type="button" class="modal-close-btn" id="closeModalDismiss"><i class="fas fa-xmark"></i></button>
     </div>
     <div class="modal-body">
       <p>Make sure all student attendance is recorded before closing. The session will be locked and marked as <strong>Closed</strong>.</p>
       <p style="margin-top:10px;color:var(--text-3);font-size:.81rem">You can still view and export records after closing.</p>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-outline btn-sm" id="cancelCloseBtn">Cancel</button>
-      <button class="btn btn-danger btn-sm" id="confirmCloseBtn">
+      <button type="button" class="btn btn-outline btn-sm" id="cancelCloseBtn">Cancel</button>
+      <button type="button" class="btn btn-danger btn-sm" id="confirmCloseBtn">
         <i class="fas fa-lock"></i> Close Session
       </button>
     </div>
@@ -576,14 +576,14 @@ body { font-family: var(--font-body); background: var(--bg); color: var(--text);
         <div class="modal-title">Add Student</div>
         <div class="modal-sub">Search by email or add manually</div>
       </div>
-      <button class="modal-close-btn" id="addStudentModalClose"><i class="fas fa-xmark"></i></button>
+      <button aria-label="Close dialog" type="button" class="modal-close-btn" id="addStudentModalClose"><i class="fas fa-xmark"></i></button>
     </div>
     <div class="modal-body">
       <div class="modal-tabs">
-        <button class="modal-tab-btn active" onclick="switchAddTab('email')">
+        <button type="button" class="modal-tab-btn active" onclick="switchAddTab('email')">
           <i class="fas fa-envelope"></i> Search by Email
         </button>
-        <button class="modal-tab-btn" onclick="switchAddTab('manual')">
+        <button type="button" class="modal-tab-btn" onclick="switchAddTab('manual')">
           <i class="fas fa-user"></i> Add Manually
         </button>
       </div>
@@ -611,8 +611,8 @@ body { font-family: var(--font-body); background: var(--bg); color: var(--text);
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-outline btn-sm" id="addStudentCancel">Cancel</button>
-      <button class="btn btn-primary btn-sm" id="addStudentConfirm" onclick="confirmAddStudent()">
+      <button type="button" class="btn btn-outline btn-sm" id="addStudentCancel">Cancel</button>
+      <button type="button" class="btn btn-primary btn-sm" id="addStudentConfirm" onclick="confirmAddStudent()">
         <i class="fas fa-plus"></i> Add
       </button>
     </div>
@@ -708,7 +708,7 @@ function addRow() {
     '</div></td>' +
     '<td><input type="time" class="time-in-input" id="timein-' + i + '" value="' + hh + ':' + mm + '"></td>' +
     '<td><input type="text" class="remarks-input" id="rmk-' + i + '" placeholder="Optional…"></td>' +
-    '<td><button class="row-del-btn" onclick="deleteRow(' + i + ')" title="Remove"><i class="fas fa-trash-can"></i></button></td>';
+    '<td><button type="button" class="row-del-btn" onclick="deleteRow(' + i + ')" title="Remove"><i class="fas fa-trash-can"></i></button></td>';
 
   document.getElementById('rosterBody').appendChild(tr);
   document.getElementById('name-' + i).focus();
@@ -729,7 +729,7 @@ function deleteRow(i) {
       '<div class="empty-icon"><i class="fas fa-user-graduate"></i></div>' +
       '<div class="empty-text">No students yet</div>' +
       '<div class="empty-sub">Click "Add Student" to start taking attendance.</div>' +
-      '<button class="btn btn-primary btn-sm" style="margin-top:8px" onclick="addRow()"><i class="fas fa-plus"></i> Add Student</button>' +
+      '<button type="button" class="btn btn-primary btn-sm" style="margin-top:8px" onclick="addRow()"><i class="fas fa-plus"></i> Add Student</button>' +
       '</div></td>';
     document.getElementById('rosterBody').appendChild(tr);
   }
@@ -1023,7 +1023,7 @@ function addRowWithStudent(name, id) {
     '</div></td>' +
     '<td><input type="time" class="time-in-input" id="timein-' + i + '" value="' + hh + ':' + mm + '"></td>' +
     '<td><input type="text" class="remarks-input" id="rmk-' + i + '" placeholder="Optional…"></td>' +
-    '<td><button class="row-del-btn" onclick="deleteRow(' + i + ')" title="Remove"><i class="fas fa-trash-can"></i></button></td>';
+    '<td><button type="button" class="row-del-btn" onclick="deleteRow(' + i + ')" title="Remove"><i class="fas fa-trash-can"></i></button></td>';
 
   document.getElementById('rosterBody').appendChild(tr);
   renumberRows();

@@ -473,7 +473,7 @@ body { font-family: 'Inter', sans-serif; background: var(-bg); color: var(-text)
   <div class="topbar">
     <div class="topbar-search">
       <i class="fas fa-search"></i>
-      <input type="text" placeholder="Search for classrooms, faculty, or subjects...">
+      <input aria-label="Search for classrooms, faculty, or subjects" type="text" placeholder="Search for classrooms, faculty, or subjects...">
     </div>
     <div class="topbar-right">
       <div class="topbar-profile">
