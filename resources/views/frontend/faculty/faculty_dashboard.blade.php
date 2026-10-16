@@ -617,7 +617,7 @@ body {
   transition: all 0.18s;
 }
 .res-date-day { font-size: 1.1rem; font-weight: 800; color: var(--text); line-height: 1; font-family: var(--font-head); }
-.res-date-label { font-size: 0.58rem; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 2px; }
+.res-date-label { font-size: .68rem; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 2px; }
 .res-date-col.today { background: var(--navy); border-color: var(--navy); }
 .res-date-col.today .res-date-day { color: var(--yellow); }
 .res-date-col.today .res-date-label { color: rgba(255,255,255,0.6); }
@@ -717,7 +717,7 @@ body {
   display: flex; align-items: center; justify-content: center;
 }
 .room-cap-label {
-  font-size: 0.58rem; font-weight: 700; color: var(--text-4);
+  font-size: .68rem; font-weight: 700; color: var(--text-4);
   text-transform: uppercase; letter-spacing: 0.06em;
 }
 

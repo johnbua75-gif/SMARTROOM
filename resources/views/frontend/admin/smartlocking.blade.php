@@ -351,14 +351,14 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
 .badge-pending { background: #f97316; color: #fff; }
 .badge-inactive { background: #64748b; color: #fff; }
 
-.rfid-number-label { font-size: 0.58rem; font-weight: 600; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 3px; position: relative; z-index: 1; }
+.rfid-number-label { font-size: .68rem; font-weight: 600; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 3px; position: relative; z-index: 1; }
 .rfid-number { font-size: 1.2rem; font-weight: 700; color: #fff; letter-spacing: 0.16em; margin-bottom: 16px; font-family: 'Courier New', monospace; position: relative; z-index: 1; }
 
 .rfid-footer { display: flex; align-items: flex-end; justify-content: space-between; position: relative; z-index: 1; }
-.rfid-instructor-label { font-size: 0.58rem; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 2px; }
+.rfid-instructor-label { font-size: .68rem; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 2px; }
 .rfid-instructor-name { font-size: 0.86rem; font-weight: 700; color: #fff; margin-bottom: 1px; }
 .rfid-instructor-dept { font-size: 0.68rem; color: var(--yellow); }
-.rfid-expires-label { font-size: 0.58rem; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 2px; text-align: right; }
+.rfid-expires-label { font-size: .68rem; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 2px; text-align: right; }
 .rfid-expires-val { font-size: 0.92rem; font-weight: 700; color: #fff; text-align: right; }
 
 .rfid-tag { margin-top: 12px; font-size: 0.63rem; color: rgba(255,255,255,0.35); font-family: 'Courier New', monospace; display: flex; align-items: center; gap: 6px; position: relative; z-index: 1; }
@@ -824,7 +824,7 @@ document.querySelectorAll('.js-toggle-card').forEach((button) => {
     const actionLabel = button.getAttribute('data-action-label');
     if (!cardId || !['active', 'inactive'].includes(nextStatus)) return;
 
-    if (!confirm(`${actionLabel} this RFID card?`)) return;
+    if (!(await SmartUI.confirm(`${actionLabel} this RFID card?`, { title: `${actionLabel} card?`, confirmText: actionLabel, danger: nextStatus === 'inactive' }))) return;
 
     const originalContent = button.innerHTML;
     button.disabled = true;

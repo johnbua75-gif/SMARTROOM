@@ -543,7 +543,7 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
 .cal-day-dot.violet{background:var(--violet)}
 .cal-day-dot.emerald{background:var(--emerald)}
 .cal-day-dot.amber{background:var(--amber)}
-.cal-day-count{font-size:.56rem;font-weight:700;color:var(--blue-dk)}
+.cal-day-count{font-size:.68rem;font-weight:700;color:var(--blue-dk)}
 
 /* Week View Header */
 .week-view-header{
@@ -578,7 +578,7 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
   width:28px;height:28px;border-radius:6px;
   background:var(--navy);color:#fff;
   display:flex;align-items:center;justify-content:center;
-  font-family:var(--ff-head);font-size:.58rem;font-weight:700;letter-spacing:.04em;flex-shrink:0;
+  font-family:var(--ff-head);font-size:.68rem;font-weight:700;letter-spacing:.04em;flex-shrink:0;
 }
 .day-col.today-col .day-abbr{background:var(--blue)}
 .day-name{font-family:var(--ff-head);font-size:.82rem;font-weight:700;color:var(--tx)}
@@ -624,12 +624,12 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
 .cls-students span{font-family:var(--ff-mono);font-weight:600;color:var(--card-txt)}
 .status-badge{
   display:inline-flex;align-items:center;gap:3px;padding:2px 6px;
-  border-radius:var(--r3);font-size:.58rem;font-weight:600;
+  border-radius:var(--r3);font-size:.68rem;font-weight:600;
 }
 .status-cancelled{background:var(--red-lt);border:1px solid var(--red-bdr);color:var(--red)}
 .status-completed{background:var(--emerald-lt);border:1px solid var(--emerald-bdr);color:var(--emerald)}
 .status-ongoing{background:var(--blue-lt);border:1px solid var(--blue-bdr);color:var(--blue-dk)}
-.block-badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:4px;background:var(--surface-2);border:1px solid var(--border);color:var(--tx-2);font-size:.58rem;font-weight:600}
+.block-badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:4px;background:var(--surface-2);border:1px solid var(--border);color:var(--tx-2);font-size:.68rem;font-weight:600}
 
 /* ══════════════════════════════════════
    TIMELINE VIEW
@@ -1077,7 +1077,7 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
                 <span class="cls-code"><?= htmlspecialchars($cls['code']) ?></span>
                 <?php if ($cls['section'] !== ''): ?><span class="block-badge"><?= htmlspecialchars($cls['section']) ?></span><?php endif ?>
                 <?php if (!empty($cls['status']) && $cls['status'] === 'cancelled'): ?>
-                  <span class="status-badge status-cancelled"><i class="ti ti-x" style="font-size:9px"></i> Cancelled</span>
+                  <span class="status-badge status-cancelled"><i class="ti ti-x" style="font-size:11px"></i> Cancelled</span>
                 <?php elseif (!empty($cls['status']) && $cls['status'] === 'ongoing'): ?>
                   <span class="status-badge status-ongoing">Live</span>
                 <?php endif ?>
@@ -1131,7 +1131,7 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
               <div class="tl-main">
                 <div class="tl-subj"><?= htmlspecialchars($cls['subject']) ?></div>
                 <div class="tl-sub">
-                  <i class="ti ti-map-pin" style="font-size:10px"></i>
+                  <i class="ti ti-map-pin" style="font-size:11px"></i>
                   <?= htmlspecialchars($cls['location']) ?>
                   <span class="tl-code-tag"><?= htmlspecialchars($cls['code']) ?></span>
                   <?php if ($cls['section'] !== ''): ?><span class="block-badge"><?= htmlspecialchars($cls['section']) ?></span><?php endif ?>
@@ -1558,6 +1558,7 @@ document.getElementById('suggestList')?.addEventListener('click', e => {
 
 document.querySelector('#addModal form')?.addEventListener('submit', e => {
   const form = e.currentTarget;
+  if (form.dataset.confirmed === '1') { delete form.dataset.confirmed; return; }
   const subject = form.querySelector('[name=course_offering_id] option:checked')?.textContent?.trim() || 'your subject';
   const semesterStart = form.querySelector('[name=semester_start]')?.value || 'the selected start date';
   const semesterEnd = form.querySelector('[name=semester_end]')?.value || 'the selected end date';
@@ -1581,9 +1582,13 @@ document.querySelector('#addModal form')?.addEventListener('submit', e => {
     'This will create all sessions for the semester. Continue only if these details are correct.',
   ].join('\n');
 
-  if (! window.confirm(message)) {
-    e.preventDefault();
-  }
+  e.preventDefault();
+  const submitter = e.submitter;
+  SmartUI.confirm(message, { title: 'Save semester schedule?', confirmText: 'Save schedule' }).then(ok => {
+    if (!ok) return;
+    form.dataset.confirmed = '1';
+    if (form.requestSubmit) { form.requestSubmit(submitter || undefined); } else { form.submit(); }
+  });
 });
 // ── View Switcher ─────────────────────────────────────────────
 const gridView = document.getElementById('gridView');
@@ -1795,7 +1800,11 @@ function openSessionModal(data) {
   document.getElementById('sessBlock').textContent = data.block;
 
   const statusEl = document.getElementById('sessStatus');
-  statusEl.innerHTML = `<span class="status-badge status-${data.status}">${data.status}</span>`;
+  statusEl.textContent = '';
+  const statusBadge = document.createElement('span');
+  statusBadge.className = 'status-badge status-' + String(data.status).replace(/[^a-z0-9_-]/gi, '');
+  statusBadge.textContent = data.status;
+  statusEl.appendChild(statusBadge);
 
   const header = document.getElementById('sessionHeader');
   header.className = `session-detail-header ${data.color}`;
@@ -1842,14 +1851,22 @@ async function loadMakeupSuggestions(data, el) {
 }
 
 document.getElementById('closeSessionModal')?.addEventListener('click', () => closeModal('sessionModal'));
-document.getElementById('remindBtn')?.addEventListener('click', () => alert('Reminder queued.'));
+document.getElementById('remindBtn')?.addEventListener('click', () => SmartUI.toast('Reminder queued.', 'success'));
 document.getElementById('sessionCancelForm')?.addEventListener('submit', e => {
+  const form = e.currentTarget;
+  if (form.dataset.confirmed === '1') { delete form.dataset.confirmed; return; }
   if (!cancellationReason?.value.trim()) {
     e.preventDefault();
     cancellationReason?.focus();
     return;
   }
-  if (!confirm('Cancel this class occurrence only? Other teachers will see the room as free during this time.')) e.preventDefault();
+  e.preventDefault();
+  const submitter = e.submitter;
+  SmartUI.confirm('Cancel this class occurrence only? Other teachers will see the room as free during this time.', { title: 'Cancel this class?', confirmText: 'Cancel class', cancelText: 'Keep class', danger: true }).then(ok => {
+    if (!ok) return;
+    form.dataset.confirmed = '1';
+    if (form.requestSubmit) { form.requestSubmit(submitter || undefined); } else { form.submit(); }
+  });
 });
 
 document.querySelectorAll('.cls-card, .tl-item').forEach(el => {

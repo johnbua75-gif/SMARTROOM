@@ -777,7 +777,7 @@ body.editing-open {
             <button type="submit" class="btn-primary"><i class="fas fa-floppy-disk"></i> Save Changes</button>
             <form method="POST" action="{{ route('admin.users.reset-password', $editUser) }}" style="display:inline;">
               @csrf
-              <button type="submit" class="btn-cancel" style="border-color:#f59e0b;color:#92400e;background:#fff7ed;" onclick="return confirm('Reset this user\'s password and require them to change it on next login?');">
+              <button type="submit" class="btn-cancel" style="border-color:#f59e0b;color:#92400e;background:#fff7ed;" data-confirm="Reset this user's password and require them to change it on next login?" data-confirm-title="Reset password?" data-confirm-button="Reset password">
                 <i class="fas fa-key"></i> Reset Password
               </button>
             </form>

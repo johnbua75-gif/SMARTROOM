@@ -91,6 +91,7 @@
             cursor: pointer;
         }
     </style>
+@include('partials.focus-ring')
 </head>
 <body>
     <div class="card">

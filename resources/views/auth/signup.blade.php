@@ -424,6 +424,7 @@
             .btn-row { flex-direction: column; }
         }
     </style>
+@include('partials.focus-ring')
 </head>
 <body>
     <div class="blob blob-1"></div>

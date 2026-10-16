@@ -504,7 +504,7 @@
 
         document.querySelectorAll('.js-rotate-device').forEach(function (button) {
           button.addEventListener('click', async function () {
-            if (!confirm('Rotate this device credential? The old credential will stop working immediately.')) return;
+            if (!(await SmartUI.confirm('Rotate this device credential? The old credential will stop working immediately.', { title: 'Rotate credential?', confirmText: 'Rotate', danger: true }))) return;
             button.disabled = true;
             try {
               var response = await fetch(button.dataset.url, {
@@ -579,24 +579,26 @@
           if (!el) return;
           var id = el.getAttribute('data-id');
           if (!id) return;
-          if (!confirm('Delete this schedule? This action cannot be undone.')) return;
+          SmartUI.confirm('Delete this schedule? This action cannot be undone.', { title: 'Delete schedule?', confirmText: 'Delete', danger: true }).then(function (ok) {
+            if (!ok) return;
 
-          var tr = el.closest('tr');
-          fetch('/api/v1/schedules/' + encodeURIComponent(id), {
-            method: 'DELETE',
-            credentials: 'same-origin',
-            headers: {
-              'Accept': 'application/json',
-              'X-CSRF-TOKEN': '{{ csrf_token() }}'
-            }
-          }).then(function (res) {
-            if (!res.ok) return res.json().then(function (j) { throw j; });
-            return res.json();
-          }).then(function () {
-            if (tr) tr.remove();
-          }).catch(function (err) {
-            console.error('Failed to delete schedule', err);
-            alert('Failed to delete schedule. Check console for details.');
+            var tr = el.closest('tr');
+            fetch('/api/v1/schedules/' + encodeURIComponent(id), {
+              method: 'DELETE',
+              credentials: 'same-origin',
+              headers: {
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+              }
+            }).then(function (res) {
+              if (!res.ok) return res.json().then(function (j) { throw j; });
+              return res.json();
+            }).then(function () {
+              if (tr) tr.remove();
+            }).catch(function (err) {
+              console.error('Failed to delete schedule', err);
+              SmartUI.toast('Failed to delete the schedule. Please try again.', 'error');
+            });
           });
         });
       })();

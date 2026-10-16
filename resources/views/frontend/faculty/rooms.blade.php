@@ -232,11 +232,11 @@ body { font-family:var(--fb); background:var(--bg); color:var(--text); min-heigh
 .pin-box.avail{background:rgba(22,163,74,.9)}
 .pin-box.full{background:rgba(220,38,38,.9)}
 .pin-box:hover{box-shadow:0 6px 28px rgba(0,0,0,.4);transform:translateY(-2px)}
-.pin-num{position:absolute;top:-8px;right:-8px;width:22px;height:22px;border:2px solid #fff;border-radius:50%;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+.pin-num{position:absolute;top:-8px;right:-8px;width:22px;height:22px;border:2px solid #fff;border-radius:50%;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.2)}
 .pin-num.g{background:#fff;color:var(--green)}
 .pin-num.r{background:#fff;color:var(--red)}
 .building-lbl{font-size:.72rem;font-weight:700;color:#fff;text-align:center;max-width:90px;line-height:1.3;text-shadow:0 1px 4px rgba(0,0,0,.5);letter-spacing:.02em}
-.map-north{position:absolute;top:12px;right:12px;width:28px;height:28px;background:rgba(255,255,255,.95);border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,.15);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:var(--navy);z-index:5;backdrop-filter:blur(4px)}
+.map-north{position:absolute;top:12px;right:12px;width:28px;height:28px;background:rgba(255,255,255,.95);border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,.15);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:var(--navy);z-index:5;backdrop-filter:blur(4px)}
 .map-legend{position:absolute;bottom:12px;left:12px;background:rgba(11,22,64,.85);backdrop-filter:blur(8px);border-radius:8px;padding:10px 14px;z-index:5;border:1px solid rgba(255,255,255,.1)}
 .legend-row{display:flex;align-items:center;gap:7px;font-size:.7rem;font-weight:600;color:rgba(255,255,255,.85);padding:2px 0}
 .legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;box-shadow:0 0 6px currentColor}
@@ -1585,7 +1585,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   async function cancelReservation(reservationId, button) {
-    if (!confirm('Cancel this room reservation?')) return;
+    if (!(await SmartUI.confirm('Cancel this room reservation?', { title: 'Cancel reservation?', confirmText: 'Cancel reservation', cancelText: 'Keep it', danger: true }))) return;
     button.disabled = true;
     var response = await fetch('/api/v1/reservations/' + reservationId, {
       method: 'DELETE',
@@ -1678,7 +1678,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if(c&&c.course){
           var cs=c.span>1?' colspan="'+Math.min(c.span,TT_HOURS.length-i)+'"':'';
           var bg=c.kind==='reservation'?'background:linear-gradient(135deg,#fef5cd,#fdf0b8);color:#7a5d0a;border:1px solid #f0dc7a;':'background:linear-gradient(135deg,#e8ecfb,#dde3fa);color:#0b1640;border:1px solid #c7d0ee;';
-          h+='<td style="'+tds+'"'+cs+'><div title="'+escapeHtml(c.title)+'" style="'+bg+'border-radius:4px;margin:2px;padding:4px 3px;font-size:.62rem;font-weight:800;line-height:1.2;min-height:38px;display:flex;flex-direction:column;align-items:center;justify-content:center"><span>'+escapeHtml(c.course)+'</span><small style="font-size:.55rem;font-weight:600;margin-top:2px">'+escapeHtml(c.title)+'</small></div></td>';
+          h+='<td style="'+tds+'"'+cs+'><div title="'+escapeHtml(c.title)+'" style="'+bg+'border-radius:4px;margin:2px;padding:4px 3px;font-size:.62rem;font-weight:800;line-height:1.2;min-height:38px;display:flex;flex-direction:column;align-items:center;justify-content:center"><span>'+escapeHtml(c.course)+'</span><small style="font-size:.68rem;font-weight:600;margin-top:2px">'+escapeHtml(c.title)+'</small></div></td>';
         }else{h+='<td style="'+tds+'"></td>';}
       }h+='</tr>';
     });h+='</tbody>';
@@ -1857,7 +1857,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (statusPill) {
       statusPill.classList.remove('pill-avail', 'pill-res', 'pill-occ', 'pill-maint');
       statusPill.classList.add(pillClass);
-      statusPill.innerHTML = '<i class="' + iconClass + '"></i> <span data-status-label>' + label + '</span>';
+      statusPill.innerHTML = '<i class="' + iconClass + '"></i> <span data-status-label>' + escapeHtml(label) + '</span>';
     }
 
     if (timeChip) {

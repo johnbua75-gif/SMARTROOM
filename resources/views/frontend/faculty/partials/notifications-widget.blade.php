@@ -357,3 +357,4 @@ body.faculty-sidebar-collapsed .faculty-sidebar-toggle{right:-13px;transform:tra
   });
 })();
 </script>
+@include('partials.ui-dialogs')

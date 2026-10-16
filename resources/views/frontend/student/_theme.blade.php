@@ -583,3 +583,4 @@
     }
   }
 </style>
+@include('partials.focus-ring')

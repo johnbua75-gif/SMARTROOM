@@ -79,6 +79,7 @@
         .msg-error { background: #fff5f5; border: 1px solid #fecaca; color: var(--error); }
         .msg-success { background: #f0fdf4; border: 1px solid #bbf7d0; color: var(--success); }
     </style>
+@include('partials.focus-ring')
 </head>
 <body>
     <div class="card">

@@ -355,7 +355,7 @@ body { font-family: var(--font-body); background: var(--bg); color: var(--text);
           <div class="session-qr-copy">
             <div class="session-qr-title">Scan to attend</div>
             <p>Students scan this code to record attendance.</p>
-            <a class="session-qr-link" href="{{ route('faculty.attendance.qr', $session['id']) }}" target="_blank">Open large QR</a>
+            <a class="session-qr-link" href="{{ route('faculty.attendance.qr', $session['id']) }}" target="_blank" rel="noopener">Open large QR</a>
           </div>
         </div>
         @endif
@@ -955,7 +955,7 @@ async function searchStudentByEmail() {
     }
   } catch (e) {
     spinner.style.display = 'none';
-    results.innerHTML = '<div style="padding:12px;color:var(--red-text);font-size:.82rem">Error searching: ' + e.message + '</div>';
+    results.innerHTML = '<div style="padding:12px;color:var(--red-text);font-size:.82rem">Error searching: ' + String(e.message).replace(/[&<>"']/g, function (c) { return '&#' + c.charCodeAt(0) + ';'; }) + '</div>';
   }
 }
 

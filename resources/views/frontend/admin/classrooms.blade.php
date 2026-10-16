@@ -785,7 +785,6 @@ body {
 
     addRoomSubmitBtn.disabled = true;
     try {
-      console.log('AddRoom submit', { name, building, floor, capacity, status, reason });
       let res;
       try {
         res = await fetch("{{ route('admin.classrooms.store') }}", {

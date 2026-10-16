@@ -1735,7 +1735,7 @@ createScheduleForm?.addEventListener('submit', (e) => {
 
   if (errors.length > 0) {
     e.preventDefault();
-    alert('Please complete all required fields:\n\n' + errors.join('\n'));
+    SmartUI.alert('Please complete all required fields:\n\n' + errors.join('\n'), { title: 'Missing information' });
     return false;
   }
 

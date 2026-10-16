@@ -57,7 +57,7 @@
 }
 .admin-sidebar .admin-sidebar-logo-img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .admin-sidebar .logo-text { display: grid; gap: 3px; line-height: 1; }
-.admin-sidebar .brand-psu { color: rgba(255,255,255,.56); font-size: .58rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+.admin-sidebar .brand-psu { color: rgba(255,255,255,.56); font-size: .68rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
 .admin-sidebar .brand-main { color: #fff; font-size: .98rem; font-weight: 750; }
 .admin-sidebar .brand-main span { color: #f5c518; }
 .admin-sidebar .nav-section-label { padding: 14px 22px 8px; color: rgba(255,255,255,.46); font-size: .66rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
@@ -164,3 +164,4 @@
     });
 })();
 </script>
+@include('partials.ui-dialogs')

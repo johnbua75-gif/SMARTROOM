@@ -62,7 +62,7 @@ nav.scrolled { background: rgba(11,22,64,0.97); box-shadow: 0 4px 32px rgba(0,0,
 }
 .sidebar-logo:hover .logo-mark { transform: translateY(-2px) scale(1.07); box-shadow: 0 8px 24px rgba(245,197,24,0.6); }
 .logo-text { line-height: 1; }
-.logo-text .brand-psu { font-size: 0.58rem; font-weight: 700; letter-spacing: 0.2em; color: rgba(255,255,255,0.4); text-transform: uppercase; display: block; margin-bottom: 3px; }
+.logo-text .brand-psu { font-size: .68rem; font-weight: 700; letter-spacing: 0.2em; color: rgba(255,255,255,0.4); text-transform: uppercase; display: block; margin-bottom: 3px; }
 .logo-text .brand-main { font-family: 'Poppins', Arial, Helvetica, sans-serif; font-size: 1.05rem; font-weight: 700; color: #fff; letter-spacing: -0.01em; }
 .logo-text .brand-main span { color: var(--yellow); }
 
@@ -450,6 +450,7 @@ section { position: relative; z-index: 2; }
 }
 </style>
 @include('partials.pro-motion')
+@include('partials.focus-ring')
 </head>
 <body>
 
@@ -857,11 +858,11 @@ section { position: relative; z-index: 2; }
     <div class="footer-col">
       <div class="footer-col-heading">System</div>
       <ul>
-        <li><a href="#">Dashboard</a></li>
-        <li><a href="#">Room Scheduler</a></li>
-        <li><a href="#">RFID Management</a></li>
-        <li><a href="#">Access Logs</a></li>
-        <li><a href="#">Reservations</a></li>
+        <li><a href="{{ route('auth.login') }}">Dashboard</a></li>
+        <li><a href="{{ route('auth.login') }}">Room Scheduler</a></li>
+        <li><a href="{{ route('auth.login') }}">RFID Management</a></li>
+        <li><a href="{{ route('auth.login') }}">Access Logs</a></li>
+        <li><a href="{{ route('auth.login') }}">Reservations</a></li>
       </ul>
     </div>
 

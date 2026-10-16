@@ -83,7 +83,7 @@ body { font-family: 'Inter', sans-serif; background: var(-bg); color: var(-text)
 .logo-mark { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: var(-yellow); color: var(-navy); font-size: 1.1rem; box-shadow: 0 4px 12px rgba(245,197,24,0.35); }
 .logo-text { line-height: 1; }
 .sidebar-logo-text { line-height: 1.05; }
-.brand-psu { display: block; color: rgba(255,255,255,0.55); font-size: 0.58rem; font-weight: 700; letter-spacing: 0.12em; }
+.brand-psu { display: block; color: rgba(255,255,255,0.55); font-size: .68rem; font-weight: 700; letter-spacing: 0.12em; }
 .brand-main { color: #fff; font-size: 0.98rem; font-weight: 700; }
 .door-accent { color: var(-yellow); }
 .sidebar-nav { list-style: none; padding: 0 0 4px; margin: 0; }
@@ -323,7 +323,7 @@ body { font-family: 'Inter', sans-serif; background: var(-bg); color: var(-text)
 .rec-score-ring.high  { border-color: #60a5fa; background: var(-blue-bg); }
 .rec-score-ring.med   { border-color: #a78bfa; background: var(-purple-bg); }
 .rec-score-ring.low   { border-color: #5eead4; background: #f0fdfa; }
-.rec-score-label { font-size: 0.58rem; font-weight: 700; color: var(-text-secondary); text-transform: uppercase; letter-spacing: 0.06em; }
+.rec-score-label { font-size: .68rem; font-weight: 700; color: var(-text-secondary); text-transform: uppercase; letter-spacing: 0.06em; }
 .rec-arrow { width: 32px; height: 32px; border-radius: 8px; background: var(-bg); border: 1px solid var(-border); display: flex; align-items: center; justify-content: center; color: var(-text-secondary); font-size: 0.78rem; flex-shrink: 0; transition: all 0.18s; }
 .rec-card:hover .rec-arrow { background: var(-navy); color: #fff; border-color: var(-navy); }
 

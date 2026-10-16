@@ -229,9 +229,9 @@ $attendanceCards = collect($courses ?? [])->map(function ($course) {
     /* Date cell */
     .date-block { display:flex; align-items:center; gap:11px; }
     .date-cal { flex-shrink:0; width:44px; background:var(--bg); border:1px solid var(--border); border-radius:9px; text-align:center; overflow:hidden; }
-    .date-cal-top { background:var(--navy); padding:3px 0; font-size:.56rem; font-weight:700; letter-spacing:.08em; color:var(--yellow); text-transform:uppercase; }
+    .date-cal-top { background:var(--navy); padding:3px 0; font-size:.68rem; font-weight:700; letter-spacing:.08em; color:var(--yellow); text-transform:uppercase; }
     .date-cal-num { font-family:var(--font-head); font-size:1.2rem; font-weight:800; color:var(--text); padding:4px 0 2px; line-height:1; }
-    .date-cal-yr { font-size:.58rem; color:var(--text-4); padding-bottom:4px; }
+    .date-cal-yr { font-size:.68rem; color:var(--text-4); padding-bottom:4px; }
     .date-main { font-weight:700; font-size:.87rem; }
     .date-day  { font-size:.74rem; color:var(--text-3); margin-top:2px; }
 
@@ -967,9 +967,6 @@ $attendanceCards = collect($courses ?? [])->map(function ($course) {
       return;
     }
 
-    console.log('Opening attendance for schedule:', scheduleId);
-    console.log('Quick start URL:', quickStartUrl);
-    console.log('CSRF token present:', !!csrf);
 
     const buttons = document.querySelectorAll('.action-btn, .attendance-check-btn');
     buttons.forEach(btn => btn.disabled = true);
@@ -986,9 +983,7 @@ $attendanceCards = collect($courses ?? [])->map(function ($course) {
       body: JSON.stringify({ schedule_id: scheduleId }),
     })
       .then(async function (response) {
-        console.log('Response status:', response.status);
         const text = await response.text();
-        console.log('Response text:', text);
         
         let payload;
         try {
@@ -998,7 +993,6 @@ $attendanceCards = collect($courses ?? [])->map(function ($course) {
           throw new Error('Invalid server response: ' + text.substring(0, 200));
         }
 
-        console.log('Response payload:', payload);
 
         if (!response.ok || payload.success === false) {
           throw new Error(payload.message || ('Server error: ' + response.status));
@@ -1059,8 +1053,8 @@ $attendanceCards = collect($courses ?? [])->map(function ($course) {
   });
 
   // Close session AJAX
-  function closeSession(id, btn) {
-    if (!confirm('Close this session? Students will no longer be able to log in.')) return;
+  async function closeSession(id, btn) {
+    if (!(await SmartUI.confirm('Close this session? Students will no longer be able to log in.', { title: 'Close session?', confirmText: 'Close session', danger: true }))) return;
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Closing…';
     fetch(`/attendance/${id}/close`, {
@@ -1083,13 +1077,13 @@ $attendanceCards = collect($courses ?? [])->map(function ($course) {
         if (div?.classList.contains('action-divider')) div.remove();
         btn.remove();
       } else {
-        alert('Failed to close session.');
+        SmartUI.toast('Failed to close the session. Please try again.', 'error');
         btn.disabled = false;
         btn.innerHTML = '<i class="fas fa-xmark"></i> Close';
       }
     })
     .catch(() => {
-      alert('Network error. Please try again.');
+      SmartUI.toast('Network error. Please try again.', 'error');
       btn.disabled = false;
       btn.innerHTML = '<i class="fas fa-xmark"></i> Close';
     });

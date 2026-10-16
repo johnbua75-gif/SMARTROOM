@@ -19,7 +19,7 @@
     <div class="card p-4 text-center mx-auto" style="max-width:420px">
       <img src="{{ $qrUrl }}" alt="QR code" class="mb-3" />
       <div class="small text-muted mb-2">Scan to check-in</div>
-      <div class="mb-2"><a href="{{ $checkinUrl }}" target="_blank">{{ $checkinUrl }}</a></div>
+      <div class="mb-2"><a href="{{ $checkinUrl }}" target="_blank" rel="noopener">{{ $checkinUrl }}</a></div>
       <div class="text-muted">Expires: {{ optional($session->expires_at)->format('Y-m-d H:i') ?? 'N/A' }}</div>
     </div>
   </div>
