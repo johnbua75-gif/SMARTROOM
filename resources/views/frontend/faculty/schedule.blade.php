@@ -1115,6 +1115,111 @@ html[data-theme="dark"] .nc-btn-primary{color:#0b1640}
 .edit-room{grid-column:1 / -1}
 .edit-actions{display:flex;justify-content:flex-end;gap:10px}
 @media (max-width:560px){.edit-grid{grid-template-columns:1fr 1fr}.edit-grid label:first-child{grid-column:1 / -1}}
+
+/* ══════════════════════════════════════
+   SCHEDULE LAYOUT v4  (matches the latest reference)
+══════════════════════════════════════ */
+:root{--lane:#e8edf8}
+html[data-theme="dark"]{--lane:#151b33}
+.content{max-width:1560px;padding:24px 28px 56px;gap:18px}
+
+/* Dark hero card: title, actions and KPI tiles */
+.sch-hero{position:relative;overflow:hidden;border-radius:28px;padding:28px 30px 24px;color:#fff;
+  background:
+    linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px) 0 0/36px 36px,
+    linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px) 0 0/36px 36px,
+    linear-gradient(135deg,#0a1343 0%,#122672 55%,#16318a 100%);
+  box-shadow:0 18px 40px rgba(10,19,67,.28)}
+.sch-hero-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.sch-date{margin-bottom:8px;font-size:.92rem;font-weight:700;color:var(--yellow)}
+.sch-hero h1{font-family:var(--ff-head);font-size:2.1rem;font-weight:800;letter-spacing:-.03em;line-height:1.1;color:#fff}
+.sch-hero-sub{margin-top:8px;font-size:.95rem;color:rgba(255,255,255,.72)}
+.hero-actions{display:flex;gap:10px;flex-wrap:wrap}
+.hero-btn{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:0 18px;border:1px solid rgba(255,255,255,.2);border-radius:12px;background:rgba(255,255,255,.1);color:#fff;font:700 .9rem var(--ff);text-decoration:none;cursor:pointer;transition:background-color .15s}
+.hero-btn:hover{background:rgba(255,255,255,.18)}
+.hero-btn-gold{border-color:var(--yellow);background:var(--yellow);color:#1b2147}
+.hero-btn-gold:hover{background:#ffd23d}
+.hero-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-top:26px}
+.hk{display:flex;align-items:center;gap:12px;min-width:0;padding:14px 16px;border:1px solid rgba(255,255,255,.12);border-radius:16px;background:rgba(255,255,255,.07)}
+.hk-ic{display:flex;align-items:center;justify-content:center;flex:0 0 42px;width:42px;height:42px;border-radius:12px;color:#fff;font-size:19px}
+.hk-blue{background:#3b6cf6}.hk-violet{background:#8b5cf6}.hk-emerald{background:#10b981}.hk-amber{background:#f59e0b}.hk-rose{background:#f43f5e}
+.hk-val{font-family:var(--ff-head);font-size:1.55rem;font-weight:800;letter-spacing:-.03em;line-height:1.05;color:#fff}
+.hk-lab{margin-top:3px;font-size:.82rem;font-weight:500;color:rgba(255,255,255,.66)}
+
+/* Next class: light card */
+.next-class{grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:22px;padding:20px 24px;border:1px solid var(--border);border-radius:22px;background:var(--surface);color:var(--tx);box-shadow:var(--shadow-sm)}
+.next-class::after{display:none}
+.nc-date{min-width:92px;padding:12px 10px;border-radius:18px;background:linear-gradient(145deg,#fcd34d,#f5a30a);color:#3b2700;box-shadow:0 6px 16px rgba(245,163,10,.3)}
+.nc-day{font-size:.78rem;font-weight:700}
+.nc-time{font-size:1.9rem}
+.nc-range{font-size:.78rem;font-weight:800;opacity:1}
+.nc-body{padding:0;gap:8px}
+.nc-label{color:var(--tx-3);font-weight:600}
+.nc-pill{background:var(--blue-lt);color:var(--blue-dk)}
+.nc-title{font-size:1.5rem;color:var(--tx)}
+.nc-chip{border:0;background:var(--surface-2);color:var(--tx-2);padding:6px 12px;border-radius:9px}
+.nc-chip i{opacity:.7}
+.nc-actions{flex-direction:row;min-width:0;padding:0;gap:10px}
+.nc-btn{min-height:44px;border:1px solid var(--border);background:var(--surface);color:var(--tx);border-radius:12px;padding:0 20px}
+.nc-btn:hover{background:var(--surface-2)}
+.nc-btn-primary{border-color:var(--navy);background:var(--navy);color:#fff}
+.nc-btn-primary:hover{background:var(--navy-mid)}
+
+/* Conflict alert with Resolve button */
+.conflict-alert{align-items:center;gap:12px;padding:12px 16px;border-radius:14px}
+.conflict-text{flex:1;min-width:0}
+.resolve-btn{flex:0 0 auto;min-height:36px;padding:0 18px;border:0;border-radius:10px;background:#d63a3a;color:#fff;font:700 .86rem var(--ff);cursor:pointer;transition:background-color .15s}
+.resolve-btn:hover{background:#b92e2e}
+
+/* Filter bar */
+.filter-bar{justify-content:space-between}
+.filter-bar .search-box{flex:0 1 380px;min-height:44px;border:1px solid transparent;border-radius:12px;background:var(--surface);box-shadow:var(--shadow-sm)}
+.filter-bar .view-switcher{padding:4px;border:0;border-radius:14px;background:var(--lane)}
+.filter-bar .vs-btn{min-height:36px;padding:0 18px;border:0;border-radius:10px;color:var(--tx-2);font-weight:600}
+.filter-bar .vs-btn.active{background:var(--surface);color:var(--tx);box-shadow:0 1px 4px rgba(10,17,40,.12)}
+
+/* Week lanes with a date box on each day */
+.day-col{background:var(--lane);border:0;border-radius:20px;box-shadow:none}
+.day-col-header{flex-wrap:nowrap;align-items:center;gap:10px;padding:14px 14px 10px;background:transparent}
+.day-date{display:flex;align-items:center;justify-content:center;flex:0 0 36px;width:36px;height:36px;border:1px solid var(--border);border-radius:10px;background:var(--surface);font-family:var(--ff-head);font-size:.95rem;font-weight:800;color:var(--tx)}
+.day-head-text{flex:1;min-width:0}
+.day-name{font-size:.98rem;overflow-wrap:anywhere}
+.day-hrs{margin-top:2px;font-size:.78rem}
+.today-pill{margin-left:auto;flex:0 0 auto;background:var(--blue);padding:3px 11px}
+.day-col.today-col{border:1.5px solid var(--blue);background:#dbe6ff;box-shadow:none}
+html[data-theme="dark"] .day-col.today-col{background:#1c2a5c}
+.day-col.today-col .day-date{border-color:var(--blue);background:var(--blue);color:#fff}
+.day-classes{padding:0 10px 12px;gap:10px}
+.no-class{display:flex;flex-direction:column;align-items:center;gap:8px;padding:26px 6px;font-size:.86rem;color:var(--tx-3)}
+.no-class i{display:block;font-size:22px;opacity:.45}
+
+/* Class cards: white tiles, tinted time pill, no side bar */
+.cls-card{padding:12px 12px 12px;border:1px solid var(--border);border-radius:14px;background:var(--surface)}
+.cls-card.has-conflict{border:1px solid #eeaaaa;background:#fff1f1}
+html[data-theme="dark"] .cls-card.has-conflict{border-color:#7a2a30;background:#2d1517}
+.cls-timebar{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+.cls-time{padding:5px 10px;border:1px solid var(--card-bdr);border-radius:8px;background:var(--card-lt);color:var(--card-txt);font-size:.78rem;font-weight:700}
+.conflict-tag{color:var(--red);font-size:.78rem;font-weight:700}
+.cls-name{font-size:1rem;font-weight:800;margin-bottom:3px}
+.cls-sub{margin-bottom:10px;font-size:.8rem;color:var(--tx-3)}
+.cls-meta{font-size:.8rem}
+
+@media (max-width:1180px){
+  .hero-kpis{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+  .next-class{grid-template-columns:1fr}
+  .nc-date{align-self:flex-start;flex-direction:row;gap:12px;padding:10px 16px}
+  .nc-actions{flex-wrap:wrap}
+}
+@media (max-width:640px){
+  .content{padding:16px 12px 40px}
+  .sch-hero{padding:22px 18px;border-radius:22px}
+  .sch-hero h1{font-size:1.7rem}
+  .hero-actions{width:100%}
+  .hero-btn{flex:1}
+  .conflict-alert{flex-wrap:wrap}
+  .resolve-btn{width:100%}
+  .filter-bar .search-box{flex:1 1 100%}
+}
 </style>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -1302,7 +1407,7 @@ foreach ($schedule as $dayRow) {
         $fromTxt = $fmtMin(max($aS, $bS));
         $toTxt = $fmtMin(min($aE, $bE));
         if (substr($fromTxt, -2) === substr($toTxt, -2)) { $fromTxt = substr($fromTxt, 0, -3); }
-        $conflictNotes[] = ['day' => $dayRow['day'], 'from' => $fromTxt, 'to' => $toTxt];
+        $conflictNotes[] = ['day' => $dayRow['day'], 'from' => $fromTxt, 'to' => $toTxt, 'fix_id' => $list[$j]['id']];
       }
     }
   }
@@ -1342,71 +1447,74 @@ $weekHoursLabel = $weekHours > 0
   : '0 hrs';
 
 $kpis = [
-  ['v' => (string) $classesPerWeek,              'l' => 'Classes per week',     'i' => 'ti-calendar-week', 'c' => 'blue'],
-  ['v' => (string) $totalUniqueStudents,         'l' => 'Students enrolled',    'i' => 'ti-users',         'c' => 'violet'],
-  ['v' => (string) count($facultyCourses),       'l' => 'Subjects',             'i' => 'ti-books',         'c' => 'emerald'],
-  ['v' => $weekHoursLabel,                       'l' => 'Teaching time / week', 'i' => 'ti-clock',         'c' => 'amber'],
-  ['v' => (string) (count($facultyCourses) * 3), 'l' => 'Total units',          'i' => 'ti-bolt',          'c' => 'blue'],
+  ['v' => (string) $classesPerWeek,              'l' => 'Classes per week',  'i' => 'ti-calendar-week', 'c' => 'blue'],
+  ['v' => (string) $totalUniqueStudents,         'l' => 'Students enrolled', 'i' => 'ti-users',         'c' => 'violet'],
+  ['v' => (string) count($facultyCourses),       'l' => 'Subjects',          'i' => 'ti-books',         'c' => 'emerald'],
+  ['v' => $weekHoursLabel,                       'l' => 'Teaching time',     'i' => 'ti-clock',         'c' => 'amber'],
+  ['v' => (string) (count($facultyCourses) * 3), 'l' => 'Total units',       'i' => 'ti-bolt',          'c' => 'rose'],
 ];
 
 // Day column widths: busy days get more room, free days stay narrow
 $gridCols = implode(' ', array_map(function ($d) {
   if (!empty($d['classes'])) return 'minmax(0,1.6fr)';
-  return (($d['abbr'] ?? '') === now()->format('D')) ? 'minmax(96px,.9fr)' : 'minmax(96px,.65fr)';
+  return (($d['abbr'] ?? '') === now()->format('D')) ? 'minmax(118px,.9fr)' : 'minmax(112px,.65fr)';
 }, $schedule));
 ?>
-    <div class="sch-head">
-      <div class="sch-head-text">
-        <h1>Semester Schedule</h1>
-        <p><?= htmlspecialchars($facultyName) ?> &bull; <?= htmlspecialchars($semester) ?></p>
+    <header class="sch-hero">
+      <div class="sch-hero-top">
+        <div class="sch-hero-text">
+          <div class="sch-date"><?= htmlspecialchars(now()->format('l, F j')) ?></div>
+          <h1>Semester schedule</h1>
+          <p class="sch-hero-sub"><?= htmlspecialchars($facultyName) ?> &middot; <?= htmlspecialchars($semester) ?></p>
+        </div>
+        <div class="hero-actions">
+          <button type="button" class="hero-btn" id="themeToggle" aria-pressed="false"><span>Dark mode</span></button>
+          <a class="hero-btn" href="{{ route('faculty.schedule.export.ics') }}">Export</a>
+          <button type="button" class="hero-btn hero-btn-gold" id="openAddModal2">+ Add schedule</button>
+        </div>
       </div>
-      <div class="sch-head-actions">
-        <button type="button" class="sch-btn" id="themeToggle" aria-pressed="false"><i class="ti ti-moon" aria-hidden="true"></i><span>Dark mode</span></button>
-        <a class="sch-btn" href="{{ route('faculty.schedule.export.ics') }}"><i class="ti ti-file-export" aria-hidden="true"></i>Export</a>
-        <button type="button" class="sch-btn sch-btn-primary" id="openAddModal2"><i class="ti ti-plus" aria-hidden="true"></i>Add schedule</button>
+      <div class="hero-kpis">
+        <?php foreach ($kpis as $k): ?>
+        <div class="hk">
+          <span class="hk-ic hk-<?= htmlspecialchars($k['c']) ?>"><i class="ti <?= htmlspecialchars($k['i']) ?>" aria-hidden="true"></i></span>
+          <div>
+            <div class="hk-val"><?= htmlspecialchars($k['v']) ?></div>
+            <div class="hk-lab"><?= htmlspecialchars($k['l']) ?></div>
+          </div>
+        </div>
+        <?php endforeach ?>
       </div>
-    </div>
+    </header>
 
     <?php if ($upcoming): ?>
     <section class="next-class" aria-label="Next class">
       <div class="nc-date">
         <span class="nc-day"><?= htmlspecialchars($uStart->format('l')) ?></span>
         <span class="nc-time"><?= htmlspecialchars($uStart->format('g:i')) ?></span>
-        <span class="nc-range"><?= htmlspecialchars($uStart->format('A')) ?><?= $uEnd ? ' - ' . htmlspecialchars($uEnd->format('g:i A')) : '' ?></span>
+        <span class="nc-range"><?= htmlspecialchars($uStart->format('A')) ?></span>
       </div>
       <div class="nc-body">
         <div class="nc-top"><span class="nc-label">Next class</span><span class="nc-pill"><?= htmlspecialchars($nextIn) ?></span></div>
         <h2 class="nc-title"><?= htmlspecialchars($upcoming['subject']) ?></h2>
         <div class="nc-chips">
-          <span class="nc-chip"><i class="ti ti-book-2" aria-hidden="true"></i><?= htmlspecialchars($upcoming['code']) ?></span>
+          <span class="nc-chip"><?= htmlspecialchars($upcoming['code']) ?></span>
+          <?php if ($upcoming['section'] !== ''): ?><span class="nc-chip"><?= htmlspecialchars($upcoming['section']) ?></span><?php endif ?>
           <span class="nc-chip"><i class="ti ti-map-pin" aria-hidden="true"></i><?= htmlspecialchars($upcoming['location']) ?></span>
-          <?php if ($upcoming['section'] !== ''): ?><span class="nc-chip"><i class="ti ti-layout-grid" aria-hidden="true"></i><?= htmlspecialchars($upcoming['section']) ?></span><?php endif ?>
-          <span class="nc-chip"><i class="ti ti-users" aria-hidden="true"></i><?= (int) $upcoming['students'] ?> students</span>
+          <span class="nc-chip"><i class="ti ti-user" aria-hidden="true"></i><?= (int) $upcoming['students'] ?> students</span>
         </div>
       </div>
       <div class="nc-actions">
         <?php if ($nextCard): ?><button type="button" class="nc-btn nc-btn-primary" data-open-class="<?= (int) $nextCard['id'] ?>">View class</button><?php endif ?>
-        <a class="nc-btn" href="{{ route('faculty.attendance') }}">Open attendance</a>
+        <a class="nc-btn" href="{{ route('faculty.attendance') }}">Attendance</a>
       </div>
     </section>
     <?php endif ?>
 
-    <div class="kpi-row">
-      <?php foreach ($kpis as $k): ?>
-      <div class="kpi <?= htmlspecialchars($k['c']) ?>">
-        <div class="kpi-ic"><i class="ti <?= htmlspecialchars($k['i']) ?>" aria-hidden="true"></i></div>
-        <div>
-          <div class="kpi-val"><?= htmlspecialchars($k['v']) ?></div>
-          <div class="kpi-lab"><?= htmlspecialchars($k['l']) ?></div>
-        </div>
-      </div>
-      <?php endforeach ?>
-    </div>
-
     <?php if (!empty($conflictNotes)): $cn = $conflictNotes[0]; ?>
     <div class="conflict-alert" role="alert">
       <i class="ti ti-alert-triangle" aria-hidden="true"></i>
-      <span>Schedule conflict on <?= htmlspecialchars($cn['day']) ?>: two classes overlap from <?= htmlspecialchars($cn['from']) ?> to <?= htmlspecialchars($cn['to']) ?>.<?= count($conflictNotes) > 1 ? ' (+' . (count($conflictNotes) - 1) . ' more)' : '' ?> Move one of them to avoid double booking.</span>
+      <span class="conflict-text">Conflict on <?= htmlspecialchars($cn['day']) ?>: two classes overlap from <?= htmlspecialchars($cn['from']) ?> to <?= htmlspecialchars($cn['to']) ?>.<?= count($conflictNotes) > 1 ? ' (+' . (count($conflictNotes) - 1) . ' more)' : '' ?></span>
+      <button type="button" class="resolve-btn" data-resolve-class="<?= (int) $cn['fix_id'] ?>">Resolve</button>
     </div>
     <?php endif ?>
 
@@ -1421,6 +1529,22 @@ $gridCols = implode(' ', array_map(function ($d) {
         <button class="vs-btn" id="btnTl" type="button">Timeline</button>
       </div>
     </div>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var btn = document.querySelector('[data-resolve-class]');
+      if (!btn) return;
+      btn.addEventListener('click', function () {
+        var card = document.querySelector('.cls-card[data-id="' + btn.getAttribute('data-resolve-class') + '"]');
+        if (!card) return;
+        card.click();
+        setTimeout(function () {
+          var wrap = document.getElementById('sessionEditWrap');
+          var toggle = document.getElementById('editToggleBtn');
+          if (wrap && !wrap.hidden && toggle && !toggle.hidden) toggle.click();
+        }, 300);
+      });
+    });
+    </script>
 
 
     <!-- ══════ CALENDAR VIEW ══════ -->
@@ -1460,9 +1584,10 @@ $gridCols = implode(' ', array_map(function ($d) {
       ?>
       <div class="day-col<?= ($day['abbr'] ?? '') === now()->format('D') ? ' today-col' : '' ?>" style="--d:<?= $delay ?>s">
         <div class="day-col-header">
+          <span class="day-date"><?= $monday->copy()->addDays($di)->format('j') ?></span>
           <div class="day-head-text">
             <div class="day-name"><?= htmlspecialchars($day['day']) ?></div>
-            <div class="day-hrs"><?php $cc = count($day['classes']); ?><?= $cc > 0 ? $cc . ' ' . ($cc === 1 ? 'class' : 'classes') . ' &bull; ' . htmlspecialchars($day['total_hrs']) : 'Free day' ?></div>
+            <div class="day-hrs"><?php $cc = count($day['classes']); ?><?= $cc > 0 ? $cc . ' ' . ($cc === 1 ? 'class' : 'classes') . ' &middot; ' . htmlspecialchars($day['total_hrs']) : 'Free day' ?></div>
           </div>
           <?php if (($day['abbr'] ?? '') === now()->format('D')): ?><span class="today-pill">Today</span><?php endif ?>
         </div>
@@ -1494,11 +1619,11 @@ $gridCols = implode(' ', array_map(function ($d) {
                 <?php elseif (!empty($cls['status']) && $cls['status'] === 'ongoing'): ?>
                   <span class="status-badge status-ongoing"><i class="live-dot"></i> Live now</span>
                 <?php elseif (in_array($cls['id'], $conflictIds, true)): ?>
-                  <span class="status-badge status-cancelled"><i class="ti ti-alert-triangle" style="font-size:11px"></i> Conflict</span>
+                  <span class="conflict-tag">Conflict</span>
                 <?php endif ?>
               </div>
               <div class="cls-name"><?= htmlspecialchars($cls['subject']) ?></div>
-              <div class="cls-sub"><?= htmlspecialchars($cls['code']) ?><?= $cls['section'] !== '' ? ' &bull; ' . htmlspecialchars($cls['section']) : '' ?></div>
+              <div class="cls-sub"><?= htmlspecialchars($cls['code']) ?><?= $cls['section'] !== '' ? ' &middot; ' . htmlspecialchars($cls['section']) : '' ?></div>
               <div class="cls-meta">
                 <span class="cls-room"><i class="ti ti-map-pin"></i><?= htmlspecialchars($cls['location']) ?></span>
                 <span class="cls-students" title="Enrolled students"><i class="ti ti-users"></i><span><?= htmlspecialchars($cls['students']) ?></span></span>
