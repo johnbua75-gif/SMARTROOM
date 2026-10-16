@@ -176,7 +176,7 @@ $classroomOptions = collect($classrooms)->map(fn($c) => [
 <title>SmartDoor — Semester Schedule</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
@@ -212,9 +212,9 @@ $classroomOptions = collect($classrooms)->map(fn($c) => [
   --amber:#d97706;--amber-lt:#fffbeb;--amber-bdr:#fcd38a;
   --red:#dc2626;--red-lt:#fef2f2;--red-bdr:#fecaca;
 
-  --ff:'Instrument Sans',sans-serif;
-  --ff-head:'Sora',sans-serif;
-  --ff-mono:'JetBrains Mono',monospace;
+  --ff:'DM Sans',sans-serif;
+  --ff-head:'Plus Jakarta Sans',sans-serif;
+  --ff-mono:'DM Mono',monospace;
   --r:10px;--r2:8px;--r3:6px;
   --shadow-sm:0 1px 2px rgba(0,0,0,.04);
   --shadow:0 4px 12px rgba(0,0,0,.06);
