@@ -911,6 +911,68 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
   .vs-btn{flex:1;justify-content:center}
 }
 @media (prefers-reduced-motion:reduce){.live-dot{animation:none}}
+
+/* ── Refinement pass: calmer hierarchy, fewer boxes, cleaner KPIs ── */
+
+/* KPI cards: icon tile on the left, value + label + note stacked on the right */
+.page-header .stats-grid{gap:14px}
+.stat-card{
+  display:grid;grid-template-columns:52px minmax(0,1fr);
+  grid-template-areas:"ic val" "ic label" "ic sub";
+  column-gap:14px;row-gap:1px;align-items:center;
+  padding:16px 18px;border:0;border-radius:16px;
+  background:rgba(255,255,255,.97);
+  box-shadow:inset 4px 0 0 var(--accent-a),0 10px 28px rgba(7,14,43,.22);
+}
+.stat-card:hover{transform:translateY(-2px);box-shadow:inset 4px 0 0 var(--accent-a),0 14px 32px rgba(7,14,43,.28)}
+.stat-top{display:contents}
+.stat-accent-bar{display:none}
+.stat-ic{grid-area:ic;grid-row:1 / 4;width:52px;height:52px;border-radius:14px;font-size:22px;align-self:center}
+.stat-val{grid-area:val;font-size:2.1rem;line-height:1.05}
+.stat-label{grid-area:label;font-size:.86rem;font-weight:700;color:var(--tx);margin:2px 0 0}
+.stat-sub{grid-area:sub;font-size:.76rem;color:#6b7280}
+
+/* Toolbar: quieter semester tag, clear grouping */
+.toolbar{padding:12px 16px;border-radius:14px}
+.sem-badge{background:var(--surface-2);border-color:var(--border);color:var(--tx-2);font-weight:600}
+.view-switcher{margin-left:4px}
+.tb-action-btn{margin-left:4px}
+
+/* Week columns: one clean header, no duplicated day label */
+.day-col-header{flex-direction:column;align-items:flex-start;gap:3px;padding:14px 16px;flex-wrap:nowrap}
+.day-col .day-abbr{display:none}
+.day-col .day-col-header > div:not(.day-hrs){display:block}
+.day-hrs{margin-left:0;font-size:.78rem;color:var(--tx-3);font-weight:600}
+.day-hrs:empty{display:none}
+.day-hrs i{font-size:12px}
+.day-classes{padding:10px;gap:10px}
+.no-class{padding:28px 10px;font-size:.84rem;color:var(--tx-3)}
+.no-class i{font-size:22px}
+
+/* Class cards: distinct, calm tiles */
+.cls-card{
+  border:1px solid var(--border);border-radius:12px;
+  padding:14px 14px 12px 18px;
+  box-shadow:0 1px 2px rgba(15,23,42,.04);
+}
+.cls-card:last-child{border-bottom:1px solid var(--border)}
+.cls-card:hover{box-shadow:0 6px 16px rgba(15,23,42,.08);transform:translateY(-1px)}
+.cls-card::before{top:10px;bottom:10px;left:6px;width:4px}
+.cls-timebar{margin-bottom:6px}
+.cls-time{font-size:.82rem}
+.cls-name{font-size:1rem;margin-bottom:8px}
+.cls-tags{align-items:center;gap:0;margin-bottom:10px}
+.cls-code{font-size:.72rem;padding:2px 8px}
+.cls-tags .block-badge{background:none;border:0;padding:0;color:var(--tx-2);font-size:.8rem;font-weight:600}
+.cls-tags .block-badge::before{content:'\2022';margin:0 8px;color:var(--tx-4)}
+.cls-meta{border-top:1px solid var(--border);padding-top:10px;margin-top:0;justify-content:space-between;flex-wrap:nowrap}
+.cls-students{margin-left:0}
+.cls-room{min-width:0}
+
+/* Cancelled: dim and badge, no heavy strike-through */
+.cls-card[data-status="cancelled"]{background:#fafafa;opacity:.82}
+.cls-card[data-status="cancelled"] .cls-time{text-decoration:none;color:var(--tx-3)}
+.cls-card[data-status="cancelled"] .cls-name{text-decoration:none;color:var(--tx-2)}
 </style>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -1132,7 +1194,7 @@ document.addEventListener('DOMContentLoaded', function () {
           <div>
             <div class="day-name"><?= htmlspecialchars($day['day']) ?></div>
           </div>
-          <div class="day-hrs"><?php $cc = count($day['classes']); ?><span><?= $cc ?> <?= $cc === 1 ? 'class' : 'classes' ?></span><span class="day-hrs-sep">&middot;</span><i class="ti ti-clock"></i> <?= htmlspecialchars($day['total_hrs']) ?></div>
+          <div class="day-hrs"><?php $cc = count($day['classes']); if ($cc > 0): ?><span><?= $cc ?> <?= $cc === 1 ? 'class' : 'classes' ?></span><span class="day-hrs-sep">&middot;</span><i class="ti ti-clock"></i> <?= htmlspecialchars($day['total_hrs']) ?><?php endif ?></div>
         </div>
         <div class="day-classes">
           <?php if (empty($day['classes'])): ?>
