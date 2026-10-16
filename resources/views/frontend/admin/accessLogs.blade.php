@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SmartLocking – Access Logs</title>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -38,7 +38,7 @@
   --sidebar-w:     240px;
 }
 
-body { font-family: 'Instrument Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; }
+body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; }
 
 /* ══ SIDEBAR ══ */
 .sidebar {
@@ -128,7 +128,7 @@ body { font-family: 'Instrument Sans', sans-serif; background: var(--bg); color:
 }
 .topbar-search:focus-within { border-color: #93c5fd; box-shadow: 0 0 0 3px rgba(59,130,246,0.08); }
 .topbar-search i { color: var(--text-light); font-size: 0.88rem; }
-.topbar-search input { border: none; outline: none; background: transparent; font-size: 0.9rem; font-family: 'Instrument Sans', sans-serif; color: var(--text); width: 100%; }
+.topbar-search input { border: none; outline: none; background: transparent; font-size: 0.9rem; font-family: 'Inter', sans-serif; color: var(--text); width: 100%; }
 .topbar-search input::placeholder { color: var(--text-light); }
 .topbar-right { display: flex; align-items: center; gap: 18px; }
 .notif-btn { position: relative; background: none; border: none; cursor: pointer; color: var(--text-secondary); font-size: 1.15rem; padding: 7px; border-radius: 9px; transition: background 0.2s; }
@@ -165,7 +165,7 @@ body { font-family: 'Instrument Sans', sans-serif; background: var(--bg); color:
 .tab-btn {
   display: flex; align-items: center; gap: 8px;
   padding: 9px 20px; border-radius: 9px; border: none;
-  font-size: 0.86rem; font-weight: 600; font-family: 'Instrument Sans', sans-serif;
+  font-size: 0.86rem; font-weight: 600; font-family: 'Inter', sans-serif;
   cursor: pointer; transition: all 0.2s; color: var(--text-secondary); background: none;
 }
 .tab-btn i { font-size: 0.82rem; }
@@ -202,7 +202,7 @@ body { font-family: 'Instrument Sans', sans-serif; background: var(--bg); color:
   display: flex; align-items: center; gap: 8px;
   background: var(--white); border: 1.5px solid var(--border);
   border-radius: 10px; padding: 9px 14px; font-size: 0.84rem; font-weight: 500;
-  font-family: 'Instrument Sans', sans-serif; color: var(--text); cursor: pointer;
+  font-family: 'Inter', sans-serif; color: var(--text); cursor: pointer;
   transition: border-color 0.2s; box-shadow: var(--shadow); outline: none;
   appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b7280' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px;
@@ -211,7 +211,7 @@ body { font-family: 'Instrument Sans', sans-serif; background: var(--bg); color:
 .date-input {
   background: var(--white); border: 1.5px solid var(--border);
   border-radius: 10px; padding: 9px 14px; font-size: 0.84rem; font-weight: 500;
-  font-family: 'Instrument Sans', sans-serif; color: var(--text); outline: none;
+  font-family: 'Inter', sans-serif; color: var(--text); outline: none;
   box-shadow: var(--shadow); transition: border-color 0.2s;
 }
 .date-input:focus { border-color: #93c5fd; }
@@ -223,12 +223,12 @@ body { font-family: 'Instrument Sans', sans-serif; background: var(--bg); color:
 }
 .search-logs:focus-within { border-color: #93c5fd; }
 .search-logs i { color: var(--text-light); font-size: 0.82rem; }
-.search-logs input { border: none; outline: none; background: transparent; font-size: 0.86rem; font-family: 'Instrument Sans', sans-serif; color: var(--text); width: 100%; }
+.search-logs input { border: none; outline: none; background: transparent; font-size: 0.86rem; font-family: 'Inter', sans-serif; color: var(--text); width: 100%; }
 .search-logs input::placeholder { color: var(--text-light); }
 .btn-export {
   display: flex; align-items: center; gap: 8px; padding: 10px 18px;
   background: var(--navy); color: #fff; border: none; border-radius: 10px;
-  font-size: 0.84rem; font-weight: 700; font-family: 'Instrument Sans', sans-serif;
+  font-size: 0.84rem; font-weight: 700; font-family: 'Inter', sans-serif;
   cursor: pointer; transition: all 0.18s; box-shadow: var(--shadow);
 }
 .btn-export:hover { background: #0a1235; transform: translateY(-1px); }
@@ -346,7 +346,7 @@ body { font-family: 'Instrument Sans', sans-serif; background: var(--bg); color:
 .page-btn {
   width: 34px; height: 34px; border-radius: 8px; border: 1.5px solid var(--border);
   background: #fff; color: var(--text-secondary); cursor: pointer; transition: all 0.18s;
-  font-size: 0.82rem; font-weight: 600; font-family: 'Instrument Sans', sans-serif;
+  font-size: 0.82rem; font-weight: 600; font-family: 'Inter', sans-serif;
   display: flex; align-items: center; justify-content: center;
 }
 .page-btn:hover { border-color: #93c5fd; color: #3b5bdb; }

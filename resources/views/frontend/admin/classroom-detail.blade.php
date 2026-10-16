@@ -6,7 +6,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{ $classroom->name }} – SmartRoom</title>
-  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -36,8 +36,8 @@
     --sidebar-w:      240px;
     --radius:         16px;
     --radius-sm:      10px;
-    --font:           'Instrument Sans', sans-serif;
-    --font-mono:      'JetBrains Mono', monospace;
+    --font:           'Plus Jakarta Sans', sans-serif;
+    --font-mono:      'DM Mono', monospace;
   }
 
   body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; display: flex; }

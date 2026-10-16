@@ -12,12 +12,12 @@
     <title>RFID - SmartDoor</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         :root { --navy:#0b1640; --yellow:#f5c518; --bg:#f0f2f8; --text:#0f1729; --muted:#64748b; --border:#e2e8f0; --green:#15803d; --green-bg:#dcfce7; --red:#b91c1c; --red-bg:#fee2e2; }
         * { box-sizing:border-box; }
-        body { margin:0; background:var(--bg); color:var(--text); font-family:'Instrument Sans',sans-serif; }
+        body { margin:0; background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif; }
         .sidebar { position:fixed; inset:0 auto 0 0; width:230px; height:100vh; padding:0; background:var(--navy); color:#fff; display:flex; flex-direction:column; overflow:hidden; z-index:100; }
         .brand { display:flex; align-items:center; gap:10px; padding:0 12px 24px; border-bottom:1px solid rgba(255,255,255,.1); font-weight:800; font-size:1rem; }
         .brand-mark { display:grid; place-items:center; width:38px; height:38px; border-radius:11px; background:var(--yellow); color:var(--navy); }
@@ -27,7 +27,7 @@
         .nav-link i { width:20px; text-align:center; }
         .main { margin-left:230px; padding:34px 40px 60px; }
         .header { display:flex; justify-content:space-between; align-items:flex-end; gap:20px; margin-bottom:24px; }
-        h1 { margin:0; font:800 1.65rem 'Sora',sans-serif; }
+        h1 { margin:0; font:800 1.65rem 'Plus Jakarta Sans',sans-serif; }
         .subtitle { margin-top:6px; color:var(--muted); }
         .search { display:flex; gap:8px; }
         .search input { min-width:280px; padding:11px 14px; border:1px solid var(--border); border-radius:10px; font:inherit; }
@@ -41,7 +41,7 @@
         .card-row { display:grid; grid-template-columns:1fr auto; gap:14px; padding:15px; border:1px solid var(--border); border-radius:12px; }
         .card-name { font-weight:800; }
         .card-meta { margin-top:4px; color:var(--muted); font-size:.8rem; }
-        .card-code { margin-top:8px; color:#334155; font:500 .78rem 'JetBrains Mono',monospace; }
+        .card-code { margin-top:8px; color:#334155; font:500 .78rem 'DM Mono',monospace; }
         .status { align-self:start; padding:5px 9px; border-radius:999px; font-size:.72rem; font-weight:800; text-transform:capitalize; }
         .status.active { color:var(--green); background:var(--green-bg); }
         .status.inactive,.status.suspended { color:var(--red); background:var(--red-bg); }
@@ -67,7 +67,7 @@
         .header { padding-bottom:22px; border-bottom:1px solid var(--border); }
         .panel { border-radius:16px; box-shadow:0 8px 30px rgba(15,23,42,.07); }
         .panel-head { padding:20px 26px; background:linear-gradient(180deg,#fff,#fbfcfe); }
-        .panel-head h2 { display:flex; align-items:center; gap:10px; color:var(--navy); font:700 1.02rem 'Sora',sans-serif; }
+        .panel-head h2 { display:flex; align-items:center; gap:10px; color:var(--navy); font:700 1.02rem 'Plus Jakarta Sans',sans-serif; }
         .panel-head h2 i { width:34px; height:34px; display:inline-flex; align-items:center; justify-content:center; border-radius:10px; color:var(--navy); background:#fff3c4; font-size:.88rem; }
         .card-list { gap:18px; padding:22px 26px; }
         .rfid-row { display:grid; grid-template-columns:minmax(300px,420px) minmax(0,1fr); gap:28px; align-items:center; padding:22px; border:1px solid var(--border); border-radius:16px; background:#fcfdff; }
@@ -81,7 +81,7 @@
         .rfid-chip { width:44px; height:34px; border-radius:7px; background:linear-gradient(135deg,#f9d84a,#d9a80f); box-shadow:inset 0 0 0 1px rgba(0,0,0,.18),inset 0 8px 0 -4px rgba(255,255,255,.35); }
         .rfid-visual .status { display:inline-flex; align-items:center; gap:6px; padding:6px 11px; backdrop-filter:blur(2px); }
         .rfid-visual .status i { font-size:.72rem; }
-        .rfid-visual-number { font:600 1.25rem 'JetBrains Mono',ui-monospace,monospace; letter-spacing:.14em; overflow-wrap:anywhere; }
+        .rfid-visual-number { font:600 1.25rem 'DM Mono',ui-monospace,monospace; letter-spacing:.14em; overflow-wrap:anywhere; }
         .rfid-visual-bottom { display:flex; align-items:flex-end; justify-content:space-between; gap:12px; }
         .rfid-visual-bottom small { display:block; margin-bottom:3px; color:rgba(255,255,255,.6); font-size:.64rem; letter-spacing:.12em; text-transform:uppercase; }
         .rfid-visual-bottom strong { font-size:.95rem; }
@@ -91,7 +91,7 @@
         .rfid-detail-icon { width:38px; height:38px; flex:0 0 38px; display:flex; align-items:center; justify-content:center; border-radius:11px; color:#273b70; background:#e6ebf8; }
         .rfid-detail dt { margin-bottom:4px; color:var(--muted); font-size:.68rem; font-weight:700; letter-spacing:.07em; text-transform:uppercase; }
         .rfid-detail dd { margin:0; color:var(--text); font-size:.92rem; font-weight:700; overflow-wrap:anywhere; }
-        .rfid-detail dd.mono { font:500 .84rem 'JetBrains Mono',ui-monospace,monospace; }
+        .rfid-detail dd.mono { font:500 .84rem 'DM Mono',ui-monospace,monospace; }
         .rfid-detail dd small { display:block; margin-top:3px; color:var(--muted); font-size:.74rem; font-weight:500; }
         .rfid-detail dd small.bad { color:var(--red); font-weight:700; }
         .empty { padding:48px 20px; }

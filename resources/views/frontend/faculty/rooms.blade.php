@@ -32,7 +32,7 @@ function amenity_icon($amenity) {
 <title>Room Availability – SmartDoor</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -63,8 +63,8 @@ function amenity_icon($amenity) {
   --shadow-md:  0 4px 14px rgba(0,0,0,.06);
   --r-xs: 6px; --r-sm: 8px; --r: 12px; --r-lg: 14px;
   --sidebar-w: 230px;
-  --fh: 'Sora',sans-serif;
-  --fb: 'Instrument Sans',sans-serif;
+  --fh: 'Plus Jakarta Sans',sans-serif;
+  --fb: 'DM Sans',sans-serif;
 }
 
 body { font-family:var(--fb); background:var(--bg); color:var(--text); min-height:100vh; display:flex; -webkit-font-smoothing:antialiased; }
@@ -1161,7 +1161,7 @@ body{
       <div style="position:absolute;inset:0;background:linear-gradient(180deg,transparent 30%,rgba(11,22,64,.4));pointer-events:none"></div>
       <div style="position:relative;z-index:1">
         <div style="font-size:.65rem;font-weight:800;letter-spacing:.16em;opacity:.7;text-transform:uppercase">ROOM SCHEDULE</div>
-        <div style="font-family:'Sora',sans-serif;font-size:1.5rem;font-weight:800;display:flex;align-items:center;gap:8px" id="checkTitle"><i class="fas fa-calendar-alt" style="font-size:.9rem;opacity:.7"></i> <span id="checkRoomName">Room</span></div>
+        <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:1.5rem;font-weight:800;display:flex;align-items:center;gap:8px" id="checkTitle"><i class="fas fa-calendar-alt" style="font-size:.9rem;opacity:.7"></i> <span id="checkRoomName">Room</span></div>
       </div>
       <button type="button" class="reserve-close" id="checkCloseBtn" aria-label="Close" style="position:absolute;top:14px;right:14px;z-index:2;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;backdrop-filter:blur(6px)">
         <i class="fas fa-xmark"></i>

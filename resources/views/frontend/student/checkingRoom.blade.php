@@ -21,7 +21,7 @@ $availableRoomsCount = $classrooms->where('status', 'available')->count();
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root { --gold: #f5c518; --navy: #0b1640; }
     body { background: #f8f9fb; font-family: 'Segoe UI', sans-serif; color: #111827; }
@@ -43,15 +43,15 @@ $availableRoomsCount = $classrooms->where('status', 'available')->count();
       --panel-shadow: 0 1px 3px rgba(15,23,41,.05);
       --panel-shadow-hover: 0 10px 24px rgba(15,23,41,.08);
       --muted: #8891a3;
-      font-family: 'Instrument Sans', 'Segoe UI', sans-serif;
+      font-family: 'DM Sans', 'Segoe UI', sans-serif;
     }
     main h1, main h2, main h3, main h4, main h5, main h6 {
-      font-family: 'Sora', 'Segoe UI', sans-serif;
+      font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
       font-weight: 700; letter-spacing: -0.015em; color: #0f1729;
     }
     main .text-muted { color: var(--muted) !important; }
 
-    .home-topbar-title { font-family:'Sora',sans-serif; font-weight:800; font-size:1.05rem; color:#0f1729; }
+    .home-topbar-title { font-family:'Plus Jakarta Sans',sans-serif; font-weight:800; font-size:1.05rem; color:#0f1729; }
 
     /* ── Campus status banner ─────────────────────── */
     .campus-banner {
@@ -94,7 +94,7 @@ $availableRoomsCount = $classrooms->where('status', 'available')->count();
     .campus-building-header { display:flex; align-items:center; justify-content:space-between; gap:16px; min-height:104px; padding:18px 20px; background:linear-gradient(100deg,rgba(11,22,64,.88),rgba(11,22,64,.42)),url('/images/map.png') center 46%/cover no-repeat; }
     .campus-building-title-group { display:flex; align-items:center; gap:12px; min-width:0; }
     .campus-building-icon { display:grid; width:40px; height:40px; flex:0 0 40px; place-items:center; border:1px solid rgba(255,255,255,.28); border-radius:10px; background:rgba(255,255,255,.14); color:#fff; font-size:1rem; }
-    main.flex-grow-1 .campus-building-title { margin:0; color:#fff; font-family:'Sora',sans-serif; font-size:1rem; font-weight:800; }
+    main.flex-grow-1 .campus-building-title { margin:0; color:#fff; font-family:'Plus Jakarta Sans',sans-serif; font-size:1rem; font-weight:800; }
     .campus-building-subtitle { margin:3px 0 0; color:rgba(255,255,255,.8); font-size:.78rem; }
     .campus-building-body { padding:16px 20px 20px; }
     .campus-building-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; }
@@ -107,7 +107,7 @@ $availableRoomsCount = $classrooms->where('status', 'available')->count();
     .building-availability-state-dot { width:9px; height:9px; flex:0 0 9px; border-radius:50%; background:#16a34a; }
     .building-availability-card.is-unavailable .building-availability-state-dot { background:#dc2626; }
     .building-availability-count { display:flex; align-items:baseline; gap:5px; margin-top:12px; color:#667085; font-size:.78rem; }
-    .building-availability-count strong { color:#0f1729; font-family:'Sora',sans-serif; font-size:1.45rem; line-height:1; }
+    .building-availability-count strong { color:#0f1729; font-family:'Plus Jakarta Sans',sans-serif; font-size:1.45rem; line-height:1; }
     .building-availability-total { margin-left:auto; color:#7b8799; font-size:.72rem; }
     .building-availability-meter { height:5px; margin-top:10px; overflow:hidden; border-radius:999px; background:#e9edf3; }
     .building-availability-meter span { display:block; width:100%; height:100%; border-radius:inherit; background:#16a34a; transform:scaleX(0); transform-origin:left; transition:transform .3s ease; }
@@ -126,7 +126,7 @@ $availableRoomsCount = $classrooms->where('status', 'available')->count();
     .room-card-image img { display:block; width:100%; height:100%; object-fit:cover; }
     .room-card-content { display:flex; flex:1; flex-direction:column; min-width:0; padding:16px 22px 14px; }
     .room-card-heading { display:flex; align-items:flex-start; justify-content:space-between; gap:14px; }
-    .room-card-title { min-width:0; margin:0; color:#0f1729; font-family:'Sora',sans-serif; font-size:1.05rem; font-weight:800; line-height:1.25; }
+    .room-card-title { min-width:0; margin:0; color:#0f1729; font-family:'Plus Jakarta Sans',sans-serif; font-size:1.05rem; font-weight:800; line-height:1.25; }
     .room-card-location { display:flex; align-items:center; gap:6px; margin-top:4px; color:#65718a; font-size:.82rem; line-height:1.35; }
     .room-card-location i { color:#8894a8; }
     .room-card-details { display:grid; grid-template-columns:minmax(128px,.4fr) minmax(0,1fr); gap:12px 20px; margin:10px 0 12px; }
@@ -189,7 +189,7 @@ $availableRoomsCount = $classrooms->where('status', 'available')->count();
     .room-schedule-cover::before { content:''; position:absolute; top:0; left:0; right:0; height:4px; background:var(--gold); z-index:2; }
     .room-schedule-cover-content { position:relative; z-index:1; }
     .room-schedule-cover-kicker { font-size:.7rem; font-weight:800; letter-spacing:.16em; opacity:.8; }
-    .room-schedule-room-number { margin-top:5px; font-family:'Sora',sans-serif; font-size:2rem; font-weight:800; }
+    .room-schedule-room-number { margin-top:5px; font-family:'Plus Jakarta Sans',sans-serif; font-size:2rem; font-weight:800; }
     .room-schedule-close { position:absolute; top:20px; right:24px; z-index:10; width:36px; height:36px; border:1px solid rgba(255,255,255,.2); border-radius:10px; background:rgba(11,22,64,.5); backdrop-filter:blur(4px); color:#fff; cursor:pointer; display:grid; place-items:center; transition:all 0.2s ease; }
     .room-schedule-close:hover { background:#fff; color:var(--navy); transform:translateY(-2px); box-shadow:0 4px 12px rgba(0,0,0,.15); }
     .room-schedule-body { flex:1; overflow-y:auto; padding:24px; background:#f8f9fb; }

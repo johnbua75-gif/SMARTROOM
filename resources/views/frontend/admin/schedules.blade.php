@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Schedule – SmartDoor</title>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -38,7 +38,7 @@
   --sidebar-w:     240px;
 }
 
-body { font-family: 'Instrument Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; }
+body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; }
 
 /* ══════════════════════════════════════════════
    SIDEBAR
@@ -175,7 +175,7 @@ body { font-family: 'Instrument Sans', sans-serif; background: var(--bg); color:
 .btn-filter {
   display: flex; align-items: center; gap: 7px;
   padding: 10px 16px; border-radius: 11px;
-  font-size: 0.84rem; font-weight: 700; letter-spacing: 0.01em; font-family: 'Instrument Sans', sans-serif;
+  font-size: 0.84rem; font-weight: 700; letter-spacing: 0.01em; font-family: 'Inter', sans-serif;
   background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
   color: #334155;
   border: 1px solid #dbe3ef; cursor: pointer;
@@ -203,7 +203,7 @@ body { font-family: 'Instrument Sans', sans-serif; background: var(--bg); color:
 .btn-add {
   display: flex; align-items: center; gap: 8px;
   padding: 10px 18px; border-radius: 11px;
-  font-size: 0.84rem; font-weight: 700; letter-spacing: 0.01em; font-family: 'Instrument Sans', sans-serif;
+  font-size: 0.84rem; font-weight: 700; letter-spacing: 0.01em; font-family: 'Inter', sans-serif;
   background: linear-gradient(135deg, #0b1640 0%, #1a2f80 100%);
   color: #fff; border: 1px solid #1e3a8a; cursor: pointer;
   transition: all 0.2s ease; box-shadow: 0 8px 20px rgba(11,22,64,0.28);
@@ -261,7 +261,7 @@ body { font-family: 'Instrument Sans', sans-serif; background: var(--bg); color:
   font-weight: 700;
   color: var(--text-secondary);
   cursor: pointer;
-  font-family: 'Instrument Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   margin-left: auto;
 }
 .faculty-action:hover { border-color: #93c5fd; color: var(--text); }
@@ -274,7 +274,7 @@ body { font-family: 'Instrument Sans', sans-serif; background: var(--bg); color:
   font-weight: 700;
   color: #b91c1c;
   cursor: pointer;
-  font-family: 'Instrument Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   margin-left: 8px;
 }
 .faculty-delete:hover { border-color: #fca5a5; color: #991b1b; }
@@ -358,7 +358,7 @@ body { font-family: 'Instrument Sans', sans-serif; background: var(--bg); color:
 .faculty-delete-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-secondary); }
 .faculty-delete-select {
   height: 38px; border-radius: 9px; border: 1.5px solid var(--border);
-  padding: 0 10px; font-size: 0.84rem; font-family: 'Instrument Sans', sans-serif;
+  padding: 0 10px; font-size: 0.84rem; font-family: 'Inter', sans-serif;
   color: var(--text); background: var(--bg);
 }
 .faculty-delete-error {
@@ -370,7 +370,7 @@ body { font-family: 'Instrument Sans', sans-serif; background: var(--bg); color:
 .faculty-delete-btn {
   height: 38px; border-radius: 9px; border: 1.5px solid var(--border);
   padding: 0 14px; font-size: 0.82rem; font-weight: 700;
-  font-family: 'Instrument Sans', sans-serif; cursor: pointer;
+  font-family: 'Inter', sans-serif; cursor: pointer;
   background: var(--white); color: var(--text-secondary);
 }
 .faculty-delete-btn.primary { border-color: #b91c1c; background: #b91c1c; color: #fff; }
@@ -413,7 +413,7 @@ body { font-family: 'Instrument Sans', sans-serif; background: var(--bg); color:
 .schedule-search i { color: var(--text-light); font-size: 0.82rem; }
 .schedule-search input {
   border: none; outline: none; background: transparent;
-  width: 100%; color: var(--text); font-size: 0.84rem; font-family: 'Instrument Sans', sans-serif;
+  width: 100%; color: var(--text); font-size: 0.84rem; font-family: 'Inter', sans-serif;
 }
 .schedule-search input::placeholder { color: var(--text-light); }
 
@@ -449,7 +449,7 @@ body { font-family: 'Instrument Sans', sans-serif; background: var(--bg); color:
 .create-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-secondary); }
 .create-input, .create-select {
   height: 38px; border-radius: 9px; border: 1.5px solid var(--border);
-  padding: 0 10px; font-size: 0.84rem; font-family: 'Instrument Sans', sans-serif;
+  padding: 0 10px; font-size: 0.84rem; font-family: 'Inter', sans-serif;
   color: var(--text); background: var(--bg);
 }
 .create-context-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
@@ -468,7 +468,7 @@ body { font-family: 'Instrument Sans', sans-serif; background: var(--bg); color:
 .create-btn {
   height: 38px; border-radius: 9px; border: 1.5px solid var(--border);
   padding: 0 14px; font-size: 0.82rem; font-weight: 700;
-  font-family: 'Instrument Sans', sans-serif; cursor: pointer;
+  font-family: 'Inter', sans-serif; cursor: pointer;
   background: var(--white); color: var(--text-secondary);
 }
 .create-btn.primary { border-color: var(--navy); background: var(--navy); color: #fff; }
@@ -502,7 +502,7 @@ body { font-family: 'Instrument Sans', sans-serif; background: var(--bg); color:
 .edit-label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-secondary); }
 .edit-input, .edit-select {
   height: 38px; border-radius: 9px; border: 1.5px solid var(--border);
-  padding: 0 10px; font-size: 0.84rem; font-family: 'Instrument Sans', sans-serif;
+  padding: 0 10px; font-size: 0.84rem; font-family: 'Inter', sans-serif;
   color: var(--text); background: var(--bg);
 }
 .edit-error {
@@ -514,7 +514,7 @@ body { font-family: 'Instrument Sans', sans-serif; background: var(--bg); color:
 .edit-btn {
   height: 38px; border-radius: 9px; border: 1.5px solid var(--border);
   padding: 0 14px; font-size: 0.82rem; font-weight: 700;
-  font-family: 'Instrument Sans', sans-serif; cursor: pointer;
+  font-family: 'Inter', sans-serif; cursor: pointer;
   background: var(--white); color: var(--text-secondary);
 }
 .edit-btn.primary { border-color: var(--navy); background: var(--navy); color: #fff; }

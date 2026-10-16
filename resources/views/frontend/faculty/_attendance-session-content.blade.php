@@ -49,7 +49,7 @@ $lateCount    = max(0, ($stats['total'] - $stats['present'] - $stats['absent'] -
 <meta name="csrf-token" content="{{ csrf_token() }}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -68,8 +68,8 @@ $lateCount    = max(0, ($stats['total'] - $stats['present'] - $stats['absent'] -
   --shadow-lg: 0 8px 32px rgba(15,23,41,.10), 0 2px 8px rgba(15,23,41,.06);
   --radius-xs: 6px; --radius-sm: 10px; --radius: 14px; --radius-lg: 18px;
   --sidebar-w: 230px;
-  --font-head: 'Sora', sans-serif;
-  --font-body: 'Instrument Sans', sans-serif;
+  --font-head: 'Plus Jakarta Sans', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
 }
 body { font-family: var(--font-body); background: var(--bg); color: var(--text); min-height: 100vh; display: flex; -webkit-font-smoothing: antialiased; }
 

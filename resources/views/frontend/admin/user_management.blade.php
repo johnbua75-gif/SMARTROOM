@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>User Management – SmartRoom</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
 <style>
@@ -45,7 +45,7 @@
 }
 
 body {
-  font-family: 'Instrument Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
@@ -170,7 +170,7 @@ body {
 }
 .topbar-search:focus-within { border-color: #93c5fd; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
 .topbar-search i { color: var(--text-light); font-size: 0.9rem; }
-.topbar-search input { border: none; outline: none; background: transparent; font-size: 0.9rem; font-family: 'Instrument Sans', sans-serif; color: var(--text); width: 100%; }
+.topbar-search input { border: none; outline: none; background: transparent; font-size: 0.9rem; font-family: 'Inter', sans-serif; color: var(--text); width: 100%; }
 .topbar-search input::placeholder { color: var(--text-light); }
 .topbar-right { display: flex; align-items: center; gap: 20px; }
 .notif-btn { position: relative; background: none; border: none; cursor: pointer; color: var(--text-secondary); font-size: 1.2rem; padding: 6px; border-radius: 8px; transition: background 0.2s; }
@@ -195,7 +195,7 @@ body {
   background: var(--navy); color: #fff;
   font-size: 0.88rem; font-weight: 600;
   padding: 10px 20px; border-radius: 10px;
-  border: none; cursor: pointer; font-family: 'Instrument Sans', sans-serif;
+  border: none; cursor: pointer; font-family: 'Inter', sans-serif;
   transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
   box-shadow: 0 2px 8px rgba(11,22,64,0.18);
   text-decoration: none;
@@ -237,14 +237,14 @@ body {
 }
 .toolbar-search:focus-within { border-color: #93c5fd; }
 .toolbar-search i { color: var(--text-light); font-size: 0.85rem; }
-.toolbar-search input { border: none; outline: none; background: transparent; font-size: 0.88rem; font-family: 'Instrument Sans', sans-serif; color: var(--text); width: 100%; }
+.toolbar-search input { border: none; outline: none; background: transparent; font-size: 0.88rem; font-family: 'Inter', sans-serif; color: var(--text); width: 100%; }
 .toolbar-search input::placeholder { color: var(--text-light); }
 
 .filter-group { display: flex; align-items: center; gap: 8px; margin-left: auto; }
 .filter-select {
   background: var(--bg); border: 1.5px solid var(--border);
   border-radius: 8px; padding: 8px 32px 8px 12px;
-  font-size: 0.85rem; font-family: 'Instrument Sans', sans-serif; font-weight: 500;
+  font-size: 0.85rem; font-family: 'Inter', sans-serif; font-weight: 500;
   color: var(--text); cursor: pointer; outline: none;
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
@@ -358,7 +358,7 @@ tbody td { padding: 14px 24px; font-size: 0.88rem; vertical-align: middle; }
   font-size: 0.84rem; font-weight: 600;
   border: 1.5px solid var(--border); background: var(--bg);
   color: var(--text-secondary); cursor: pointer;
-  transition: all 0.18s; font-family: 'Instrument Sans', sans-serif;
+  transition: all 0.18s; font-family: 'Inter', sans-serif;
 }
 .page-btn:hover { border-color: #93c5fd; color: var(--blue-text); background: var(--blue-bg); }
 .page-btn.active { background: var(--navy); color: #fff; border-color: var(--navy); }
@@ -407,7 +407,7 @@ tbody td { padding: 14px 24px; font-size: 0.88rem; vertical-align: middle; }
 .form-input, .form-select {
   padding: 10px 14px; border-radius: 9px;
   border: 1.5px solid var(--border); background: var(--bg);
-  font-size: 0.88rem; font-family: 'Instrument Sans', sans-serif; color: var(--text);
+  font-size: 0.88rem; font-family: 'Inter', sans-serif; color: var(--text);
   outline: none; transition: border-color 0.2s, box-shadow 0.2s;
 }
 .form-input:focus, .form-select:focus { border-color: #93c5fd; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); background: #fff; }
@@ -423,7 +423,7 @@ tbody td { padding: 14px 24px; font-size: 0.88rem; vertical-align: middle; }
 }
 .btn-cancel {
   padding: 10px 20px; border-radius: 9px;
-  font-size: 0.88rem; font-weight: 600; font-family: 'Instrument Sans', sans-serif;
+  font-size: 0.88rem; font-weight: 600; font-family: 'Inter', sans-serif;
   background: var(--bg); border: 1.5px solid var(--border);
   color: var(--text-secondary); cursor: pointer; transition: all 0.18s;
 }

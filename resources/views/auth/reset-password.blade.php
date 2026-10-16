@@ -23,7 +23,7 @@
             display: grid;
             place-items: center;
             background: var(--bg);
-            font-family: 'Instrument Sans', Arial, sans-serif;
+            font-family: Arial, sans-serif;
             color: var(--text);
             padding: 16px;
         }
@@ -69,10 +69,8 @@
             border: 1px solid #fecaca;
             color: var(--error);
         }
-    input,button{font-family:inherit}
-</style>
+    </style>
 @include('partials.focus-ring')
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="card">

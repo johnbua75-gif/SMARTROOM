@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Sign Up – SmartRoom</title>
-    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet"/>
     <style>
         :root {
             --navy: #0b1640;
@@ -31,7 +31,7 @@
         html { scroll-behavior: smooth; }
 
         body {
-            font-family: 'Instrument Sans', sans-serif;
+            font-family: 'DM Sans', sans-serif;
             background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 100%);
             color: var(--white);
             min-height: 100vh;
@@ -142,7 +142,7 @@
         .panel-icon-wrap svg { width: 44px; height: 44px; }
 
         .panel-brand {
-            font-family: 'Sora', sans-serif;
+            font-family: 'Space Grotesk', sans-serif;
             font-size: 1.75rem;
             font-weight: 700;
             color: var(--white);
@@ -219,7 +219,7 @@
         }
 
         .form-title {
-            font-family: 'Sora', sans-serif;
+            font-family: 'Space Grotesk', sans-serif;
             font-size: 1.65rem;
             font-weight: 700;
             letter-spacing: -0.02em;
@@ -270,7 +270,7 @@
             border: 1px solid rgba(245,197,24,0.12);
             border-radius: 12px;
             color: var(--white);
-            font-family: 'Instrument Sans', sans-serif;
+            font-family: 'DM Sans', sans-serif;
             font-size: 0.92rem;
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             outline: none;
@@ -364,7 +364,7 @@
             border: none;
             border-radius: 12px;
             color: var(--navy);
-            font-family: 'Sora', sans-serif;
+            font-family: 'Space Grotesk', sans-serif;
             font-size: 0.9rem;
             font-weight: 700;
             letter-spacing: 0.3px;
@@ -389,7 +389,7 @@
             border: none;
             border-radius: 12px;
             color: var(--white);
-            font-family: 'Sora', sans-serif;
+            font-family: 'Space Grotesk', sans-serif;
             font-size: 0.9rem;
             font-weight: 600;
             cursor: pointer;

@@ -21,8 +21,8 @@ $stats = $stats ?? [
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
 <style>
@@ -92,8 +92,8 @@ $stats = $stats ?? [
   --sidebar-w:  230px;
 
   /* Fonts */
-  --font-head: 'Sora', sans-serif;
-  --font-body: 'Instrument Sans', sans-serif;
+  --font-head: 'Plus Jakarta Sans', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
 }
 
 body {
@@ -404,14 +404,14 @@ body {
 }
 .welcome-text { position: relative; z-index: 1; }
 .welcome-greeting {
-  font-family: 'Sora', sans-serif;
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 1.65rem; font-weight: 700;
   color: #fff; letter-spacing: -0.03em; line-height: 1.2;
   margin-bottom: 8px;
 }
 .welcome-greeting em { color: #F5B301; font-style: normal; }
 .welcome-sub {
-  font-family: 'Instrument Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 0.9rem; color: rgba(255,255,255,.75); font-weight: 400;
   line-height: 1.5;
 }
@@ -419,7 +419,7 @@ body {
   display: inline-flex; align-items: center; gap: 8px;
   margin-top: 14px; color: rgba(255,255,255,.72);
   font-size: 0.76rem; font-weight: 500;
-  font-family: 'Instrument Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   background: rgba(255,255,255,.14);
   padding: 7px 14px; border-radius: 999px;
   border: 1px solid rgba(255,255,255,.3);
@@ -430,7 +430,7 @@ body {
 .btn-banner {
   display: inline-flex; align-items: center; gap: 8px;
   padding: 11px 18px; border-radius: 11px;
-  font-family: 'Instrument Sans', sans-serif; font-size: 0.84rem; font-weight: 600;
+  font-family: 'Inter', sans-serif; font-size: 0.84rem; font-weight: 600;
   text-decoration: none; cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
 }
@@ -462,7 +462,7 @@ body {
   z-index: 3;
   transform: translateY(80px);
   margin-bottom: 80px;
-  font-family: 'Instrument Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
 }
 
 .stat-card {
@@ -530,7 +530,7 @@ body {
   display: flex; align-items: baseline; gap: 6px;
 }
 .stat-value {
-  font-family: 'Sora', sans-serif;
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 2rem; font-weight: 700;
   letter-spacing: -0.06em; line-height: 1;
   color: #0F1A3C;

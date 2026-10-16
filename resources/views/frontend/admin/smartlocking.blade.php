@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SmartLocking – SmartDoor</title>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -34,7 +34,7 @@
   --sidebar-w:     240px;
 }
 
-body { font-family: 'Instrument Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; }
+body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; }
 
 /* ══════════════════════════════════════════════
    SIDEBAR — EXACT COPY FROM CLASSROOMS
@@ -147,7 +147,7 @@ body { font-family: 'Instrument Sans', sans-serif; background: var(--bg); color:
 }
 .topbar-search:focus-within { border-color: #93c5fd; box-shadow: 0 0 0 3px rgba(59,130,246,0.08); }
 .topbar-search i { color: var(--text-light); font-size: 0.88rem; }
-.topbar-search input { border: none; outline: none; background: transparent; font-size: 0.9rem; font-family: 'Instrument Sans', sans-serif; color: var(--text); width: 100%; }
+.topbar-search input { border: none; outline: none; background: transparent; font-size: 0.9rem; font-family: 'Inter', sans-serif; color: var(--text); width: 100%; }
 .topbar-search input::placeholder { color: var(--text-light); }
 .topbar-right { display: flex; align-items: center; gap: 18px; }
 .notif-btn { position: relative; background: none; border: none; cursor: pointer; color: var(--text-secondary); font-size: 1.15rem; padding: 7px; border-radius: 9px; transition: background 0.2s; }
@@ -186,7 +186,7 @@ body { font-family: 'Instrument Sans', sans-serif; background: var(--bg); color:
 .tab-btn {
   display: flex; align-items: center; gap: 8px;
   padding: 9px 20px; border-radius: 9px; border: none;
-  font-size: 0.86rem; font-weight: 600; font-family: 'Instrument Sans', sans-serif;
+  font-size: 0.86rem; font-weight: 600; font-family: 'Inter', sans-serif;
   cursor: pointer; transition: all 0.2s; color: var(--text-secondary); background: none;
 }
 .tab-btn i { font-size: 0.82rem; }
@@ -197,7 +197,7 @@ body { font-family: 'Instrument Sans', sans-serif; background: var(--bg); color:
 .settings-layout { display: grid; grid-template-columns: 220px 1fr; gap: 20px; align-items: start; }
 .settings-nav, .settings-card { background: var(--white); border: 1.5px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-card); }
 .settings-nav { padding: 8px; }
-.settings-nav-item { width: 100%; display: flex; align-items: center; gap: 10px; border: 0; border-radius: 9px; padding: 11px 12px; color: var(--text-secondary); background: transparent; cursor: pointer; font: 600 0.8rem 'Instrument Sans', sans-serif; text-align: left; }
+.settings-nav-item { width: 100%; display: flex; align-items: center; gap: 10px; border: 0; border-radius: 9px; padding: 11px 12px; color: var(--text-secondary); background: transparent; cursor: pointer; font: 600 0.8rem 'Inter', sans-serif; text-align: left; }
 .settings-nav-item i { width: 18px; text-align: center; }
 .settings-nav-item:hover, .settings-nav-item.active { color: #3b5bdb; background: #eef2ff; }
 .settings-card { padding: 24px; }
@@ -213,7 +213,7 @@ body { font-family: 'Instrument Sans', sans-serif; background: var(--bg); color:
 .settings-section > p { color: var(--text-secondary); font-size: 0.76rem; margin-bottom: 14px; }
 .settings-field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .settings-field { display: grid; gap: 6px; color: var(--text-secondary); font-size: 0.74rem; font-weight: 700; }
-.settings-field input, .settings-field select { width: 100%; border: 1.5px solid var(--border); border-radius: 9px; padding: 10px 11px; outline: none; background: #fff; color: var(--text); font: 0.84rem 'Instrument Sans', sans-serif; }
+.settings-field input, .settings-field select { width: 100%; border: 1.5px solid var(--border); border-radius: 9px; padding: 10px 11px; outline: none; background: #fff; color: var(--text); font: 0.84rem 'Inter', sans-serif; }
 .settings-field input:focus, .settings-field select:focus { border-color: #93c5fd; box-shadow: 0 0 0 3px rgba(59,130,246,0.08); }
 .setting-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 0; }
 .setting-row + .setting-row { border-top: 1px solid #f1f3f7; }
@@ -226,7 +226,7 @@ body { font-family: 'Instrument Sans', sans-serif; background: var(--bg); color:
 .switch input:checked + .switch-slider { background: #3b5bdb; }
 .switch input:checked + .switch-slider::before { transform: translateX(17px); }
 .settings-actions { display: flex; justify-content: flex-end; gap: 9px; padding-top: 20px; }
-.btn-settings-save { display: inline-flex; align-items: center; gap: 8px; border: 0; border-radius: 9px; padding: 10px 15px; color: #fff; background: #3b5bdb; cursor: pointer; font: 700 0.82rem 'Instrument Sans', sans-serif; box-shadow: 0 3px 10px rgba(59,91,219,0.24); }
+.btn-settings-save { display: inline-flex; align-items: center; gap: 8px; border: 0; border-radius: 9px; padding: 10px 15px; color: #fff; background: #3b5bdb; cursor: pointer; font: 700 0.82rem 'Inter', sans-serif; box-shadow: 0 3px 10px rgba(59,91,219,0.24); }
 .btn-settings-save:hover { background: #2f4ac9; }
 @media (max-width:768px) { .settings-layout { grid-template-columns: 1fr; } .settings-nav { display: flex; overflow-x: auto; } .settings-nav-item { white-space: nowrap; } .settings-field-grid { grid-template-columns: 1fr; } .settings-card-header { flex-direction: column; } }
 
@@ -245,12 +245,12 @@ body { font-family: 'Instrument Sans', sans-serif; background: var(--bg); color:
 }
 .search-inline:focus-within { border-color: #93c5fd; }
 .search-inline i { color: var(--text-light); font-size: 0.82rem; }
-.search-inline input { border: none; outline: none; background: transparent; font-size: 0.86rem; font-family: 'Instrument Sans', sans-serif; color: var(--text); width: 100%; }
+.search-inline input { border: none; outline: none; background: transparent; font-size: 0.86rem; font-family: 'Inter', sans-serif; color: var(--text); width: 100%; }
 .search-inline input::placeholder { color: var(--text-light); }
 .btn-add-card {
   display: inline-flex; align-items: center; gap: 8px; border: none; cursor: pointer;
   border-radius: 10px; padding: 10px 15px; background: #3b5bdb; color: #fff;
-  font: 700 0.82rem 'Instrument Sans', sans-serif; box-shadow: 0 3px 10px rgba(59,91,219,0.24);
+  font: 700 0.82rem 'Inter', sans-serif; box-shadow: 0 3px 10px rgba(59,91,219,0.24);
   transition: background 0.18s, transform 0.18s;
 }
 .btn-add-card:hover { background: #2f4ac9; transform: translateY(-1px); }
@@ -264,10 +264,10 @@ body { font-family: 'Instrument Sans', sans-serif; background: var(--bg); color:
 .card-form { display: grid; gap: 14px; padding: 20px 24px 24px; }
 .card-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .card-form label { display: grid; gap: 6px; color: var(--text-secondary); font-size: 0.75rem; font-weight: 700; }
-.card-form input, .card-form select { width: 100%; border: 1.5px solid var(--border); border-radius: 9px; padding: 10px 11px; outline: none; background: #fff; color: var(--text); font: 0.84rem 'Instrument Sans', sans-serif; }
+.card-form input, .card-form select { width: 100%; border: 1.5px solid var(--border); border-radius: 9px; padding: 10px 11px; outline: none; background: #fff; color: var(--text); font: 0.84rem 'Inter', sans-serif; }
 .card-form input:focus, .card-form select:focus { border-color: #93c5fd; box-shadow: 0 0 0 3px rgba(59,130,246,0.08); }
 .card-form-actions { display: flex; justify-content: flex-end; gap: 9px; margin-top: 4px; }
-.btn-modal-cancel { border: 1px solid var(--border); background: #fff; color: var(--text-secondary); border-radius: 9px; padding: 10px 14px; cursor: pointer; font: 700 0.82rem 'Instrument Sans', sans-serif; }
+.btn-modal-cancel { border: 1px solid var(--border); background: #fff; color: var(--text-secondary); border-radius: 9px; padding: 10px 14px; cursor: pointer; font: 700 0.82rem 'Inter', sans-serif; }
 .form-errors { display: none; padding: 10px 12px; border: 1px solid #fecaca; border-radius: 9px; background: var(--red-bg); color: #991b1b; font-size: 0.76rem; line-height: 1.45; }
 .form-errors.is-visible { display: block; }
 @media (max-width:768px) { .section-header { flex-direction: column; } .section-header-left { width: 100%; } .search-inline { width: 100%; } .card-form-grid { grid-template-columns: 1fr; } }
@@ -369,7 +369,7 @@ body { font-family: 'Instrument Sans', sans-serif; background: var(--bg); color:
 .btn-reissue, .btn-deactivate, .btn-activate {
   flex: 1; display: flex; align-items: center; justify-content: center;
   padding: 11px; border-radius: 10px; cursor: pointer; text-decoration: none;
-  font-size: 0.84rem; font-weight: 700; font-family: 'Instrument Sans', sans-serif; transition: all 0.18s;
+  font-size: 0.84rem; font-weight: 700; font-family: 'Inter', sans-serif; transition: all 0.18s;
 }
 .btn-reissue { border: none; background: #3b5bdb; color: #fff; }
 .btn-reissue:hover { background: #2f4ac9; }

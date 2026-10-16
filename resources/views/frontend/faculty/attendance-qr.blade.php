@@ -8,8 +8,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Attendance QR</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<style>body{font-family:'Instrument Sans',system-ui,sans-serif}</style>
 </head>
 <body class="p-4">
   <div class="container">

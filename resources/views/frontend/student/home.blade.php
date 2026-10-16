@@ -25,7 +25,7 @@ $nav = [
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
 /* Sidebar */
     #sidebar { width: 230px; min-height: 100vh; background: #fff; border-right: 1px solid #e8eaf0; }
@@ -44,10 +44,10 @@ $nav = [
       --panel-shadow-hover: 0 10px 24px rgba(15,23,41,.08);
       --muted: #8891a3;
       --muted-2: #b0b8c7;
-      font-family: 'Instrument Sans', 'Segoe UI', sans-serif;
+      font-family: 'DM Sans', 'Segoe UI', sans-serif;
     }
     main h1, main h2, main h3, main h4, main h5, main h6 {
-      font-family: 'Sora', 'Segoe UI', sans-serif;
+      font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
       font-weight: 700; letter-spacing: -0.015em; color: #0f1729;
     }
     main .text-muted { color: var(--muted) !important; }
@@ -59,7 +59,7 @@ $nav = [
     main .shadow-sm { box-shadow: var(--panel-shadow) !important; }
 
     /* Topbar */
-    .home-topbar-title { font-family:'Sora',sans-serif; font-weight:800; font-size:1.05rem; color:#0f1729; }
+    .home-topbar-title { font-family:'Plus Jakarta Sans',sans-serif; font-weight:800; font-size:1.05rem; color:#0f1729; }
     .home-topbar-pill {
       display:inline-flex; align-items:center; gap:6px;
       font-size:.76rem; font-weight:600; color: var(--navy);
@@ -118,7 +118,7 @@ $nav = [
     .stat-card[data-tone="navy"]  .stat-icon-chip { background:#e9ecfa; color: var(--navy); }
     .stat-card[data-tone="green"] .stat-icon-chip { background:#e2f7ec; color:#0f9d58; }
 
-    .stat-card .stat-value { font-family:'Sora',sans-serif; font-size:1.7rem; font-weight:800; color:#0f1729; line-height:1; position:relative; z-index:1; }
+    .stat-card .stat-value { font-family:'Plus Jakarta Sans',sans-serif; font-size:1.7rem; font-weight:800; color:#0f1729; line-height:1; position:relative; z-index:1; }
     .stat-card .stat-label { color: var(--muted); font-size:.8rem; font-weight:500; margin-top:6px; position:relative; z-index:1; }
 
     /* ── Next Class Banner ────────────────────────── */
@@ -140,7 +140,7 @@ $nav = [
     .next-banner .btn-nav:hover { background: rgba(255,255,255,.8); }
 
     /* ── Panels ───────────────────────────────────── */
-    .panel-title { font-family:'Sora',sans-serif; font-weight:700; font-size:.95rem; color:#0f1729; }
+    .panel-title { font-family:'Plus Jakarta Sans',sans-serif; font-weight:700; font-size:.95rem; color:#0f1729; }
 
     /* ── Schedule rows ────────────────────────────── */
     .schedule-row {
@@ -182,7 +182,7 @@ $nav = [
       padding: 18px 20px 14px; border-bottom: 1px solid var(--panel-border);
     }
     .student-notification-header h2 {
-      margin: 0; font-size: 1rem; color: #0f1729; font-family:'Sora',sans-serif;
+      margin: 0; font-size: 1rem; color: #0f1729; font-family:'Plus Jakarta Sans',sans-serif;
     }
     .student-notification-badge {
       display: inline-flex; align-items: center; gap: 6px;
