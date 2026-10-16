@@ -98,7 +98,9 @@ class ScheduleController extends Controller
             $request->validated()
         );
 
-        return redirect()->route('faculty.schedule')->with('status', 'Class cancelled successfully. The room is available for other teachers during this time.');
+        return redirect()
+            ->route('faculty.schedule', ['week' => $schedule->start_at?->copy()->startOfWeek()->toDateString()])
+            ->with('status', 'Class cancelled successfully. The room is available for other teachers during this time.');
     }
 
     public function facultyUpdate(FacultyUpdateScheduleRequest $request, Schedule $schedule): RedirectResponse
@@ -110,7 +112,7 @@ class ScheduleController extends Controller
         );
         $updated->loadMissing('classroom');
 
-        return redirect()->route('faculty.schedule')->with(
+        return redirect()->route('faculty.schedule', ['week' => $updated->start_at->copy()->startOfWeek()->toDateString()])->with(
             'status',
             'Class moved to '.$updated->start_at->format('D, M j').', '
             .$updated->start_at->format('g:i A').' - '.$updated->end_at->format('g:i A')

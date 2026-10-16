@@ -135,7 +135,7 @@ it('cancels one class occurrence with a reason and releases its room slot', func
         ->patch(route('faculty.schedule.cancel', $schedule), [
             'cancellation_reason' => 'Emergency faculty absence',
         ])
-        ->assertRedirect(route('faculty.schedule'))
+        ->assertRedirect(route('faculty.schedule', ['week' => '2026-04-06']))
         ->assertSessionHas('status');
 
     expect($schedule->refresh()->status)->toBe('cancelled')
@@ -193,7 +193,7 @@ it('lets an instructor move one class to a new date, time and room', function ()
         'start_time' => '13:00',
         'end_time' => '15:00',
         'classroom_id' => $roomB->id,
-    ])->assertRedirect(route('faculty.schedule'))->assertSessionHas('status');
+    ])->assertRedirect(route('faculty.schedule', ['week' => '2026-04-06']))->assertSessionHas('status');
 
     $schedule->refresh();
     expect($schedule->start_at->format('Y-m-d H:i'))->toBe('2026-04-09 13:00')
@@ -319,4 +319,61 @@ it('does not allow editing a cancelled class or one that already started', funct
     ])->assertSessionHasErrors('schedule');
 
     expect($started->refresh()->start_at->format('Y-m-d H:i'))->toBe('2026-04-06 07:00');
+});
+
+// ── Faculty: the grid is a real calendar week ────────────────────────────────
+
+it('shows a moved class only in the week it now belongs to, not in its old slot', function () {
+    [$faculty, , $roomB, , $schedule] = movableClassFixture();   // Wed 2026-04-08 09:00-11:00, "now" is 2026-04-06
+
+    $weekOf = fn (string $monday) => actingAs($faculty)->get(route('faculty.schedule', ['week' => $monday]));
+    $marker = 'data-id="'.$schedule->id.'"';
+
+    $weekOf('2026-04-06')->assertOk()->assertSee($marker, false);
+    $weekOf('2026-04-13')->assertOk()->assertDontSee($marker, false);
+
+    // Move it to Thursday of the NEXT week.
+    moveClass($faculty, $schedule, [
+        'date' => '2026-04-16',
+        'start_time' => '13:00',
+        'end_time' => '15:00',
+        'classroom_id' => $roomB->id,
+    ])->assertRedirect(route('faculty.schedule', ['week' => '2026-04-13']));
+
+    $weekOf('2026-04-06')->assertOk()->assertDontSee($marker, false);   // old slot is gone
+    $weekOf('2026-04-13')->assertOk()->assertSee($marker, false);       // and it shows in its new week
+});
+
+it('shows a different set of classes when navigating weeks and highlights today only in the current week', function () {
+    [$faculty, $roomA, , $course, $schedule] = movableClassFixture();
+    $nextWeek = Schedule::query()->create([
+        'classroom_id' => $roomA->id,
+        'course_id' => $course->id,
+        'start_at' => '2026-04-15 09:00:00',
+        'end_at' => '2026-04-15 11:00:00',
+        'status' => 'scheduled',
+        'day_of_week' => 3,
+        'enrolled' => 20,
+    ]);
+
+    actingAs($faculty)->get(route('faculty.schedule', ['week' => '2026-04-06']))
+        ->assertOk()
+        ->assertSee('data-id="'.$schedule->id.'"', false)
+        ->assertDontSee('data-id="'.$nextWeek->id.'"', false)
+        ->assertSee('class="today-pill"', false);
+
+    actingAs($faculty)->get(route('faculty.schedule', ['week' => '2026-04-13']))
+        ->assertOk()
+        ->assertSee('data-id="'.$nextWeek->id.'"', false)
+        ->assertDontSee('data-id="'.$schedule->id.'"', false)
+        ->assertDontSee('class="today-pill"', false)
+        ->assertSee('This week');
+});
+
+it('ignores a malformed week parameter and falls back to the current week', function () {
+    [$faculty, , , , $schedule] = movableClassFixture();
+
+    actingAs($faculty)->get(route('faculty.schedule', ['week' => 'not-a-date']))
+        ->assertOk()
+        ->assertSee('data-id="'.$schedule->id.'"', false);
 });

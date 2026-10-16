@@ -23,7 +23,16 @@ $dayMeta = [
 
 // Calculate current week date range
 $now = now();
-$monday = $now->copy()->startOfWeek();
+$thisMonday = $now->copy()->startOfWeek();
+$monday = $thisMonday->copy();
+$weekParam = request()->query('week');
+if (is_string($weekParam) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $weekParam)) {
+  try { $monday = \Carbon\Carbon::parse($weekParam)->startOfWeek(); } catch (\Throwable $e) { $monday = $thisMonday->copy(); }
+}
+$isCurrentWeek = $monday->toDateString() === $thisMonday->toDateString();
+$weekEndsAt = $monday->copy()->addDays(6)->endOfDay();
+$prevWeek = $monday->copy()->subWeek()->toDateString();
+$nextWeek = $monday->copy()->addWeek()->toDateString();
 $friday = $monday->copy()->addDays(4);
 $weekRange = $monday->format('M d') . ' – ' . $friday->format('M d, Y');
 
@@ -81,21 +90,17 @@ foreach ($facultySchedules as $entry) {
 
   $calendarSchedule[] = $classData;
 
-  // Keep the weekly grid deduplicated so repeated semester occurrences don't stack visually.
+  // The grid is a real calendar week: only occurrences that fall inside the selected week are shown,
+  // so moving or cancelling a class changes exactly what you see on that day.
+  if (!$start->between($monday, $weekEndsAt)) continue;
+
   $weekKey = sprintf('%s|%s|%s|%s', $courseCode, $start->format('H:i'), $end?->format('H:i') ?? '', (int) ($entry->classroom_id ?? 0));
   if (!isset($byDay[$isoDay]['seen'][$weekKey])) {
-    $byDay[$isoDay]['seen'][$weekKey] = count($byDay[$isoDay]['classes']);
+    $byDay[$isoDay]['seen'][$weekKey] = true;
     if ($end) {
       $byDay[$isoDay]['total_minutes'] += max(0, $start->diffInMinutes($end));
     }
     $byDay[$isoDay]['classes'][] = $classData;
-  } else {
-    // Prefer the next upcoming occurrence of a weekly slot over one that already happened.
-    $slotIndex = $byDay[$isoDay]['seen'][$weekKey];
-    $shown = $byDay[$isoDay]['classes'][$slotIndex];
-    if (($shown['sort_at'] ?? 0) < $now->timestamp && $classData['sort_at'] >= $now->timestamp) {
-      $byDay[$isoDay]['classes'][$slotIndex] = $classData;
-    }
   }
 }
 
@@ -125,14 +130,12 @@ $classesPerWeek = array_reduce(
   0
 );
 
-// Calculate total students from deduplicated schedules (count per-subject only once)
+// Total students: count each subject once across the whole semester (not only the visible week)
 $uniqueStudentCounts = [];
-foreach ($schedule as $dayData) {
-  foreach ($dayData['classes'] as $cls) {
-    $courseKey = $cls['code'];
-    if (!isset($uniqueStudentCounts[$courseKey])) {
-      $uniqueStudentCounts[$courseKey] = $cls['students'];
-    }
+foreach ($calendarSchedule as $cls) {
+  $courseKey = $cls['code'];
+  if (!isset($uniqueStudentCounts[$courseKey])) {
+    $uniqueStudentCounts[$courseKey] = $cls['students'];
   }
 }
 $totalUniqueStudents = array_sum($uniqueStudentCounts);
@@ -1204,6 +1207,13 @@ html[data-theme="dark"] .cls-card.has-conflict{border-color:#7a2a30;background:#
 .cls-sub{margin-bottom:10px;font-size:.8rem;color:var(--tx-3)}
 .cls-meta{font-size:.8rem}
 
+.week-nav{display:inline-flex;align-items:center;gap:6px;margin-left:auto}
+.wk-btn{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border:1px solid var(--border);border-radius:10px;background:var(--surface);color:var(--tx-2);text-decoration:none;font-size:16px;transition:background-color .15s,border-color .15s}
+.wk-btn:hover{background:var(--surface-2);border-color:var(--border-2);color:var(--tx)}
+.wk-label{min-width:150px;padding:0 6px;text-align:center;font-size:.9rem;font-weight:700;color:var(--tx)}
+.wk-today{display:inline-flex;align-items:center;height:38px;padding:0 14px;border:1px solid var(--blue-bdr);border-radius:10px;background:var(--blue-lt);color:var(--blue-dk);text-decoration:none;font-size:.84rem;font-weight:700}
+.wk-today:hover{background:#dde9ff}
+@media (max-width:900px){.week-nav{margin-left:0;order:3;width:100%;justify-content:center}}
 @media (max-width:1180px){
   .hero-kpis{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
   .next-class{grid-template-columns:1fr}
@@ -1426,7 +1436,7 @@ if ($upcoming) {
   $uEnd = !empty($upcoming['end_at']) ? \Carbon\Carbon::parse($upcoming['end_at']) : null;
   $dayIdx = $uStart->dayOfWeekIso - 1;
   foreach (($schedule[$dayIdx]['classes'] ?? []) as $c) {
-    if ($c['code'] === $upcoming['code'] && \Carbon\Carbon::parse($c['start_at'])->format('H:i') === $uStart->format('H:i')) { $nextCard = $c; break; }
+    if ((int) $c['id'] === (int) $upcoming['id']) { $nextCard = $c; break; }
   }
   $daysAway = (int) round(abs($nowTs->copy()->startOfDay()->diffInDays($uStart->copy()->startOfDay())));
   if ($daysAway === 0) {
@@ -1455,9 +1465,9 @@ $kpis = [
 ];
 
 // Day column widths: busy days get more room, free days stay narrow
-$gridCols = implode(' ', array_map(function ($d) {
+$gridCols = implode(' ', array_map(function ($d) use ($isCurrentWeek) {
   if (!empty($d['classes'])) return 'minmax(0,1.6fr)';
-  return (($d['abbr'] ?? '') === now()->format('D')) ? 'minmax(118px,.9fr)' : 'minmax(112px,.65fr)';
+  return ($isCurrentWeek && ($d['abbr'] ?? '') === now()->format('D')) ? 'minmax(118px,.9fr)' : 'minmax(112px,.65fr)';
 }, $schedule));
 ?>
     <header class="sch-hero">
@@ -1504,7 +1514,7 @@ $gridCols = implode(' ', array_map(function ($d) {
         </div>
       </div>
       <div class="nc-actions">
-        <?php if ($nextCard): ?><button type="button" class="nc-btn nc-btn-primary" data-open-class="<?= (int) $nextCard['id'] ?>">View class</button><?php endif ?>
+        <?php if ($nextCard): ?><button type="button" class="nc-btn nc-btn-primary" data-open-class="<?= (int) $nextCard['id'] ?>">View class</button><?php else: ?><a class="nc-btn nc-btn-primary" href="{{ route('faculty.schedule', ['week' => $uStart->copy()->startOfWeek()->toDateString()]) }}">View class</a><?php endif ?>
         <a class="nc-btn" href="{{ route('faculty.attendance') }}">Attendance</a>
       </div>
     </section>
@@ -1523,6 +1533,12 @@ $gridCols = implode(' ', array_map(function ($d) {
         <i class="ti ti-search" aria-hidden="true"></i>
         <input type="text" id="classFilter" placeholder="Filter by subject, room or block" aria-label="Filter classes by subject, room or block">
       </label>
+      <nav class="week-nav" aria-label="Week navigation">
+        <a class="wk-btn" href="{{ route('faculty.schedule', ['week' => $prevWeek]) }}" aria-label="Previous week"><i class="ti ti-chevron-left" aria-hidden="true"></i></a>
+        <span class="wk-label"><?= htmlspecialchars($monday->format('M j')) ?> - <?= htmlspecialchars($friday->format('M j, Y')) ?></span>
+        <a class="wk-btn" href="{{ route('faculty.schedule', ['week' => $nextWeek]) }}" aria-label="Next week"><i class="ti ti-chevron-right" aria-hidden="true"></i></a>
+        <?php if (!$isCurrentWeek): ?><a class="wk-today" href="{{ route('faculty.schedule') }}">This week</a><?php endif ?>
+      </nav>
       <div class="view-switcher" role="group" aria-label="Schedule view">
         <button class="vs-btn active" id="btnGrid" type="button">Grid</button>
         <button class="vs-btn" id="btnCal" type="button">Calendar</button>
@@ -1582,14 +1598,14 @@ $gridCols = implode(' ', array_map(function ($d) {
       <?php foreach ($schedule as $di => $day):
         $delay = round(.14 + $di * .05, 2);
       ?>
-      <div class="day-col<?= ($day['abbr'] ?? '') === now()->format('D') ? ' today-col' : '' ?>" style="--d:<?= $delay ?>s">
+      <div class="day-col<?= ($isCurrentWeek && ($day['abbr'] ?? '') === now()->format('D')) ? ' today-col' : '' ?>" style="--d:<?= $delay ?>s">
         <div class="day-col-header">
           <span class="day-date"><?= $monday->copy()->addDays($di)->format('j') ?></span>
           <div class="day-head-text">
             <div class="day-name"><?= htmlspecialchars($day['day']) ?></div>
             <div class="day-hrs"><?php $cc = count($day['classes']); ?><?= $cc > 0 ? $cc . ' ' . ($cc === 1 ? 'class' : 'classes') . ' &middot; ' . htmlspecialchars($day['total_hrs']) : 'Free day' ?></div>
           </div>
-          <?php if (($day['abbr'] ?? '') === now()->format('D')): ?><span class="today-pill">Today</span><?php endif ?>
+          <?php if ($isCurrentWeek && ($day['abbr'] ?? '') === now()->format('D')): ?><span class="today-pill">Today</span><?php endif ?>
         </div>
         <div class="day-classes">
           <?php if (empty($day['classes'])): ?>
@@ -2167,6 +2183,8 @@ function setView(v) {
   calView.style.display  = v==='cal'  ? 'block' : 'none';
   tlView.style.display   = v==='tl'   ? 'flex' : 'none';
   tlView.style.flexDirection = 'column';
+  const weekNav = document.querySelector('.week-nav');
+  if (weekNav) weekNav.style.display = v === 'cal' ? 'none' : '';
   btnGrid.classList.toggle('active', v==='grid');
   btnCal.classList.toggle('active', v==='cal');
   btnTl.classList.toggle('active', v==='tl');
