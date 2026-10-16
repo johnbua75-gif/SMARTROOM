@@ -840,7 +840,89 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
 @media(max-width:680px){.sched-grid{grid-template-columns:1fr}.content{padding:16px 14px 40px}.page-header{margin:-16px -14px 0;padding:24px 20px;min-height:190px}.form-grid{grid-template-columns:1fr}.form-row{grid-template-columns:1fr}.stats-grid{grid-template-columns:1fr 1fr}}
 
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ══════════════════════════════════════
+   SCHEDULE DESIGN REFRESH
+   Clearer hierarchy, larger readable type, today highlight, better class cards
+══════════════════════════════════════ */
+.page-header{min-height:240px}
+.ph-icon{width:52px;height:52px;font-size:1.25rem}
+.ph-title h1{font-size:1.75rem}
+.ph-title p{font-size:.92rem;color:rgba(255,255,255,.88)}
+.stats-grid{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+.stat-card{padding:18px 18px 16px;box-shadow:0 8px 24px rgba(7,14,43,.2)}
+.stat-val{font-size:2rem}
+.stat-label{font-size:.84rem;color:var(--tx-2);font-weight:700;margin-bottom:3px}
+.stat-sub{font-size:.76rem;color:#6b7280}
+.stat-ic{width:40px;height:40px;font-size:18px;border-radius:11px}
+
+.toolbar{padding:12px 16px;gap:12px;flex-wrap:wrap;box-shadow:var(--shadow-sm)}
+.search-box{flex:0 1 300px;padding:9px 14px}
+.search-box input{font-size:.9rem}
+.sem-badge{font-size:.82rem;padding:9px 14px;border-radius:8px}
+.vs-btn{font-size:.84rem;padding:8px 14px;min-height:36px}
+.tb-action-btn,.tb-add-btn{font-size:.85rem;padding:9px 16px;min-height:40px}
+
+.sched-grid{grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.day-col{border-radius:14px;box-shadow:var(--shadow-sm)}
+.day-col-header{padding:14px;background:linear-gradient(180deg,#fff,var(--surface-2));flex-wrap:wrap}
+.day-abbr{width:36px;height:36px;border-radius:10px;font-size:.76rem}
+.day-name{font-size:1rem}
+.day-hrs{font-size:.76rem;color:var(--tx-2);font-weight:600;gap:5px;flex-wrap:wrap}
+.day-hrs-sep{opacity:.5}
+.day-col.today-col{border-color:var(--blue-bdr);box-shadow:0 0 0 3px rgba(37,99,235,.12),var(--shadow-sm)}
+.day-col.today-col .day-col-header{background:var(--blue-lt)}
+.today-col .day-name::after{content:'Today';margin-left:8px;padding:2px 8px;border-radius:999px;background:var(--blue);color:#fff;font:700 .62rem var(--ff);letter-spacing:.05em;text-transform:uppercase;vertical-align:middle}
+.no-class{padding:38px 14px;font-size:.86rem;color:var(--tx-3)}
+.no-class i{font-size:24px;opacity:.35}
+
+.cls-card{padding:16px 16px 16px 18px}
+.cls-card:focus-visible{outline:3px solid #6785d4;outline-offset:-3px}
+.cls-timebar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+.cls-time{display:inline-flex;align-items:center;gap:6px;font-family:var(--ff);font-size:.88rem;font-weight:700;color:var(--card-txt)}
+.cls-time i{font-size:15px}
+.cls-name{font-size:.97rem;font-weight:700;line-height:1.35;margin-bottom:10px}
+.cls-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.cls-code{font-size:.74rem;padding:3px 9px}
+.block-badge{font-size:.76rem}
+.cls-meta{gap:10px;flex-wrap:wrap;justify-content:flex-start}
+.cls-room,.cls-students{font-size:.82rem;color:var(--tx-2)}
+.cls-room i,.cls-students i{font-size:13px}
+.cls-students{margin-left:auto}
+.cls-students span{font-size:.84rem}
+.status-badge{font-size:.74rem;padding:3px 9px;font-weight:700}
+.live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:currentColor;animation:livepulse 1.6s ease-in-out infinite}
+@keyframes livepulse{0%,100%{opacity:1}50%{opacity:.35}}
+.cls-card[data-status="cancelled"]{background:#fffafa}
+.cls-card[data-status="cancelled"]::before{background:var(--red)}
+.cls-card[data-status="cancelled"] .cls-name,.cls-card[data-status="cancelled"] .cls-time{text-decoration:line-through;color:var(--tx-3)}
+
+.tl-time-start{font-size:.86rem}.tl-time-end{font-size:.76rem}.tl-subj{font-size:.95rem}.tl-sub{font-size:.8rem}.tl-code-tag{font-size:.72rem}
+.cal-weekday{font-size:.72rem}.cal-day-num{font-size:.88rem}.cal-sub{font-size:.8rem}
+.section-h2{font-size:1rem}.sc-name{font-size:.92rem}.sc-code-tag{font-size:.74rem}.sc-row{font-size:.8rem}
+
+@media (max-width:768px){
+  .page-header{min-height:0}
+  .ph-title h1{font-size:1.4rem}
+  .toolbar{padding:12px}
+  .search-box{flex:1 1 100%}
+  .spacer{display:none}
+  .view-switcher{flex:1 1 100%;justify-content:space-between}
+  .vs-btn{flex:1;justify-content:center}
+}
+@media (prefers-reduced-motion:reduce){.live-dot{animation:none}}
 </style>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('.cls-card, .tl-item').forEach(function (el) {
+    el.tabIndex = 0;
+    el.setAttribute('role', 'button');
+    el.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el.click(); }
+    });
+  });
+});
+</script>
 @include('partials.pro-motion')
 </head>
 <body>
@@ -1044,13 +1126,13 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
       <?php foreach ($schedule as $di => $day):
         $delay = round(.14 + $di * .05, 2);
       ?>
-      <div class="day-col" style="--d:<?= $delay ?>s">
+      <div class="day-col<?= ($day['abbr'] ?? '') === now()->format('D') ? ' today-col' : '' ?>" style="--d:<?= $delay ?>s">
         <div class="day-col-header">
           <div class="day-abbr"><?= htmlspecialchars($day['abbr']) ?></div>
           <div>
             <div class="day-name"><?= htmlspecialchars($day['day']) ?></div>
           </div>
-          <div class="day-hrs"><i class="ti ti-clock"></i> <?= htmlspecialchars($day['total_hrs']) ?></div>
+          <div class="day-hrs"><?php $cc = count($day['classes']); ?><span><?= $cc ?> <?= $cc === 1 ? 'class' : 'classes' ?></span><span class="day-hrs-sep">&middot;</span><i class="ti ti-clock"></i> <?= htmlspecialchars($day['total_hrs']) ?></div>
         </div>
         <div class="day-classes">
           <?php if (empty($day['classes'])): ?>
@@ -1073,20 +1155,22 @@ body{font-family:var(--ff);background:var(--bg);color:var(--tx);display:flex;min
               data-end-at="<?= htmlspecialchars((string) $cls['end_at']) ?>"
               data-status="<?= htmlspecialchars($cls['status']) ?>"
               data-color="<?= htmlspecialchars($cls['color']) ?>">
-              <div class="cls-top">
-                <span class="cls-code"><?= htmlspecialchars($cls['code']) ?></span>
-                <?php if ($cls['section'] !== ''): ?><span class="block-badge"><?= htmlspecialchars($cls['section']) ?></span><?php endif ?>
+              <div class="cls-timebar">
+                <span class="cls-time"><i class="ti ti-clock"></i><?= htmlspecialchars($cls['duration']) ?></span>
                 <?php if (!empty($cls['status']) && $cls['status'] === 'cancelled'): ?>
                   <span class="status-badge status-cancelled"><i class="ti ti-x" style="font-size:11px"></i> Cancelled</span>
                 <?php elseif (!empty($cls['status']) && $cls['status'] === 'ongoing'): ?>
-                  <span class="status-badge status-ongoing">Live</span>
+                  <span class="status-badge status-ongoing"><i class="live-dot"></i> Live now</span>
                 <?php endif ?>
-                <span class="cls-time"><?= htmlspecialchars($cls['time']) ?></span>
               </div>
               <div class="cls-name"><?= htmlspecialchars($cls['subject']) ?></div>
+              <div class="cls-tags">
+                <span class="cls-code"><?= htmlspecialchars($cls['code']) ?></span>
+                <?php if ($cls['section'] !== ''): ?><span class="block-badge"><?= htmlspecialchars($cls['section']) ?></span><?php endif ?>
+              </div>
               <div class="cls-meta">
                 <span class="cls-room"><i class="ti ti-map-pin"></i><?= htmlspecialchars($cls['location']) ?></span>
-                <span class="cls-students"><i class="ti ti-users"></i><span><?= htmlspecialchars($cls['students']) ?></span></span>
+                <span class="cls-students" title="Enrolled students"><i class="ti ti-users"></i><span><?= htmlspecialchars($cls['students']) ?></span></span>
               </div>
             </div>
             <?php endforeach ?>
