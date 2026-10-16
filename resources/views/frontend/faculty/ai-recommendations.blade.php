@@ -11,7 +11,7 @@ $facultyInitials = $facultyInitials !== '' ? $facultyInitials : 'U';
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AI Recommendations - SmartDoor</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -48,7 +48,7 @@ $facultyInitials = $facultyInitials !== '' ? $facultyInitials : 'U';
   -sidebar-w:     240px;
 }
 
-body { font-family: 'Inter', sans-serif; background: var(-bg); color: var(-text); min-height: 100vh; display: flex; }
+body { font-family: 'Instrument Sans', sans-serif; background: var(-bg); color: var(-text); min-height: 100vh; display: flex; }
 
 /* SIDEBAR + MAIN LAYOUT (ensure consistent app layout) */
 .sidebar {
@@ -105,7 +105,7 @@ body { font-family: 'Inter', sans-serif; background: var(-bg); color: var(-text)
 .user-widget-name { overflow: hidden; color: #fff; font-size: 0.76rem; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
 .user-widget-role { color: rgba(255,255,255,0.45); font-size: 0.68rem; }
 .sidebar-logout { margin-top: auto; padding: 12px 0 2px; border-top: 1px solid rgba(255,255,255,0.08); }
-.sidebar-logout-btn { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 10px; color: rgba(255,255,255,0.55); background: none; border: 0; border-radius: 9px; font: 600 0.84rem 'Inter', sans-serif; cursor: pointer; }
+.sidebar-logout-btn { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 10px; color: rgba(255,255,255,0.55); background: none; border: 0; border-radius: 9px; font: 600 0.84rem 'Instrument Sans', sans-serif; cursor: pointer; }
 .sidebar-logout-btn:hover { color: #f87171; background: rgba(244,63,94,0.08); }
 .topbar {
   min-height: 64px; display: flex; align-items: center; gap: 16px;
@@ -117,7 +117,7 @@ body { font-family: 'Inter', sans-serif; background: var(-bg); color: var(-text)
   padding: 8px 16px; background: var(-bg); border: 1px solid var(-border); border-radius: 24px;
 }
 .topbar-search i { color: var(-text-light); font-size: 0.86rem; }
-.topbar-search input { width: 100%; border: 0; outline: 0; background: transparent; color: var(-text); font: 0.84rem 'Inter', sans-serif; }
+.topbar-search input { width: 100%; border: 0; outline: 0; background: transparent; color: var(-text); font: 0.84rem 'Instrument Sans', sans-serif; }
 .topbar-right { display: flex; align-items: center; gap: 8px; margin-left: auto; }
 .topbar-profile { position: relative; display: flex; align-items: center; gap: 10px; cursor: pointer; }
 .topbar-profile-info { text-align: right; }
@@ -218,7 +218,7 @@ body { font-family: 'Inter', sans-serif; background: var(-bg); color: var(-text)
   padding: 9px 18px; border-radius: 10px;
   background: rgba(255,255,255,0.08); border: 1.5px solid rgba(255,255,255,0.15);
   color: rgba(255,255,255,0.8); font-size: 0.84rem; font-weight: 600;
-  font-family: 'Inter', sans-serif; cursor: pointer; transition: all 0.2s;
+  font-family: 'Instrument Sans', sans-serif; cursor: pointer; transition: all 0.2s;
 }
 .ai-refresh-btn:hover { background: rgba(255,255,255,0.14); color: #fff; }
 
@@ -380,19 +380,19 @@ body { font-family: 'Inter', sans-serif; background: var(-bg); color: var(-text)
 .alert-btns  { display: flex; gap: 6px; margin-top: 9px; flex-wrap: wrap; }
 .btn-resolve {
   padding: 5px 14px; border-radius: 7px; border: none; cursor: pointer;
-  font-size: 0.76rem; font-weight: 700; font-family: 'Inter', sans-serif;
+  font-size: 0.76rem; font-weight: 700; font-family: 'Instrument Sans', sans-serif;
   background: var(-red); color: #fff; transition: all 0.18s;
 }
 .btn-resolve:hover { background: #b91c1c; }
 .btn-ignore {
   padding: 5px 14px; border-radius: 7px; cursor: pointer;
-  font-size: 0.76rem; font-weight: 600; font-family: 'Inter', sans-serif;
+  font-size: 0.76rem; font-weight: 600; font-family: 'Instrument Sans', sans-serif;
   background: none; color: var(-text-secondary); border: 1.5px solid var(-border); transition: all 0.18s;
 }
 .btn-ignore:hover { border-color: #93c5fd; color: var(-text); }
 .btn-view {
   padding: 5px 14px; border-radius: 7px; cursor: pointer;
-  font-size: 0.76rem; font-weight: 600; font-family: 'Inter', sans-serif;
+  font-size: 0.76rem; font-weight: 600; font-family: 'Instrument Sans', sans-serif;
   background: var(-blue-bg); color: var(-blue-text); border: 1.5px solid var(-blue-border); transition: all 0.18s;
 }
 .btn-view:hover { background: #bfdbfe; }
@@ -407,7 +407,7 @@ body { font-family: 'Inter', sans-serif; background: var(-bg); color: var(-text)
 .insight-icon { width: 40px; height: 40px; border-radius: 11px; background: #16a34a; display: flex; align-items: center; justify-content: center; font-size: 1rem; color: #fff; flex-shrink: 0; }
 .insight-title { font-size: 0.88rem; font-weight: 700; color: #14532d; margin-bottom: 4px; }
 .insight-text  { font-size: 0.8rem; color: #15803d; line-height: 1.65; }
-.insight-action { display: inline-flex; align-items: center; gap: 5px; margin-top: 10px; font-size: 0.78rem; font-weight: 700; color: #16a34a; background: rgba(22,163,74,0.1); border: 1px solid rgba(22,163,74,0.25); padding: 5px 12px; border-radius: 7px; cursor: pointer; transition: all 0.18s; border: none; font-family: 'Inter', sans-serif; }
+.insight-action { display: inline-flex; align-items: center; gap: 5px; margin-top: 10px; font-size: 0.78rem; font-weight: 700; color: #16a34a; background: rgba(22,163,74,0.1); border: 1px solid rgba(22,163,74,0.25); padding: 5px 12px; border-radius: 7px; cursor: pointer; transition: all 0.18s; border: none; font-family: 'Instrument Sans', sans-serif; }
 .insight-action:hover { background: rgba(22,163,74,0.18); }
 
 /* ANIMATIONS */

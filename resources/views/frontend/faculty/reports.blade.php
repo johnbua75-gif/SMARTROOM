@@ -41,7 +41,7 @@ $areaPath = $curvePath . " L {$xs[$pts-1]} {$svgH} L {$xs[0]} {$svgH} Z";
 <title>SmartDoor – Analytics & Reports</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -82,8 +82,8 @@ $areaPath = $curvePath . " L {$xs[$pts-1]} {$svgH} L {$xs[0]} {$svgH} Z";
   /* layout */
   --sidebar-w:240px;
   /* fonts */
-  --fh:'Plus Jakarta Sans',sans-serif;
-  --fb:'DM Sans',sans-serif;
+  --fh:'Sora',sans-serif;
+  --fb:'Instrument Sans',sans-serif;
 }
 
 body{font-family:var(--fb);background:var(--bg);color:var(--text);display:flex;min-height:100vh;-webkit-font-smoothing:antialiased}

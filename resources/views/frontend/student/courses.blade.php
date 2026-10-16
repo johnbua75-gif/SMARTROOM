@@ -26,11 +26,11 @@ $courseImageFor = static function ($course): array {
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root { --course-gold: #f5c518; --course-navy: #0b1640; --course-ink: #16213f; --course-muted: #71809a; --course-border: #e3e8f2; --course-bg: #f4f6fb; --course-green: #168a67; }
-    body { background: var(--course-bg); color: var(--course-ink); font-family: 'DM Sans', sans-serif; }
-    .courses-title, .course-overview h2, .course-card h3, .course-code, .course-filter, .course-count, .student-id { font-family: 'Plus Jakarta Sans', sans-serif; }
+    body { background: var(--course-bg); color: var(--course-ink); font-family: 'Instrument Sans', sans-serif; }
+    .courses-title, .course-overview h2, .course-card h3, .course-code, .course-filter, .course-count, .student-id { font-family: 'Sora', sans-serif; }
     .courses-page { max-width: 1440px; margin: 0 auto; }
     .courses-topbar { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; margin-bottom: 24px; }
     .courses-kicker { color: var(--course-muted); font-size: .68rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }

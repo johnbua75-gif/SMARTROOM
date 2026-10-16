@@ -6,7 +6,7 @@
     <title>Login – SmartRoom</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --navy: #0b1640;
@@ -27,7 +27,7 @@
         html { scroll-behavior: smooth; }
 
         body {
-            font-family: 'DM Sans', sans-serif;
+            font-family: 'Instrument Sans', sans-serif;
             background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 100%);
             color: var(--white);
             min-height: 100dvh;
@@ -105,7 +105,7 @@
             justify-items: center;
             gap: 14px;
             color: var(--white);
-            font-family: 'Space Grotesk', sans-serif;
+            font-family: 'Sora', sans-serif;
             font-size: 1rem;
             font-weight: 600;
         }
@@ -203,7 +203,7 @@
         @keyframes ring    { 0% { opacity: 0.7; transform: scale(1); } 100% { opacity: 0; transform: scale(1.7); } }
 
         .panel-brand {
-            font-family: 'Space Grotesk', sans-serif;
+            font-family: 'Sora', sans-serif;
             font-size: 1.85rem;
             font-weight: 700;
             letter-spacing: -0.02em;
@@ -298,7 +298,7 @@
         @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
 
         .form-title {
-            font-family: 'Space Grotesk', sans-serif;
+            font-family: 'Sora', sans-serif;
             font-size: 1.85rem;
             font-weight: 700;
             letter-spacing: -0.02em;
@@ -344,7 +344,7 @@
             border: 1px solid rgba(245,197,24,0.12);
             border-radius: 12px;
             color: var(--white);
-            font-family: 'DM Sans', sans-serif;
+            font-family: 'Instrument Sans', sans-serif;
             font-size: 0.95rem;
             outline: none;
             transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
@@ -422,7 +422,7 @@
             padding: 14px 20px;
             border: none;
             border-radius: 12px;
-            font-family: 'Space Grotesk', sans-serif;
+            font-family: 'Sora', sans-serif;
             font-size: 0.95rem;
             cursor: pointer;
             transition: transform 0.25s var(--ease), box-shadow 0.3s, background 0.2s;

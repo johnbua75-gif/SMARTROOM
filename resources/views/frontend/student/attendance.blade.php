@@ -20,9 +20,9 @@ $nav = [
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    main.attendance-page { padding: 28px 32px 48px !important; font-family: 'DM Sans', sans-serif; }
+    main.attendance-page { padding: 28px 32px 48px !important; font-family: 'Instrument Sans', sans-serif; }
     .attendance-page-header { display:flex; align-items:flex-end; justify-content:space-between; gap:20px; padding:8px 0 22px; margin-bottom:24px; border-bottom:1px solid var(--student-border); }
     .attendance-breadcrumb { display:flex; align-items:center; gap:8px; margin-bottom:10px; color:var(--student-muted); font-size:.76rem; font-weight:600; }
     .attendance-breadcrumb a { color:var(--student-muted); text-decoration:none; }
@@ -36,14 +36,14 @@ $nav = [
     .attendance-checkin-icon { width:48px; height:48px; display:grid; place-items:center; border-radius:10px; background:#eef2ff; color:var(--student-navy); font-size:1.25rem; }
     .attendance-checkin-copy h2 { margin:0; color:var(--student-text); font-family:'Sora',sans-serif; font-size:1.02rem; font-weight:700; }
     .attendance-checkin-copy p { margin:5px 0 0; color:var(--student-muted); font-size:.83rem; line-height:1.5; }
-    .scan-qr-btn { display:inline-flex; align-items:center; justify-content:center; gap:9px; min-height:44px; padding:0 18px; border:1px solid var(--student-navy); border-radius:8px; background:var(--student-navy); color:#fff; font-family:'DM Sans',sans-serif; font-size:.84rem; font-weight:700; white-space:nowrap; cursor:pointer; transition:background .18s ease,border-color .18s ease,transform .18s ease; }
+    .scan-qr-btn { display:inline-flex; align-items:center; justify-content:center; gap:9px; min-height:44px; padding:0 18px; border:1px solid var(--student-navy); border-radius:8px; background:var(--student-navy); color:#fff; font-family:'Instrument Sans',sans-serif; font-size:.84rem; font-weight:700; white-space:nowrap; cursor:pointer; transition:background .18s ease,border-color .18s ease,transform .18s ease; }
     .scan-qr-btn:hover { border-color:#1a2f80; background:#1a2f80; transform:translateY(-1px); }
     .scan-qr-btn:focus-visible, .scanner-close:focus-visible { outline:3px solid rgba(37,99,235,.38); outline-offset:3px; }
     .scan-qr-btn:disabled { opacity:.65; cursor:wait; transform:none; }
 
     .attendance-summary { margin-bottom:26px; }
     .attendance-section-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; }
-    .attendance-section-heading h2 { margin:0; color:var(--student-text); font-family:'Plus Jakarta Sans',sans-serif; font-size:1rem; font-weight:700; }
+    .attendance-section-heading h2 { margin:0; color:var(--student-text); font-family:'Sora',sans-serif; font-size:1rem; font-weight:700; }
     .attendance-live-label { display:inline-flex; align-items:center; gap:7px; color:#64748b; font-size:.73rem; font-weight:600; }
     .attendance-live-dot { width:7px; height:7px; border-radius:50%; background:#16a36a; }
     .attendance-summary-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }

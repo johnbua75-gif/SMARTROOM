@@ -4,22 +4,22 @@
 :focus-visible{outline:3px solid #6785d4!important;outline-offset:2px!important}
 .sui-overlay{position:fixed;inset:0;z-index:3000;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(7,22,64,.45);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
 .sui-overlay.sui-open{display:flex}
-.sui-dialog{width:min(430px,100%);padding:26px 26px 22px;border-radius:18px;background:#fff;color:#0f172a;box-shadow:0 24px 70px rgba(7,22,64,.28);font-family:'DM Sans',system-ui,-apple-system,'Segoe UI',sans-serif;animation:sui-pop .16s ease-out}
+.sui-dialog{width:min(430px,100%);padding:26px 26px 22px;border-radius:18px;background:#fff;color:#0f172a;box-shadow:0 24px 70px rgba(7,22,64,.28);font-family:'Instrument Sans',system-ui,-apple-system,'Segoe UI',sans-serif;animation:sui-pop .16s ease-out}
 .sui-head{display:flex;align-items:flex-start;gap:14px}
 .sui-icon{flex:0 0 42px;width:42px;height:42px;display:flex;align-items:center;justify-content:center;border-radius:12px;font-size:1.05rem;background:#e8ecfb;color:#1a2f80}
 .sui-icon.sui-danger{background:#fee2e2;color:#b91c1c}
 .sui-icon.sui-warn{background:#fef3c7;color:#92400e}
-.sui-title{margin:2px 0 6px;font:800 1.05rem 'Plus Jakarta Sans','DM Sans',system-ui,sans-serif;color:#0b1640}
+.sui-title{margin:2px 0 6px;font:800 1.05rem 'Sora','Instrument Sans',system-ui,sans-serif;color:#0b1640}
 .sui-message{margin:0;color:#475569;font-size:.9rem;line-height:1.55;white-space:pre-line;overflow-wrap:anywhere}
 .sui-actions{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:10px;margin-top:22px}
-.sui-btn{min-height:40px;padding:9px 18px;border:1px solid #cdd3e0;border-radius:10px;background:#fff;color:#334155;cursor:pointer;font:700 .85rem 'DM Sans',system-ui,sans-serif;transition:background-color .15s,border-color .15s}
+.sui-btn{min-height:40px;padding:9px 18px;border:1px solid #cdd3e0;border-radius:10px;background:#fff;color:#334155;cursor:pointer;font:700 .85rem 'Instrument Sans',system-ui,sans-serif;transition:background-color .15s,border-color .15s}
 .sui-btn:hover{background:#f1f5f9}
 .sui-btn.sui-primary{border-color:#0b1640;background:#0b1640;color:#fff}
 .sui-btn.sui-primary:hover{background:#16286b}
 .sui-btn.sui-danger{border-color:#b91c1c;background:#b91c1c;color:#fff}
 .sui-btn.sui-danger:hover{background:#991b1b}
 .sui-toasts{position:fixed;top:16px;left:50%;z-index:3100;display:grid;gap:8px;width:min(440px,calc(100vw - 32px));transform:translateX(-50%);pointer-events:none}
-.sui-toast{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border:1px solid #e2e8f0;border-left:4px solid #1a2f80;border-radius:12px;background:#fff;color:#0f172a;box-shadow:0 12px 32px rgba(15,23,42,.16);font:500 .86rem/1.45 'DM Sans',system-ui,sans-serif;pointer-events:auto;animation:sui-drop .2s ease-out}
+.sui-toast{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border:1px solid #e2e8f0;border-left:4px solid #1a2f80;border-radius:12px;background:#fff;color:#0f172a;box-shadow:0 12px 32px rgba(15,23,42,.16);font:500 .86rem/1.45 'Instrument Sans',system-ui,sans-serif;pointer-events:auto;animation:sui-drop .2s ease-out}
 .sui-toast.sui-success{border-left-color:#0f9d58}
 .sui-toast.sui-error{border-left-color:#dc2626}
 .sui-toast.sui-warn{border-left-color:#d97706}

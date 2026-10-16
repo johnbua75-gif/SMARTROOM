@@ -33,7 +33,7 @@ body.faculty-sidebar-collapsed .faculty-sidebar-toggle{right:-13px;transform:tra
 .faculty-access-card.is-denied{border-color:#fecaca}
 .faculty-access-icon{width:58px;height:58px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;border-radius:50%;background:#dcfce7;color:#15803d;font-size:1.45rem}
 .faculty-access-card.is-denied .faculty-access-icon{background:#fee2e2;color:#b91c1c}
-.faculty-access-title{color:#0f172a;font:800 1.1rem 'Plus Jakarta Sans',sans-serif}.faculty-access-message{margin:8px 0 20px;color:#64748b;font-size:.84rem;line-height:1.5}.faculty-access-close{height:38px;padding:0 20px;border:0;border-radius:9px;background:#0b1640;color:#fff;cursor:pointer;font:700 .82rem 'DM Sans',sans-serif}
+.faculty-access-title{color:#0f172a;font:800 1.1rem 'Sora',sans-serif}.faculty-access-message{margin:8px 0 20px;color:#64748b;font-size:.84rem;line-height:1.5}.faculty-access-close{height:38px;padding:0 20px;border:0;border-radius:9px;background:#0b1640;color:#fff;cursor:pointer;font:700 .82rem 'Instrument Sans',sans-serif}
 .faculty-access-card.is-denied .faculty-access-title{color:#b91c1c}
 .faculty-access-toast-list{position:fixed;right:18px;bottom:70px;z-index:2300;display:grid;gap:8px;width:min(340px,calc(100vw - 36px));pointer-events:none}
 .faculty-access-toast{padding:12px 14px;border:1px solid #bfdbfe;border-radius:10px;background:#fff;color:#1e3a8a;box-shadow:0 12px 35px rgba(7,22,64,.18);font-size:.82rem;line-height:1.45}
@@ -313,15 +313,15 @@ body.faculty-sidebar-collapsed .faculty-sidebar-toggle{right:-13px;transform:tra
   body.fac-mobile-nav .main{margin-left:0!important}
   body.fac-mobile-nav .fac-mobile-bar{position:fixed;top:0;left:0;right:0;z-index:1250;display:flex;align-items:center;justify-content:space-between;min-height:58px;padding:9px 16px;background:#0b1640;box-shadow:0 2px 8px rgba(15,23,42,.18)}
 }
-.fac-mobile-brand{display:flex;align-items:center;gap:9px;color:#fff;text-decoration:none;font:700 .92rem 'Plus Jakarta Sans',sans-serif}
+.fac-mobile-brand{display:flex;align-items:center;gap:9px;color:#fff;text-decoration:none;font:700 .92rem 'Sora',sans-serif}
 .fac-mobile-brand span.mark{width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:8px;background:#f5c518;color:#0b1640}
 .fac-mobile-menu{position:relative}
-.fac-mobile-menu summary{display:flex;align-items:center;gap:8px;min-height:40px;padding:8px 12px;border:1px solid rgba(255,255,255,.24);border-radius:8px;color:#fff;cursor:pointer;font:700 .82rem 'DM Sans',sans-serif;list-style:none}
+.fac-mobile-menu summary{display:flex;align-items:center;gap:8px;min-height:40px;padding:8px 12px;border:1px solid rgba(255,255,255,.24);border-radius:8px;color:#fff;cursor:pointer;font:700 .82rem 'Instrument Sans',sans-serif;list-style:none}
 .fac-mobile-menu summary::-webkit-details-marker{display:none}
 .fac-mobile-menu summary i{color:#f5c518}
 .fac-mobile-menu summary:focus-visible,.fac-mobile-link:focus-visible{outline:3px solid #6785d4;outline-offset:2px}
 .fac-mobile-panel{position:absolute;top:calc(100% + 8px);right:0;display:grid;gap:3px;width:min(270px,calc(100vw - 32px));padding:8px;border:1px solid #e2e8f0;border-radius:10px;background:#fff;box-shadow:0 10px 26px rgba(15,23,42,.18)}
-.fac-mobile-link{display:flex;align-items:center;gap:10px;width:100%;min-height:42px;padding:9px 11px;border:0;border-radius:7px;background:transparent;color:#101828;text-decoration:none;font:500 .86rem 'DM Sans',sans-serif;text-align:left;cursor:pointer}
+.fac-mobile-link{display:flex;align-items:center;gap:10px;width:100%;min-height:42px;padding:9px 11px;border:0;border-radius:7px;background:transparent;color:#101828;text-decoration:none;font:500 .86rem 'Instrument Sans',sans-serif;text-align:left;cursor:pointer}
 .fac-mobile-link i{width:18px;color:#1a2f80;text-align:center}
 .fac-mobile-link:hover,.fac-mobile-link.active{color:#0b1640;background:#e8ecfb}
 .fac-mobile-link.active{font-weight:700}

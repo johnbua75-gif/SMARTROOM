@@ -16,7 +16,7 @@
         body {
             margin: 0;
             min-height: 100vh;
-            font-family: Arial, sans-serif;
+            font-family: 'Instrument Sans', Arial, sans-serif;
             background: linear-gradient(135deg, #0b1640 0%, #1a2f80 100%);
             display: grid;
             place-items: center;
@@ -90,8 +90,10 @@
             color: #111827;
             cursor: pointer;
         }
-    </style>
+    input,button{font-family:inherit}
+</style>
 @include('partials.focus-ring')
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="card">

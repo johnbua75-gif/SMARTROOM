@@ -1,4 +1,5 @@
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Instrument+Sans:wght@400;500;600;700&display=swap');
   :root {
     --student-navy: #0b1640;
     --student-navy-mid: #1a2f80;
@@ -13,7 +14,7 @@
   body {
     background: var(--student-bg);
     color: var(--student-text);
-    font-family: 'Segoe UI', sans-serif;
+    font-family: 'Instrument Sans', 'Segoe UI', sans-serif;
   }
 
   #sidebar.student-sidebar {

@@ -55,7 +55,7 @@ $attendanceCards = collect($courses ?? [])->map(function ($course) {
   <title>Attendance — SmartDoor</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -76,9 +76,9 @@ $attendanceCards = collect($courses ?? [])->map(function ($course) {
       --shadow-lg:0 12px 40px rgba(15,23,41,.13),0 3px 10px rgba(15,23,41,.07);
       --radius-xs:6px; --radius-sm:10px; --radius:14px; --radius-lg:18px; --radius-xl:24px;
       --sidebar-w:230px;
-      --font-head:'Plus Jakarta Sans',sans-serif;
-      --font-body:'DM Sans',sans-serif;
-      --font-mono:'DM Mono',monospace;
+      --font-head:'Sora',sans-serif;
+      --font-body:'Instrument Sans',sans-serif;
+      --font-mono:'JetBrains Mono',monospace;
     }
 
     body { font-family:var(--font-body); background:var(--bg); color:var(--text); min-height:100vh; display:flex; -webkit-font-smoothing:antialiased; }
@@ -1248,7 +1248,7 @@ $attendanceCards = collect($courses ?? [])->map(function ($course) {
 .attendance-live-dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 0 4px rgba(34,197,94,.12); }
 .attendance-qr-link, .attendance-session-link { display: block; margin-top: 13px; color: #1d4ed8; font-size: .78rem; font-weight: 700; text-decoration: none; }
 .attendance-session-link { margin-top: 9px; color: #64748b; font-weight: 600; }
-.attendance-qr-close { display: inline-flex; align-items: center; gap: 7px; margin-top: 22px; padding: 10px 16px; border: 1px solid #fecaca; border-radius: 9px; background: #fff1f2; color: #be123c; font: 700 .78rem 'DM Sans', sans-serif; cursor: pointer; }
+.attendance-qr-close { display: inline-flex; align-items: center; gap: 7px; margin-top: 22px; padding: 10px 16px; border: 1px solid #fecaca; border-radius: 9px; background: #fff1f2; color: #be123c; font: 700 .78rem 'Instrument Sans', sans-serif; cursor: pointer; }
 .attendance-qr-close:hover { background: #ffe4e6; }
 
 .student-roster-modal { position: fixed; inset: 0; z-index: 2600; display: none; align-items: center; justify-content: center; padding: 24px; background: rgba(11,22,64,.5); backdrop-filter: blur(5px); }
@@ -1260,7 +1260,7 @@ $attendanceCards = collect($courses ?? [])->map(function ($course) {
 .student-roster-header p { margin-top: 4px; color: #64748b; font-size: .82rem; }
 .student-roster-toolbar { display: flex; align-items: center; gap: 10px; padding: 14px 24px; border-bottom: 1px solid var(--border); background: #fafbfc; }
 .student-roster-toolbar label { color: #475569; font-size: .78rem; font-weight: 700; }
-.student-roster-toolbar select { min-width: 150px; padding: 8px 11px; border: 1px solid #cdd8eb; border-radius: 8px; background: #fff; color: #1e293b; font: 600 .8rem 'DM Sans',sans-serif; }
+.student-roster-toolbar select { min-width: 150px; padding: 8px 11px; border: 1px solid #cdd8eb; border-radius: 8px; background: #fff; color: #1e293b; font: 600 .8rem 'Instrument Sans',sans-serif; }
 .student-roster-table-wrap { max-height: 570px; overflow: auto; }
 .student-roster-table { width: 100%; border-collapse: collapse; }
 .student-roster-table th { position: sticky; top: 0; padding: 11px 24px; background: #f8fafc; color: #64748b; font-size: .7rem; letter-spacing: .07em; text-align: left; text-transform: uppercase; }

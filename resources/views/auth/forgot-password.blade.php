@@ -24,7 +24,7 @@
             display: grid;
             place-items: center;
             background: var(--bg);
-            font-family: Arial, sans-serif;
+            font-family: 'Instrument Sans', Arial, sans-serif;
             color: var(--text);
             padding: 16px;
         }
@@ -78,8 +78,10 @@
 
         .msg-error { background: #fff5f5; border: 1px solid #fecaca; color: var(--error); }
         .msg-success { background: #f0fdf4; border: 1px solid #bbf7d0; color: var(--success); }
-    </style>
+    input,button{font-family:inherit}
+</style>
 @include('partials.focus-ring')
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="card">
