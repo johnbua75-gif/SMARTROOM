@@ -151,18 +151,6 @@ body { font-family:var(--fb); background:var(--bg); color:var(--text); min-heigh
 .btn-outline:hover{background:var(--bg)}
 .btn-primary{display:flex;align-items:center;gap:7px;padding:9px 18px;border:none;border-radius:var(--r-sm);background:var(--accent);color:#fff;font-family:var(--fb);font-size:.82rem;font-weight:600;cursor:pointer;transition:opacity .15s}
 .btn-primary:hover{opacity:.88}
-.booking-toolbar{background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:16px 20px;display:grid;grid-template-columns:1.4fr 1fr 1fr auto;gap:14px;align-items:end;box-shadow:0 4px 16px rgba(0,0,0,.08);position:relative;z-index:10}
-.booking-toolbar-copy{align-self:center}
-.booking-toolbar-title{font-family:var(--fh);font-size:.95rem;font-weight:800;color:var(--text);display:flex;align-items:center;gap:8px}
-.booking-toolbar-title i{color:var(--accent2);font-size:.86rem}
-.booking-toolbar-sub{font-size:.75rem;line-height:1.45;color:var(--text-3);margin-top:5px;max-width:230px}
-.booking-field{display:flex;flex-direction:column;gap:6px;min-width:0}
-.booking-field label{font-size:.68rem;font-weight:800;color:var(--text-3);letter-spacing:.05em;text-transform:uppercase}
-.booking-field input{height:42px;border:1px solid var(--border);border-radius:var(--r-sm);padding:0 11px;background:#fbfcfe;font: .83rem var(--fb);color:var(--text);outline:none;transition:border-color .15s,box-shadow .15s,background .15s}
-.booking-field input:focus{border-color:#93c5fd;box-shadow:0 0 0 3px rgba(59,130,246,.09);background:#fff}
-.booking-search-btn{height:42px;white-space:nowrap;padding-inline:17px}
-.booking-result{grid-column:2/-1;width:100%;display:none;border-radius:8px;padding:8px 10px;font-size:.76rem;font-weight:600}
-.booking-result.is-visible{display:block}.booking-result.ok{background:var(--green-bg);color:var(--green-text)}.booking-result.warn{background:var(--red-bg);color:#991b1b}
 .my-reservations{background:linear-gradient(135deg,#fff 0%,#fbfcff 100%);border:1px solid var(--border);border-radius:var(--r-lg);padding:22px 24px;box-shadow:var(--shadow-sm)}
 .my-reservations-head{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:16px}
 .my-reservations-heading{display:flex;align-items:center;gap:11px}
@@ -193,8 +181,7 @@ body { font-family:var(--fb); background:var(--bg); color:var(--text); min-heigh
 .reservation-skeleton .sk-lines{flex:1;display:flex;flex-direction:column;gap:6px}
 .reservation-skeleton .sk-line{height:10px;border-radius:5px}
 .reservation-skeleton .sk-pill{width:60px;height:22px;border-radius:12px;margin-left:auto;flex-shrink:0}
-@media(max-width:1000px){.booking-toolbar{grid-template-columns:1fr 1fr;align-items:end}.booking-toolbar-copy{grid-column:1/-1}.booking-toolbar-sub{max-width:none}.booking-result{grid-column:1/-1}}
-@media(max-width:768px){.reservation-list{grid-template-columns:1fr}.booking-toolbar{grid-template-columns:1fr;padding:16px}.booking-toolbar-copy,.booking-result{grid-column:auto}.booking-field{min-width:100%}.booking-search-btn{width:100%}.my-reservations{padding:18px}.my-reservations-head{align-items:flex-start}.my-reservations-sub{max-width:190px}.reservation-item{align-items:flex-start}.reservation-side{margin-left:auto}}
+@media(max-width:768px){.reservation-list{grid-template-columns:1fr}.my-reservations{padding:18px}.my-reservations-head{align-items:flex-start}.my-reservations-sub{max-width:190px}.reservation-item{align-items:flex-start}.reservation-side{margin-left:auto}}
 
 /* ── SEARCH + FILTER ── */
 .search-filter-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
@@ -616,68 +603,6 @@ body{
   max-width:520px;
 }
 
-/* Booking/search card: more premium, but all existing IDs and inputs stay intact. */
-.booking-toolbar{
-  margin-top:-4px;
-  background:rgba(255,255,255,.97);
-  border:1px solid #e1e8f2;
-  border-radius:22px;
-  padding:20px 22px;
-  grid-template-columns:minmax(240px,1.45fr) minmax(190px,1fr) minmax(190px,1fr) auto;
-  gap:16px;
-  box-shadow:var(--shadow-card);
-  z-index:20;
-}
-.booking-toolbar-copy{padding:2px 4px}
-.booking-toolbar-title{
-  font-size:1.02rem;
-  color:var(--navy);
-  letter-spacing:-.015em;
-}
-.booking-toolbar-title i{
-  width:38px;height:38px;border-radius:12px;
-  display:inline-flex;align-items:center;justify-content:center;
-  background:#e9f1ff;
-  color:var(--blue);
-  font-size:.95rem;
-}
-.booking-toolbar-sub{
-  margin-top:7px;
-  max-width:270px;
-  color:#8997ad;
-  line-height:1.55;
-}
-.booking-field{gap:7px}
-.booking-field label{
-  color:#8290a8;
-  font-size:.66rem;
-  letter-spacing:.09em;
-}
-.booking-field input{
-  height:48px;
-  border:1px solid #dfe7f2;
-  border-radius:13px;
-  padding:0 13px;
-  background:#f9fbfe;
-  font-size:.85rem;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.8);
-}
-.booking-field input:hover{border-color:#cbd8ea;background:#fff}
-.booking-field input:focus{
-  border-color:#7da7ff;
-  box-shadow:0 0 0 4px rgba(36,99,235,.10);
-  background:#fff;
-}
-.booking-search-btn{
-  height:48px;
-  padding:0 21px;
-  border-radius:13px;
-  background:linear-gradient(135deg,#17398f,#214aa9);
-  box-shadow:0 10px 20px rgba(24,57,143,.20);
-  font-weight:700;
-}
-.booking-search-btn:hover{opacity:1;transform:translateY(-1px);box-shadow:0 13px 24px rgba(24,57,143,.25)}
-
 /* Search/filter row */
 .search-filter-row{
   padding:2px 0;
@@ -786,12 +711,6 @@ body{
 .my-reservations{border-radius:20px;box-shadow:var(--shadow-soft);border-color:#e1e8f2}
 .reserve-modal{border-radius:20px;box-shadow:0 24px 70px rgba(7,22,64,.18)}
 
-@media(max-width:1100px){
-  .booking-toolbar{grid-template-columns:1fr 1fr;}
-  .booking-toolbar-copy{grid-column:1/-1}
-  .booking-toolbar-sub{max-width:none}
-  .booking-search-btn{width:100%}
-}
 @media(max-width:900px){
   .content{padding:20px 18px 42px}
   .hero-banner{margin:-20px -18px -2px;border-radius:0 0 24px 24px}
@@ -802,9 +721,6 @@ body{
   .content{gap:16px}
   .hero-banner{min-height:260px}
   .hero-title{font-size:2rem}
-  .booking-toolbar{grid-template-columns:1fr;padding:17px}
-  .booking-toolbar-copy{grid-column:auto}
-  .booking-search-btn{width:100%}
 }
 
 </style>
@@ -943,17 +859,6 @@ body{
         <div class="hero-sub">Real-time overview of PSU SmartRoom availability across all buildings.</div>
       </div>
     </div>
-
-    <section class="booking-toolbar" aria-labelledby="bookingTitle">
-      <div class="booking-toolbar-copy">
-        <div class="booking-toolbar-title" id="bookingTitle"><i class="fas fa-calendar-plus"></i> Find a free room</div>
-        <div class="booking-toolbar-sub">Choose a time, check all rooms, then use Reserve on an available room.</div>
-      </div>
-      <div class="booking-field"><label for="bookingStartAt">Start</label>      <input id="bookingStartAt" type="datetime-local" step="1800"></div>
-      <div class="booking-field"><label for="bookingEndAt">End</label>      <input id="bookingEndAt" type="datetime-local" step="1800"></div>
-      <button type="button" class="btn-primary booking-search-btn" id="findFreeRoomsBtn"><i class="fas fa-magnifying-glass"></i> Find Free Rooms</button>
-      <div class="booking-result" id="bookingResult"></div>
-    </section>
 
     <!-- Search + Filter -->
     <form method="GET" action="">
@@ -1351,10 +1256,6 @@ document.addEventListener('DOMContentLoaded', function () {
   var detailNextScheduleList = document.getElementById('detailNextScheduleList');
   var detailScheduleList = document.getElementById('detailScheduleList');
   var detailReservationList = document.getElementById('detailReservationList');
-  var bookingStartAt = document.getElementById('bookingStartAt');
-  var bookingEndAt = document.getElementById('bookingEndAt');
-  var findFreeRoomsBtn = document.getElementById('findFreeRoomsBtn');
-  var bookingResult = document.getElementById('bookingResult');
   var reservationList = document.getElementById('reservationList');
   var refreshReservationsBtn = document.getElementById('refreshReservationsBtn');
   var selectedBuilding = null;
@@ -1412,7 +1313,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     var now = new Date();
     var today = formatDateOnly(now);
-    var defaultDate = bookingStartAt && bookingStartAt.value ? bookingStartAt.value.slice(0, 10) : today;
+    var defaultDate = today;
     if (defaultDate < today) defaultDate = today;
     if (defaultDate === today && now.getHours() >= SLOT_CLOSE_HOUR) {
       defaultDate = formatDateOnly(new Date(now.getTime() + 24 * 3600000));
@@ -1577,16 +1478,6 @@ document.addEventListener('DOMContentLoaded', function () {
     if (reserveDate.value) loadSlots();
   });
 
-  function setBookingDefaults() {
-    if (!bookingStartAt || !bookingEndAt) return;
-    var now = new Date();
-    var start = new Date(now.getTime() + 30 * 60000);
-    start.setMinutes(Math.ceil(start.getMinutes() / 30) * 30, 0, 0);
-    var end = new Date(start.getTime() + 60 * 60000);
-    bookingStartAt.value = localDateTimeInput(start);
-    bookingEndAt.value = localDateTimeInput(end);
-  }
-
   function formatReservationTime(startAt, endAt) {
     return new Date(startAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })
       + ' - ' + new Date(endAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
@@ -1657,31 +1548,6 @@ document.addEventListener('DOMContentLoaded', function () {
     showToast(payload.message || 'Reservation cancelled.', 'success');
     loadMyReservations();
     refreshRoomStatuses();
-  }
-
-  async function findFreeRooms() {
-    if (!bookingStartAt.value || !bookingEndAt.value) {
-      bookingResult.textContent = 'Choose both a start and end time.';
-      bookingResult.className = 'booking-result is-visible warn';
-      return;
-    }
-    findFreeRoomsBtn.disabled = true;
-    var query = new URLSearchParams({ start_at: localIso(new Date(bookingStartAt.value)), end_at: localIso(new Date(bookingEndAt.value)) });
-    try {
-      var response = await fetch('/api/v1/room-statuses?' + query.toString(), { credentials: 'same-origin', headers: { 'Accept': 'application/json' } });
-      var payload = await response.json().catch(function () { return {}; });
-      if (!response.ok) throw new Error(payload.message || 'Unable to check rooms.');
-      var items = Array.isArray(payload.data) ? payload.data : [];
-      var freeRooms = items.filter(function (item) { return item.status === 'available'; });
-      items.forEach(updateRoomCard);
-      bookingResult.textContent = freeRooms.length + ' room' + (freeRooms.length === 1 ? '' : 's') + ' available for the selected time.';
-      bookingResult.className = 'booking-result is-visible ' + (freeRooms.length ? 'ok' : 'warn');
-    } catch (error) {
-      bookingResult.textContent = error.message;
-      bookingResult.className = 'booking-result is-visible warn';
-    } finally {
-      findFreeRoomsBtn.disabled = false;
-    }
   }
 
   function closeReserveOverlay() {
@@ -2575,7 +2441,6 @@ document.addEventListener('DOMContentLoaded', function () {
     if (button) cancelReservation(button.dataset.reservationId, button);
   });
   refreshReservationsBtn?.addEventListener('click', loadMyReservations);
-  findFreeRoomsBtn?.addEventListener('click', findFreeRooms);
 
   document.querySelectorAll('.js-building-pin').forEach(function (pin) {
     pin.addEventListener('click', function () {
@@ -2608,7 +2473,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
   refreshRoomStatuses();
   refreshMapBuildings();
-  setBookingDefaults();
   loadMyReservations();
   setInterval(function () {
     refreshRoomStatuses();
