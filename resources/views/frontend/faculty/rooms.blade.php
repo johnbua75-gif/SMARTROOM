@@ -715,7 +715,7 @@ body{
 @keyframes mapPing{0%{box-shadow:0 0 0 0 rgba(22,163,74,.55)}70%{box-shadow:0 0 0 7px rgba(22,163,74,0)}100%{box-shadow:0 0 0 0 rgba(22,163,74,0)}}
 .map-grid::before{background:linear-gradient(135deg,rgba(11,22,64,.62) 0%,rgba(11,22,64,.3) 100%)}
 .map-grid::after{content:'';position:absolute;inset:0;pointer-events:none;z-index:1;background-image:linear-gradient(rgba(255,255,255,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.07) 1px,transparent 1px);background-size:44px 44px;mask-image:radial-gradient(ellipse at center,#000 30%,transparent 85%)}
-.map-scan{position:absolute;left:0;right:0;top:0;height:90px;z-index:2;pointer-events:none;background:linear-gradient(180deg,transparent,rgba(245,197,24,.16) 60%,rgba(245,197,24,.45) 100%);border-bottom:1px solid rgba(245,197,24,.7);animation:mapScan 5.5s linear infinite}
+.map-scan{position:absolute;left:0;right:0;top:0;height:90px;z-index:2;pointer-events:none;background:linear-gradient(180deg,transparent,rgba(56,189,248,.16) 60%,rgba(56,189,248,.45) 100%);border-bottom:1px solid rgba(56,189,248,.7);animation:mapScan 5.5s linear infinite}
 @keyframes mapScan{0%{transform:translateY(-100%);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translateY(calc(var(--scan-h,260px)));opacity:0}}
 .map-grid{--scan-h:290px}
 .pin-box{border-radius:14px;border:1px solid rgba(255,255,255,.55);backdrop-filter:blur(6px)}
