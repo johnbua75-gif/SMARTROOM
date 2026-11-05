@@ -1171,7 +1171,7 @@ body{
       <input type="hidden" id="checkRoomId" name="classroom_id">
 
       <div id="checkTimetableWrap" style="margin-bottom:16px;overflow:hidden;border:1px solid #d4daf0;border-radius:10px">
-        <div style="padding:7px 10px;background:#f8faff;color:#5b6577;font-size:.68rem;font-weight:600">7:00 AM–5:00 PM · Weekdays · 30-minute slots</div>
+        <div style="padding:7px 10px;background:#f8faff;color:#5b6577;font-size:.68rem;font-weight:600">7:00 AM–5:00 PM · Monday–Friday · Each cell is 30 minutes; two cells make one hour</div>
         <table id="checkTimetable" style="width:100%;min-width:0;table-layout:fixed;border-collapse:collapse;font-size:.7rem"></table>
       </div>
       <div id="checkTimetableLegend" style="display:none;gap:14px;margin-bottom:14px;font-size:.72rem;color:#5b6577;font-weight:600">
@@ -1655,6 +1655,9 @@ document.addEventListener('DOMContentLoaded', function () {
     var h12=hour%12||12;
     return h12+':'+String(minute).padStart(2,'0');
   }
+  function ttHourLabel(minutes){
+    return ttTimeLabel(minutes)+' '+(minutes<12*60?'AM':'PM');
+  }
   function renderTimetable(payload){
     if(!checkTimetable)return;
     var entries=[];
@@ -1679,15 +1682,21 @@ document.addEventListener('DOMContentLoaded', function () {
         for(var f=firstSlot+1;f<firstSlot+span;f++)grid[dk][f]='skip';
       }
     });
-    var ths='background:#0b1640;color:#fff;font-weight:700;padding:9px 4px;font-size:.65rem;text-align:center;border:1px solid #1a2f80;';
-    var dts='background:#f1f4ff;color:#0b1640;font-weight:800;padding:9px 8px;font-size:.72rem;text-align:center;border:1px solid #d4daf0;';
-    var tds='background:#fff;height:42px;min-width:0;border:1px solid #d4daf0;padding:0;text-align:center;vertical-align:middle;';
-    var h='<thead><tr><th style="'+ths+'width:48px;line-height:1.15">TIME<br><small>30 min</small></th>';
+    var ths='background:#0b1640;color:#fff;font-weight:700;padding:5px 2px;font-size:.63rem;text-align:center;border:1px solid #1a2f80;';
+    var dts='background:#f1f4ff;color:#0b1640;font-weight:800;padding:5px 3px;font-size:.67rem;text-align:center;border:1px solid #d4daf0;';
+    var tds='background:#fff;height:34px;min-width:0;border:1px solid #d4daf0;padding:0;text-align:center;vertical-align:middle;';
+    var h='<thead><tr><th rowspan="2" style="'+ths+'width:46px;line-height:1.15">DAY</th>';
+    for(var hourSlot=0;hourSlot<TT_SLOT_COUNT;hourSlot+=2){
+      var hourStart=TT_START_MINUTES+hourSlot*TT_SLOT_MINUTES;
+      var hourEnd=hourStart+60;
+      h+='<th colspan="2" style="'+ths+'padding:5px 1px;font-size:.57rem" title="'+ttHourLabel(hourStart)+'–'+ttHourLabel(hourEnd)+'">'+ttHourLabel(hourStart)+'–'+ttHourLabel(hourEnd)+'</th>';
+    }
+    h+='</tr><tr>';
     for(var slot=0;slot<TT_SLOT_COUNT;slot++){
       var slotMinutes=TT_START_MINUTES+slot*TT_SLOT_MINUTES;
-      var label=ttTimeLabel(slotMinutes);
-      var period=slotMinutes<12*60?'AM':'PM';
-      h+='<th style="'+ths+'padding:6px 1px;line-height:1.1" title="'+label+' '+period+'"><span>'+label+'</span><br><small style="font-size:.58rem">'+period+'</small></th>';
+      var slotEnd=slotMinutes+TT_SLOT_MINUTES;
+      var slotLabel=':'+String(slotMinutes%60).padStart(2,'0')+'–:'+String(slotEnd%60).padStart(2,'0');
+      h+='<th style="'+ths+'padding:3px 1px;font-size:.55rem" title="'+ttTimeLabel(slotMinutes)+' '+(slotMinutes<12*60?'AM':'PM')+'–'+ttTimeLabel(slotEnd)+' '+(slotEnd<12*60?'AM':'PM')+'">'+slotLabel+'</th>';
     }
     h+='</tr></thead><tbody>';
     TT_DAYS.forEach(function(day){
