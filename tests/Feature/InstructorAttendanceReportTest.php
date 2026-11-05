@@ -81,7 +81,7 @@ it('shows admin weekly instructor schedules and linked attendance sessions', fun
     actingAs($admin)
         ->get(route('admin.instructor-attendance', ['week' => '2026-11-04']))
         ->assertOk()
-        ->assertSee('Instructor Attendance')
+        ->assertSee('Faculty Reports')
         ->assertSee('Alex Faculty')
         ->assertSee('IT101')
         ->assertSee('href="'.route('admin.instructor-attendance').'"', false)
@@ -89,6 +89,10 @@ it('shows admin weekly instructor schedules and linked attendance sessions', fun
         ->assertSee('No session logged')
         ->assertSee('Download CSV')
         ->assertSee('2', false);
+
+    $html = $this->get(route('admin.instructor-attendance'))->getContent();
+    expect(strpos($html, '<span>Announcements</span></a>'))
+        ->toBeLessThan(strpos($html, '<span>Faculty Reports</span></a>'));
 });
 
 it('filters instructor attendance and exports the selected week as csv', function () {

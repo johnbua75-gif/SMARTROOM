@@ -11,7 +11,7 @@
     $dashboardActive = in_array($currentPath, ['dashboard', 'admin/dashboard'], true);
     $roomsActive = request()->is('admin/classrooms*');
     $scheduleActive = request()->is('admin/schedule*');
-    $instructorAttendanceActive = request()->is('admin/instructor-attendance*');
+    $facultyReportsActive = request()->is('admin/instructor-attendance*');
     $usersActive = request()->is('admin/users*');
     $smartLockingActive = request()->is('smartlocking*') || request()->is('admin/accessLogs*') || request()->is('admin/access-logs*');
     $announcementsActive = request()->is('admin/notifications*');
@@ -126,10 +126,10 @@
         <li><a href="{{ route('admin.dashboard') }}" @class(['active' => $dashboardActive])><span class="nav-icon"><i class="fas fa-chart-line" aria-hidden="true"></i></span><span>Dashboard</span></a></li>
         <li><a href="{{ route('admin.classrooms') }}" @class(['active' => $roomsActive])><span class="nav-icon"><i class="fas fa-school" aria-hidden="true"></i></span><span>Room Management</span></a></li>
         <li><a href="{{ route('admin.schedule') }}" @class(['active' => $scheduleActive])><span class="nav-icon"><i class="fas fa-calendar-days" aria-hidden="true"></i></span><span>Schedule</span></a></li>
-        <li><a href="{{ route('admin.instructor-attendance') }}" @class(['active' => $instructorAttendanceActive])><span class="nav-icon"><i class="fas fa-user-check" aria-hidden="true"></i></span><span>Instructor Attendance</span></a></li>
         <li><a href="{{ route('admin.users') }}" @class(['active' => $usersActive])><span class="nav-icon"><i class="fas fa-users-cog" aria-hidden="true"></i></span><span>User Management</span></a></li>
         <li><a href="{{ route('smartlocking.index') }}" @class(['active' => $smartLockingActive])><span class="nav-icon"><i class="fas fa-lock" aria-hidden="true"></i></span><span>SmartLocking</span></a></li>
         <li><a href="{{ route('admin.notifications.create') }}" @class(['active' => $announcementsActive])><span class="nav-icon"><i class="fas fa-bullhorn" aria-hidden="true"></i></span><span>Announcements</span></a></li>
+        <li><a href="{{ route('admin.instructor-attendance') }}" @class(['active' => $facultyReportsActive])><span class="nav-icon"><i class="fas fa-user-check" aria-hidden="true"></i></span><span>Faculty Reports</span></a></li>
     </ul>
     <div class="sidebar-footer">
         <div class="user-widget">
