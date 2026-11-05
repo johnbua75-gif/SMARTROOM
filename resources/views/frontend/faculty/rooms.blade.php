@@ -1171,6 +1171,7 @@ body{
       <input type="hidden" id="checkRoomId" name="classroom_id">
 
       <div id="checkTimetableWrap" style="margin-bottom:16px;overflow-x:auto;border:1px solid #d4daf0;border-radius:10px">
+        <div style="padding:7px 10px;background:#f8faff;color:#5b6577;font-size:.68rem;font-weight:600">7:00 AM–8:00 PM · Each column represents 30 minutes</div>
         <table id="checkTimetable" style="width:100%;min-width:780px;border-collapse:collapse;font-size:.7rem"></table>
       </div>
       <div id="checkTimetableLegend" style="display:none;gap:14px;margin-bottom:14px;font-size:.72rem;color:#5b6577;font-weight:600">
@@ -1179,12 +1180,12 @@ body{
       </div>
 
       <div class="reserve-group">
-        <label class="reserve-label" for="checkStartAt">Start</label>
+        <label class="reserve-label" for="checkStartAt">Start (30-minute increments)</label>
         <input class="reserve-input" id="checkStartAt" name="start_at" type="datetime-local" step="1800" required>
       </div>
 
       <div class="reserve-group">
-        <label class="reserve-label" for="checkEndAt">End</label>
+        <label class="reserve-label" for="checkEndAt">End (30-minute increments)</label>
         <input class="reserve-input" id="checkEndAt" name="end_at" type="datetime-local" step="1800" required>
       </div>
 
@@ -1643,11 +1644,17 @@ document.addEventListener('DOMContentLoaded', function () {
     stopReserveClock();
   }
 
-  /* ── Timetable grid for check modal ── */
-  var TT_HOURS=[7,8,9,10,11,12,13,14,15,16,17,18,19];
-  var TT_LABELS=['7-8','8-9','9-10','10-11','11-12','12-1','1-2','2-3','3-4','4-5','5-6','6-7','7-8'];
+  /* ── Timetable grid for check modal; each column represents 30 minutes ── */
+  var TT_START_MINUTES=7*60;
+  var TT_SLOT_MINUTES=30;
+  var TT_SLOT_COUNT=26;
   var TT_DAYS=['MON','TUE','WED','THU','FRI','SAT','SUN'];
   var TT_DAYMAP={1:'MON',2:'TUE',3:'WED',4:'THU',5:'FRI',6:'SAT',0:'SUN'};
+  function ttTimeLabel(minutes){
+    var hour=Math.floor(minutes/60),minute=minutes%60;
+    var h12=hour%12||12;
+    return h12+(minute?':30':'');
+  }
   function renderTimetable(payload){
     if(!checkTimetable)return;
     var entries=[];
@@ -1661,26 +1668,32 @@ document.addEventListener('DOMContentLoaded', function () {
       var endDate=e.end_at?new Date(e.end_at):null;
       var dayOfWeek=Number.isInteger(Number(e.day_of_week))?Number(e.day_of_week):(startDate?startDate.getDay():1);
       var dk=TT_DAYMAP[dayOfWeek]||'MON';
-      var sh=st?st[0]+(st[1]/60):startDate?startDate.getHours():7;
-      var eh=en?en[0]+(en[1]/60):endDate?endDate.getHours():sh+1;
-      var firstHour=Math.floor(sh),lastHour=Math.ceil(eh),sp=Math.max(1,lastHour-firstHour);
-      sh=firstHour;
-      if(grid[dk]){grid[dk][sh]={course:e.course_code||e.course_title||'Scheduled',title:e.course_title||e.course||'Scheduled class',span:sp,kind:e.kind};
-        for(var f=sh+1;f<sh+sp;f++)grid[dk][f]='skip';}
+      var startMinutes=st?st[0]*60+st[1]:startDate?startDate.getHours()*60+startDate.getMinutes():TT_START_MINUTES;
+      var endMinutes=en?en[0]*60+en[1]:endDate?endDate.getHours()*60+endDate.getMinutes():startMinutes+60;
+      var firstSlot=Math.max(0,Math.floor((startMinutes-TT_START_MINUTES)/TT_SLOT_MINUTES));
+      var lastSlot=Math.min(TT_SLOT_COUNT,Math.ceil((endMinutes-TT_START_MINUTES)/TT_SLOT_MINUTES));
+      var span=Math.max(1,lastSlot-firstSlot);
+      if(grid[dk]&&firstSlot<TT_SLOT_COUNT&&lastSlot>0){
+        grid[dk][firstSlot]={course:e.course_code||e.course_title||'Scheduled',title:e.course_title||e.course||'Scheduled class',span:span,kind:e.kind};
+        for(var f=firstSlot+1;f<firstSlot+span;f++)grid[dk][f]='skip';
+      }
     });
     var ths='background:#0b1640;color:#fff;font-weight:700;padding:9px 4px;font-size:.65rem;text-align:center;border:1px solid #1a2f80;';
     var dts='background:#f1f4ff;color:#0b1640;font-weight:800;padding:9px 8px;font-size:.72rem;text-align:center;border:1px solid #d4daf0;';
-    var tds='background:#fff;height:44px;min-width:58px;border:1px solid #d4daf0;padding:0;text-align:center;vertical-align:middle;';
-    var h='<thead><tr><th style="'+ths+'min-width:60px">TIME</th>';
-    TT_LABELS.forEach(function(l){h+='<th style="'+ths+'">'+l+'</th>';});
+    var tds='background:#fff;height:44px;min-width:38px;border:1px solid #d4daf0;padding:0;text-align:center;vertical-align:middle;';
+    var h='<thead><tr><th style="'+ths+'min-width:60px">TIME<br><small>30 min</small></th>';
+    for(var slot=0;slot<TT_SLOT_COUNT;slot++){
+      var label=ttTimeLabel(TT_START_MINUTES+slot*TT_SLOT_MINUTES);
+      h+='<th style="'+ths+'min-width:38px" title="'+label+'">'+label+'</th>';
+    }
     h+='</tr></thead><tbody>';
     TT_DAYS.forEach(function(day){
       h+='<tr><th style="'+dts+'">'+day+'</th>';
-      for(var i=0;i<TT_HOURS.length;i++){
-        var hr=TT_HOURS[i],c=grid[day][hr];
+      for(var i=0;i<TT_SLOT_COUNT;i++){
+        var c=grid[day][i];
         if(c==='skip')continue;
         if(c&&c.course){
-          var cs=c.span>1?' colspan="'+Math.min(c.span,TT_HOURS.length-i)+'"':'';
+          var cs=c.span>1?' colspan="'+Math.min(c.span,TT_SLOT_COUNT-i)+'"':'';
           var bg=c.kind==='reservation'?'background:linear-gradient(135deg,#fef5cd,#fdf0b8);color:#7a5d0a;border:1px solid #f0dc7a;':'background:linear-gradient(135deg,#e8ecfb,#dde3fa);color:#0b1640;border:1px solid #c7d0ee;';
           h+='<td style="'+tds+'"'+cs+'><div title="'+escapeHtml(c.title)+'" style="'+bg+'border-radius:4px;margin:2px;padding:4px 3px;font-size:.62rem;font-weight:800;line-height:1.2;min-height:38px;display:flex;flex-direction:column;align-items:center;justify-content:center"><span>'+escapeHtml(c.course)+'</span><small style="font-size:.68rem;font-weight:600;margin-top:2px">'+escapeHtml(c.title)+'</small></div></td>';
         }else{h+='<td style="'+tds+'"></td>';}
