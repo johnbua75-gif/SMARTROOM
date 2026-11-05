@@ -1653,7 +1653,7 @@ document.addEventListener('DOMContentLoaded', function () {
   function ttTimeLabel(minutes){
     var hour=Math.floor(minutes/60),minute=minutes%60;
     var h12=hour%12||12;
-    return h12+(minute?':30':'');
+    return h12+':'+String(minute).padStart(2,'0');
   }
   function renderTimetable(payload){
     if(!checkTimetable)return;
@@ -1680,11 +1680,13 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     var ths='background:#0b1640;color:#fff;font-weight:700;padding:9px 4px;font-size:.65rem;text-align:center;border:1px solid #1a2f80;';
     var dts='background:#f1f4ff;color:#0b1640;font-weight:800;padding:9px 8px;font-size:.72rem;text-align:center;border:1px solid #d4daf0;';
-    var tds='background:#fff;height:44px;min-width:38px;border:1px solid #d4daf0;padding:0;text-align:center;vertical-align:middle;';
-    var h='<thead><tr><th style="'+ths+'min-width:60px">TIME<br><small>30 min</small></th>';
+    var tds='background:#fff;height:44px;min-width:46px;border:1px solid #d4daf0;padding:0;text-align:center;vertical-align:middle;';
+    var h='<thead><tr><th style="'+ths+'min-width:60px;line-height:1.15">TIME<br><small>30 min</small></th>';
     for(var slot=0;slot<TT_SLOT_COUNT;slot++){
-      var label=ttTimeLabel(TT_START_MINUTES+slot*TT_SLOT_MINUTES);
-      h+='<th style="'+ths+'min-width:38px" title="'+label+'">'+label+'</th>';
+      var slotMinutes=TT_START_MINUTES+slot*TT_SLOT_MINUTES;
+      var label=ttTimeLabel(slotMinutes);
+      var period=slotMinutes<12*60?'AM':'PM';
+      h+='<th style="'+ths+'min-width:46px;line-height:1.1" title="'+label+' '+period+'"><span>'+label+'</span><br><small style="font-size:.58rem">'+period+'</small></th>';
     }
     h+='</tr></thead><tbody>';
     TT_DAYS.forEach(function(day){
