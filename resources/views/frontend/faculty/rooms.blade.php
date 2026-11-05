@@ -1156,7 +1156,7 @@ body{
 
 <div class="reserve-overlay" id="checkOverlay" aria-hidden="true">
   <div class="reserve-modal" role="dialog" aria-modal="true" aria-labelledby="checkTitle" style="width:min(1100px,calc(100% - 40px));max-height:min(820px,calc(100vh - 40px));overflow:hidden;display:flex;flex-direction:column">
-    <div style="position:relative;min-height:110px;display:flex;align-items:flex-end;padding:20px 24px;overflow:hidden;background:linear-gradient(100deg,rgba(11,22,64,.92),rgba(11,22,64,.45)),url('/images/map.png') center/cover no-repeat;color:#fff;flex-shrink:0;border-radius:var(--r-lg,16px) var(--r-lg,16px) 0 0">
+    <div style="position:relative;min-height:86px;display:flex;align-items:flex-end;padding:14px 22px;overflow:hidden;background:linear-gradient(100deg,rgba(11,22,64,.92),rgba(11,22,64,.45)),url('/images/map.png') center/cover no-repeat;color:#fff;flex-shrink:0;border-radius:var(--r-lg,16px) var(--r-lg,16px) 0 0">
       <div style="position:absolute;top:0;right:0;width:100px;height:100%;background:linear-gradient(135deg,rgba(245,197,24,.2),transparent);pointer-events:none"></div>
       <div style="position:absolute;inset:0;background:linear-gradient(180deg,transparent 30%,rgba(11,22,64,.4));pointer-events:none"></div>
       <div style="position:relative;z-index:1">
@@ -1167,11 +1167,11 @@ body{
         <i class="fas fa-xmark"></i>
       </button>
     </div>
-    <form id="checkForm" class="reserve-body" style="flex:1;overflow-y:auto;max-height:calc(100vh - 200px)">
+    <form id="checkForm" class="reserve-body" style="flex:1;overflow-y:auto;max-height:calc(100vh - 150px);padding:12px 18px 16px;gap:7px">
       <input type="hidden" id="checkRoomId" name="classroom_id">
 
       <div id="checkTimetableWrap" style="margin-bottom:16px;overflow:hidden;border:1px solid #d4daf0;border-radius:10px">
-        <div style="padding:7px 10px;background:#f8faff;color:#5b6577;font-size:.68rem;font-weight:600">7:00 AM–5:00 PM · Monday–Friday · Each cell is 30 minutes; two cells make one hour</div>
+        <div style="padding:6px 10px;background:#f8faff;color:#5b6577;font-size:.68rem;font-weight:600">Weekdays · 7:00 AM–5:00 PM · Each hour is split into two 30-minute slots</div>
         <table id="checkTimetable" style="width:100%;min-width:0;table-layout:fixed;border-collapse:collapse;font-size:.7rem"></table>
       </div>
       <div id="checkTimetableLegend" style="display:none;gap:14px;margin-bottom:14px;font-size:.72rem;color:#5b6577;font-weight:600">
@@ -1682,21 +1682,21 @@ document.addEventListener('DOMContentLoaded', function () {
         for(var f=firstSlot+1;f<firstSlot+span;f++)grid[dk][f]='skip';
       }
     });
-    var ths='background:#0b1640;color:#fff;font-weight:700;padding:5px 2px;font-size:.63rem;text-align:center;border:1px solid #1a2f80;';
-    var dts='background:#f1f4ff;color:#0b1640;font-weight:800;padding:5px 3px;font-size:.67rem;text-align:center;border:1px solid #d4daf0;';
-    var tds='background:#fff;height:34px;min-width:0;border:1px solid #d4daf0;padding:0;text-align:center;vertical-align:middle;';
+    var ths='background:#0b1640;color:#fff;font-weight:700;padding:4px 2px;font-size:.62rem;text-align:center;border:1px solid #1a2f80;';
+    var dts='background:#f1f4ff;color:#0b1640;font-weight:800;padding:3px 2px;font-size:.64rem;text-align:center;border:1px solid #d4daf0;';
+    var tds='background:#fff;height:26px;min-width:0;border:1px solid #d4daf0;padding:0;text-align:center;vertical-align:middle;';
     var h='<thead><tr><th rowspan="2" style="'+ths+'width:46px;line-height:1.15">DAY</th>';
     for(var hourSlot=0;hourSlot<TT_SLOT_COUNT;hourSlot+=2){
       var hourStart=TT_START_MINUTES+hourSlot*TT_SLOT_MINUTES;
       var hourEnd=hourStart+60;
-      h+='<th colspan="2" style="'+ths+'padding:5px 1px;font-size:.57rem" title="'+ttHourLabel(hourStart)+'–'+ttHourLabel(hourEnd)+'">'+ttHourLabel(hourStart)+'–'+ttHourLabel(hourEnd)+'</th>';
+      h+='<th colspan="2" style="'+ths+'padding:4px 1px;font-size:.57rem" title="'+ttHourLabel(hourStart)+'–'+ttHourLabel(hourEnd)+'">'+ttHourLabel(hourStart)+'–'+ttHourLabel(hourEnd)+'</th>';
     }
     h+='</tr><tr>';
     for(var slot=0;slot<TT_SLOT_COUNT;slot++){
       var slotMinutes=TT_START_MINUTES+slot*TT_SLOT_MINUTES;
       var slotEnd=slotMinutes+TT_SLOT_MINUTES;
-      var slotLabel=':'+String(slotMinutes%60).padStart(2,'0')+'–:'+String(slotEnd%60).padStart(2,'0');
-      h+='<th style="'+ths+'padding:3px 1px;font-size:.55rem" title="'+ttTimeLabel(slotMinutes)+' '+(slotMinutes<12*60?'AM':'PM')+'–'+ttTimeLabel(slotEnd)+' '+(slotEnd<12*60?'AM':'PM')+'">'+slotLabel+'</th>';
+      var slotLabel=slot%2===0?'1st half':'2nd half';
+      h+='<th style="'+ths+'padding:3px 1px;font-size:.5rem" title="'+ttTimeLabel(slotMinutes)+' '+(slotMinutes<12*60?'AM':'PM')+'–'+ttTimeLabel(slotEnd)+' '+(slotEnd<12*60?'AM':'PM')+'">'+slotLabel+'</th>';
     }
     h+='</tr></thead><tbody>';
     TT_DAYS.forEach(function(day){
@@ -1707,7 +1707,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if(c&&c.course){
           var cs=c.span>1?' colspan="'+Math.min(c.span,TT_SLOT_COUNT-i)+'"':'';
           var bg=c.kind==='reservation'?'background:linear-gradient(135deg,#fef5cd,#fdf0b8);color:#7a5d0a;border:1px solid #f0dc7a;':'background:linear-gradient(135deg,#e8ecfb,#dde3fa);color:#0b1640;border:1px solid #c7d0ee;';
-          h+='<td style="'+tds+'"'+cs+'><div title="'+escapeHtml(c.title)+'" style="'+bg+'border-radius:4px;margin:2px;padding:4px 3px;font-size:.62rem;font-weight:800;line-height:1.2;min-height:38px;display:flex;flex-direction:column;align-items:center;justify-content:center"><span>'+escapeHtml(c.course)+'</span><small style="font-size:.68rem;font-weight:600;margin-top:2px">'+escapeHtml(c.title)+'</small></div></td>';
+          h+='<td style="'+tds+'"'+cs+'><div title="'+escapeHtml(c.title)+'" style="'+bg+'border-radius:4px;margin:1px;padding:2px;font-size:.57rem;font-weight:800;line-height:1.15;min-height:24px;display:flex;flex-direction:column;align-items:center;justify-content:center"><span>'+escapeHtml(c.course)+'</span><small style="font-size:.6rem;font-weight:600;margin-top:1px">'+escapeHtml(c.title)+'</small></div></td>';
         }else{h+='<td style="'+tds+'"></td>';}
       }h+='</tr>';
     });h+='</tbody>';
