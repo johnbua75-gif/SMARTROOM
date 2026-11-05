@@ -101,6 +101,7 @@ class AdminInstructorAttendanceController extends Controller
         $weekStart = Carbon::parse($validated['week'] ?? now()->toDateString())->startOfWeek()->startOfDay();
         $weekEnd = $weekStart->copy()->endOfWeek()->endOfDay();
         $selectedInstructorId = isset($validated['instructor_id']) ? (int) $validated['instructor_id'] : null;
+        $now = now();
 
         $instructors = User::query()
             ->where('role', 'faculty')
@@ -110,6 +111,7 @@ class AdminInstructorAttendanceController extends Controller
         $schedulesQuery = Schedule::query()
             ->with(['course.instructor', 'classroom', 'instructor', 'courseOffering.instructor'])
             ->whereBetween('start_at', [$weekStart, $weekEnd])
+            ->where('end_at', '<', $now)
             ->orderBy('start_at');
 
         if ($selectedInstructorId !== null) {
@@ -142,7 +144,12 @@ class AdminInstructorAttendanceController extends Controller
             });
         }
 
-        $sessions = $sessionsQuery->get();
+        $sessions = $sessionsQuery->get()
+            ->filter(fn (AttendanceSession $session): bool => $session->schedule
+                ? $session->schedule->end_at?->lt($now) ?? false
+                : $session->ended_at !== null
+                    && Carbon::parse((string) $session->date.' '.(string) $session->ended_at)->lt($now))
+            ->values();
         $sessionsBySchedule = $sessions
             ->filter(fn (AttendanceSession $session): bool => $session->schedule_id !== null)
             ->groupBy('schedule_id');

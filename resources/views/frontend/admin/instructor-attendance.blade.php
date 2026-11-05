@@ -49,7 +49,7 @@
         <header class="page-head">
             <div>
                 <h1>Faculty Reports</h1>
-                <p class="subhead">{{ $weekStart->format('M j') }}–{{ $weekEnd->format('M j, Y') }} · Scheduled classes and recorded class sessions</p>
+                <p class="subhead">{{ $weekStart->format('M j') }}–{{ $weekEnd->format('M j, Y') }} · Past scheduled classes and recorded sessions</p>
             </div>
             <a class="button" href="{{ route('admin.instructor-attendance.export', request()->query()) }}">
                 <i class="fas fa-download" aria-hidden="true"></i> Download CSV
@@ -76,14 +76,14 @@
         </form>
 
         <section class="stats" aria-label="Weekly summary">
-            <article class="stat"><div class="stat-label">Scheduled classes</div><div class="stat-value">{{ number_format($stats['scheduled']) }}</div></article>
+            <article class="stat"><div class="stat-label">Past scheduled classes</div><div class="stat-value">{{ number_format($stats['scheduled']) }}</div></article>
             <article class="stat"><div class="stat-label">Classes with a session log</div><div class="stat-value">{{ number_format($stats['recordedClasses']) }}</div></article>
             <article class="stat"><div class="stat-label">Session records</div><div class="stat-value">{{ number_format($stats['sessions']) }}</div></article>
             <article class="stat"><div class="stat-label">Cancelled classes</div><div class="stat-value">{{ number_format($stats['cancelled']) }}</div></article>
         </section>
 
         <p class="notice">
-            A session log does not confirm that the instructor taught the class. A missing log is not proof of absence, and student check-ins are shown separately.
+            Only classes whose scheduled end time has passed are listed. A session log does not confirm that the instructor taught the class. A missing log is not proof of absence, and student check-ins are shown separately.
         </p>
 
         <div class="table-wrap">
@@ -128,7 +128,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td class="empty" colspan="6">No schedules or attendance sessions found for this week and filter.</td></tr>
+                        <tr><td class="empty" colspan="6">No classes with a passed scheduled end time or completed session records found for this week and filter.</td></tr>
                     @endforelse
                 </tbody>
             </table>

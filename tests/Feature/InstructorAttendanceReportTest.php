@@ -65,6 +65,9 @@ it('shows admin weekly instructor schedules and linked attendance sessions', fun
     ]);
     $schedule = instructorAttendanceSchedule($faculty, $classroom, 'IT101', '2026-11-02');
     instructorAttendanceSchedule($faculty, $classroom, 'IT102', '2026-11-03');
+    instructorAttendanceSchedule($faculty, $classroom, 'IT103', '2026-11-05');
+    $upcomingSchedule = instructorAttendanceSchedule($faculty, $classroom, 'IT104', '2026-11-04');
+    $upcomingSchedule->update(['end_at' => '2026-11-04 10:30:00']);
 
     AttendanceSession::query()->create([
         'schedule_id' => $schedule->id,
@@ -84,6 +87,9 @@ it('shows admin weekly instructor schedules and linked attendance sessions', fun
         ->assertSee('Faculty Reports')
         ->assertSee('Alex Faculty')
         ->assertSee('IT101')
+        ->assertSee('Past scheduled classes')
+        ->assertDontSee('IT103')
+        ->assertDontSee('IT104')
         ->assertSee('href="'.route('admin.instructor-attendance').'"', false)
         ->assertSee('1 session logged')
         ->assertSee('No session logged')
