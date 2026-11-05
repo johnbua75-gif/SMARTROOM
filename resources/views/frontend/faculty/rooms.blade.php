@@ -1214,7 +1214,7 @@ body{
       <input type="hidden" id="checkRoomId" name="classroom_id">
 
       <div class="check-timetable-wrap" id="checkTimetableWrap">
-        <div class="check-timetable-caption">Weekdays · 7:00 AM–5:00 PM · Select a 30-minute slot to set a one-hour check</div>
+        <div class="check-timetable-caption" id="checkTimetableCaption">Weekdays · 7 AM–5 PM · Select a time to check availability</div>
         <table class="check-timetable" id="checkTimetable"></table>
       </div>
       <div class="check-timetable-legend" id="checkTimetableLegend">
@@ -1765,6 +1765,9 @@ document.addEventListener('DOMContentLoaded', function () {
     (checkTimetableData.schedules||[]).forEach(function(s){entries.push(Object.assign({},s,{kind:'class'}));});
     (checkTimetableData.reservations||[]).forEach(function(r){entries.push(Object.assign({},r,{kind:'reservation',course:r.course||'Reserved'}));});
     var grid={};TT_DAYS.forEach(function(d){grid[d]={};});
+    var hasHalfHourTime=[checkStartAt.value,checkEndAt.value].some(function(value){
+      return value&&new Date(value).getMinutes()!==0;
+    });
     entries.forEach(function(e){
       var st=e.start_time?e.start_time.split(':').map(Number):null;
       var en=e.end_time?e.end_time.split(':').map(Number):null;
@@ -1775,6 +1778,7 @@ document.addEventListener('DOMContentLoaded', function () {
       var dk=TT_DAYMAP[dayOfWeek];
       var startMinutes=st?st[0]*60+st[1]:startDate?startDate.getHours()*60+startDate.getMinutes():TT_START_MINUTES;
       var endMinutes=en?en[0]*60+en[1]:endDate?endDate.getHours()*60+endDate.getMinutes():startMinutes+60;
+      if(startMinutes%60!==0||endMinutes%60!==0)hasHalfHourTime=true;
       var firstSlot=Math.max(0,Math.floor((startMinutes-TT_START_MINUTES)/TT_SLOT_MINUTES));
       var lastSlot=Math.min(TT_SLOT_COUNT,Math.ceil((endMinutes-TT_START_MINUTES)/TT_SLOT_MINUTES));
       var span=Math.max(1,lastSlot-firstSlot);
@@ -1786,30 +1790,27 @@ document.addEventListener('DOMContentLoaded', function () {
     var ths='background:#0b1640;color:#fff;font-weight:700;padding:4px 2px;font-size:.62rem;text-align:center;border:1px solid #1a2f80;';
     var dts='background:#f1f4ff;color:#0b1640;font-weight:800;padding:3px 2px;font-size:.64rem;text-align:center;border:1px solid #d4daf0;';
     var tds='background:#fff;height:26px;min-width:0;border:1px solid #d4daf0;padding:0;text-align:center;vertical-align:middle;';
-    var h='<thead><tr><th rowspan="2" style="'+ths+'width:46px;line-height:1.15">DAY</th>';
-    for(var hourSlot=0;hourSlot<TT_SLOT_COUNT;hourSlot+=2){
-      var hourStart=TT_START_MINUTES+hourSlot*TT_SLOT_MINUTES;
-      var hourEnd=hourStart+60;
-      h+='<th colspan="2" style="'+ths+'padding:4px 1px;font-size:.57rem" title="'+ttHourLabel(hourStart)+'–'+ttHourLabel(hourEnd)+'">'+ttHourLabel(hourStart)+'–'+ttHourLabel(hourEnd)+'</th>';
-    }
-    h+='</tr><tr>';
-    for(var slot=0;slot<TT_SLOT_COUNT;slot++){
+    var columnStep=hasHalfHourTime?1:2;
+    var h='<thead><tr><th style="'+ths+'width:46px;line-height:1.15">DAY</th>';
+    for(var slot=0;slot<TT_SLOT_COUNT;slot+=columnStep){
       var slotMinutes=TT_START_MINUTES+slot*TT_SLOT_MINUTES;
-      var slotEnd=slotMinutes+TT_SLOT_MINUTES;
-      var slotLabel=slot%2===0?'1st half':'2nd half';
-      h+='<th style="'+ths+'padding:3px 1px;font-size:.5rem" title="'+ttTimeLabel(slotMinutes)+' '+(slotMinutes<12*60?'AM':'PM')+'–'+ttTimeLabel(slotEnd)+' '+(slotEnd<12*60?'AM':'PM')+'">'+slotLabel+'</th>';
+      var slotLabel=hasHalfHourTime?ttTimeLabel(slotMinutes):ttHourLabel(slotMinutes);
+      var slotTitle=ttTimeLabel(slotMinutes)+' '+(slotMinutes<12*60?'AM':'PM');
+      h+='<th title="'+slotTitle+'" style="'+ths+'padding:5px 1px;font-size:.58rem">'+slotLabel+'</th>';
     }
     h+='</tr></thead><tbody>';
     TT_DAYS.forEach(function(day){
       h+='<tr><th style="'+dts+'">'+day+'</th>';
-      for(var i=0;i<TT_SLOT_COUNT;i++){
+      for(var i=0;i<TT_SLOT_COUNT;i+=columnStep){
         var c=grid[day][i];
         if(c==='skip')continue;
-        var inSelection=selection&&selection.day===day&&i>=selection.startSlot&&i<selection.endSlot;
-        var selectionClasses=inSelection?' is-selected'+(i===selection.startSlot?' is-selection-start is-selection-top is-selection-bottom':'')+(i===selection.endSlot-1?' is-selection-end is-selection-top is-selection-bottom':''):'';
+        var cellEnd=i+columnStep;
+        var inSelection=selection&&selection.day===day&&i<selection.endSlot&&cellEnd>selection.startSlot;
+        var selectionClasses=inSelection?' is-selected'+(i<=selection.startSlot&&cellEnd>selection.startSlot?' is-selection-start is-selection-top is-selection-bottom':'')+(i<selection.endSlot&&cellEnd>=selection.endSlot?' is-selection-end is-selection-top is-selection-bottom':''):'';
         var slotAttributes=' data-day="'+day+'" data-slot="'+i+'"';
         if(c&&c.course){
-          var cs=c.span>1?' colspan="'+Math.min(c.span,TT_SLOT_COUNT-i)+'"':'';
+          var visibleSpan=Math.max(1,Math.ceil(c.span/columnStep));
+          var cs=visibleSpan>1?' colspan="'+Math.min(visibleSpan,(TT_SLOT_COUNT-i)/columnStep)+'"':'';
           var bg=c.kind==='reservation'?'background:linear-gradient(135deg,#fef5cd,#fdf0b8);color:#7a5d0a;border:1px solid #f0dc7a;':'background:linear-gradient(135deg,#e8ecfb,#dde3fa);color:#0b1640;border:1px solid #c7d0ee;';
           h+='<td class="check-slot is-occupied'+selectionClasses+'"'+slotAttributes+' style="'+tds+'"'+cs+'><div class="check-class-block" title="'+escapeHtml(c.title)+'" style="'+bg+'"><span>'+escapeHtml(c.course)+'</span><small>'+escapeHtml(c.title)+'</small></div></td>';
         }else{h+='<td class="check-slot'+selectionClasses+'"'+slotAttributes+' style="'+tds+'"></td>';}
@@ -1860,10 +1861,11 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     var now = new Date();
-    var startDefault = new Date(now.getTime() + 30 * 60000);
-    startDefault.setMinutes(Math.ceil(startDefault.getMinutes() / 30) * 30, 0, 0);
+    var startDefault = new Date(now);
+    startDefault.setMinutes(0, 0, 0);
+    startDefault.setHours(startDefault.getHours() + 1);
     if (startDefault.getHours() < 7) startDefault.setHours(7, 0, 0, 0);
-    while (startDefault.getDay() === 0 || startDefault.getDay() === 6 || startDefault.getHours() * 60 + startDefault.getMinutes() >= 16 * 60 + 30) {
+    while (startDefault.getDay() === 0 || startDefault.getDay() === 6 || startDefault.getHours() > 16) {
       startDefault.setDate(startDefault.getDate() + 1);
       startDefault.setHours(7, 0, 0, 0);
     }
