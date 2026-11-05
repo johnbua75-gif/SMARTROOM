@@ -425,6 +425,48 @@ body { font-family:var(--fb); background:var(--bg); color:var(--text); min-heigh
 @media (max-width:820px){.rv-body{grid-template-columns:1fr}.rv-right{padding-left:0;border-left:0;border-top:1px solid var(--rv-line);padding-top:20px}.rv-modal .slot-grid{grid-template-columns:repeat(3,1fr)}.rv-live{display:none}}
 @media (prefers-reduced-motion:reduce){.rv-modal,.rv-pulse{animation:none}}
 
+.check-modal{width:min(920px,calc(100% - 32px));max-height:calc(100vh - 32px);overflow:auto;border:1px solid #d5deef;border-radius:18px;background:#fff;box-shadow:0 24px 70px rgba(11,22,64,.24)}
+.check-modal-head{min-height:82px;padding:17px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;background:#1b2b70;color:#fff}
+.check-modal-title{font-size:.62rem;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:#dce4ff;margin-bottom:5px}
+.check-modal-room{display:flex;align-items:center;gap:10px;font-size:1.28rem;font-weight:800;line-height:1.2}
+.check-room-status{padding:5px 11px;border-radius:999px;background:#d9f8e9;color:#087443;font-size:.62rem;font-weight:800;letter-spacing:.02em;white-space:nowrap}
+.check-room-status.is-busy{background:#fff1dc;color:#9a5600}
+.check-modal-close{width:34px;height:34px;flex-shrink:0;border:1px solid rgba(255,255,255,.25);border-radius:9px;background:transparent;color:#fff;font-size:1rem;cursor:pointer}
+.check-modal-close:hover{background:rgba(255,255,255,.12)}
+.check-modal-form{display:flex;flex-direction:column;gap:12px;padding:15px 22px 18px;max-height:calc(100vh - 116px);overflow:auto}
+.check-timetable-wrap{overflow:hidden;border:1px solid #d9e1f1;border-radius:11px}
+.check-timetable-caption{padding:7px 10px;color:#52617d;background:#f8faff;font-size:.7rem;font-weight:600}
+.check-timetable{width:100%;table-layout:fixed;border-collapse:collapse;font-size:.68rem}
+.check-timetable th,.check-timetable td{overflow:hidden}
+.check-timetable .check-day{width:48px}
+.check-timetable td.check-slot{height:40px;padding:1px;background:#fff;cursor:pointer}
+.check-timetable td.check-slot:hover{background:#f2f7ff}
+.check-timetable td.check-slot.is-selected{background:#e8f5ef;box-shadow:inset 0 0 0 1px #198754}
+.check-timetable td.check-slot.is-selection-start{border-left:2px dashed #14865a}
+.check-timetable td.check-slot.is-selection-end{border-right:2px dashed #14865a}
+.check-timetable td.check-slot.is-selection-top{border-top:2px dashed #14865a}
+.check-timetable td.check-slot.is-selection-bottom{border-bottom:2px dashed #14865a}
+.check-timetable td.check-slot.is-occupied{cursor:default}
+.check-timetable td.check-slot.is-occupied:hover{background:#fff}
+.check-timetable td.check-slot .check-class-block{min-height:34px;margin:1px;padding:3px 4px;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;line-height:1.15;font-size:.61rem;font-weight:800}
+.check-timetable td.check-slot .check-class-block small{margin-top:2px;font-size:.59rem;font-weight:600}
+.check-timetable-legend{display:flex;align-items:center;gap:16px;flex-wrap:wrap;color:#65728a;font-size:.7rem;font-weight:600}
+.check-legend-item{display:inline-flex;align-items:center;gap:6px}
+.check-legend-mark{width:10px;height:10px;border-radius:3px;background:#dfe5ff;border:1px solid #bdc9f5}
+.check-legend-mark.is-reservation{background:#fff0c8;border-color:#f1d36d}
+.check-legend-mark.is-selection{background:#e8f5ef;border:1px dashed #14865a}
+.check-time-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.check-time-field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.check-time-label{color:#7b879e;font-size:.63rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+.check-time-input{width:100%;height:42px;padding:0 10px;border:1px solid #dce3ef;border-radius:9px;background:#fbfcfe;color:#24304a;font:600 .82rem var(--fb)}
+.check-time-input:focus{outline:2px solid rgba(36,99,235,.16);border-color:#748bd2}
+.check-duration{min-height:34px;padding:9px 11px;border-radius:8px;background:#eaf8f0;color:#087443;font-size:.7rem;font-weight:600;line-height:1.35}
+.check-duration.is-invalid{background:#fff5e8;color:#9a5600}
+.check-modal .check-result{margin:0}
+.check-modal-actions{display:grid;grid-template-columns:1fr 2fr;gap:10px;margin-top:1px}
+.check-modal-actions .reserve-cancel,.check-modal-actions .reserve-submit{height:40px;border-radius:9px}
+@media(max-width:620px){.check-modal-head{min-height:72px;padding:14px 16px}.check-modal-room{font-size:1.08rem;flex-wrap:wrap}.check-modal-form{padding:12px}.check-time-row{grid-template-columns:1fr;gap:9px}.check-modal-actions{grid-template-columns:1fr 1.5fr}.check-timetable th{font-size:.48rem!important;padding-left:0!important;padding-right:0!important}.check-timetable .check-day{width:36px}.check-timetable td.check-slot{height:34px}.check-timetable td.check-slot .check-class-block{font-size:.48rem}.check-timetable td.check-slot .check-class-block small{font-size:.47rem}}
+
 .temp-sched-info{padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:var(--r-sm);font-size:.82rem;margin-bottom:12px;line-height:1.5}
 .temp-sched-info strong{color:var(--text-2);font-weight:600}
 .temp-schedule-list{max-height:400px;overflow-y:auto}
@@ -1155,40 +1197,44 @@ body{
 </div>
 
 <div class="reserve-overlay" id="checkOverlay" aria-hidden="true">
-  <div class="reserve-modal" role="dialog" aria-modal="true" aria-labelledby="checkTitle" style="width:min(1100px,calc(100% - 40px));max-height:min(820px,calc(100vh - 40px));overflow:hidden;display:flex;flex-direction:column">
-    <div style="position:relative;min-height:86px;display:flex;align-items:flex-end;padding:14px 22px;overflow:hidden;background:linear-gradient(100deg,rgba(11,22,64,.92),rgba(11,22,64,.45)),url('/images/map.png') center/cover no-repeat;color:#fff;flex-shrink:0;border-radius:var(--r-lg,16px) var(--r-lg,16px) 0 0">
-      <div style="position:absolute;top:0;right:0;width:100px;height:100%;background:linear-gradient(135deg,rgba(245,197,24,.2),transparent);pointer-events:none"></div>
-      <div style="position:absolute;inset:0;background:linear-gradient(180deg,transparent 30%,rgba(11,22,64,.4));pointer-events:none"></div>
-      <div style="position:relative;z-index:1">
-        <div style="font-size:.65rem;font-weight:800;letter-spacing:.16em;opacity:.7;text-transform:uppercase">ROOM SCHEDULE</div>
-        <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:1.5rem;font-weight:800;display:flex;align-items:center;gap:8px" id="checkTitle"><i class="fas fa-calendar-alt" style="font-size:.9rem;opacity:.7"></i> <span id="checkRoomName">Room</span></div>
+  <div class="check-modal" role="dialog" aria-modal="true" aria-labelledby="checkTitle">
+    <header class="check-modal-head">
+      <div>
+        <div class="check-modal-title">Room schedule</div>
+        <div class="check-modal-room" id="checkTitle">
+          <span id="checkRoomName">Room</span>
+          <span class="check-room-status" id="checkRoomStatus">Available</span>
+        </div>
       </div>
-      <button type="button" class="reserve-close" id="checkCloseBtn" aria-label="Close" style="position:absolute;top:14px;right:14px;z-index:2;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;backdrop-filter:blur(6px)">
+      <button type="button" class="check-modal-close" id="checkCloseBtn" aria-label="Close">
         <i class="fas fa-xmark"></i>
       </button>
-    </div>
-    <form id="checkForm" class="reserve-body" style="flex:1;overflow-y:auto;max-height:calc(100vh - 150px);padding:12px 18px 16px;gap:7px">
+    </header>
+    <form id="checkForm" class="check-modal-form">
       <input type="hidden" id="checkRoomId" name="classroom_id">
 
-      <div id="checkTimetableWrap" style="margin-bottom:16px;overflow:hidden;border:1px solid #d4daf0;border-radius:10px">
-        <div style="padding:6px 10px;background:#f8faff;color:#5b6577;font-size:.68rem;font-weight:600">Weekdays · 7:00 AM–5:00 PM · Each hour is split into two 30-minute slots</div>
-        <table id="checkTimetable" style="width:100%;min-width:0;table-layout:fixed;border-collapse:collapse;font-size:.7rem"></table>
+      <div class="check-timetable-wrap" id="checkTimetableWrap">
+        <div class="check-timetable-caption">Weekdays · 7:00 AM–5:00 PM · Select a 30-minute slot to set a one-hour check</div>
+        <table class="check-timetable" id="checkTimetable"></table>
       </div>
-      <div id="checkTimetableLegend" style="display:none;gap:14px;margin-bottom:14px;font-size:.72rem;color:#5b6577;font-weight:600">
-        <span style="display:inline-flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:3px;background:#dde3fa;border:1px solid #c7d0ee;display:inline-block"></span> Class</span>
-        <span style="display:inline-flex;align-items:center;gap:5px;margin-left:12px"><span style="width:10px;height:10px;border-radius:3px;background:#fdf0b8;border:1px solid #f0dc7a;display:inline-block"></span> Reservation</span>
-      </div>
-
-      <div class="reserve-group">
-        <label class="reserve-label" for="checkStartAt">Start (30-minute increments)</label>
-        <input class="reserve-input" id="checkStartAt" name="start_at" type="datetime-local" step="1800" required>
+      <div class="check-timetable-legend" id="checkTimetableLegend">
+        <span class="check-legend-item"><span class="check-legend-mark"></span>Class</span>
+        <span class="check-legend-item"><span class="check-legend-mark is-reservation"></span>Reservation</span>
+        <span class="check-legend-item"><span class="check-legend-mark is-selection"></span>Your selection</span>
       </div>
 
-      <div class="reserve-group">
-        <label class="reserve-label" for="checkEndAt">End (30-minute increments)</label>
-        <input class="reserve-input" id="checkEndAt" name="end_at" type="datetime-local" step="1800" required>
+      <div class="check-time-row">
+        <div class="check-time-field">
+          <label class="check-time-label" for="checkStartAt">Start</label>
+          <input class="check-time-input" id="checkStartAt" name="start_at" type="datetime-local" step="1800" required>
+        </div>
+        <div class="check-time-field">
+          <label class="check-time-label" for="checkEndAt">End</label>
+          <input class="check-time-input" id="checkEndAt" name="end_at" type="datetime-local" step="1800" required>
+        </div>
       </div>
 
+      <div class="check-duration" id="checkDurationHint" role="status" aria-live="polite"></div>
       <div class="check-result" id="checkResultBox"></div>
 
       <div class="check-cancelled" id="checkCancelledBox">
@@ -1196,7 +1242,7 @@ body{
         <div class="check-cancelled-list" id="checkCancelledList"></div>
       </div>
 
-      <div class="reserve-actions">
+      <div class="check-modal-actions">
         <button type="button" class="reserve-cancel" id="checkCancelBtn">Close</button>
         <button type="submit" class="reserve-submit" id="checkSubmitBtn">Run Check</button>
       </div>
@@ -1284,8 +1330,10 @@ document.addEventListener('DOMContentLoaded', function () {
   var checkForm = document.getElementById('checkForm');
   var checkRoomId = document.getElementById('checkRoomId');
   var checkRoomName = document.getElementById('checkRoomName');
+  var checkRoomStatus = document.getElementById('checkRoomStatus');
   var checkStartAt = document.getElementById('checkStartAt');
   var checkEndAt = document.getElementById('checkEndAt');
+  var checkDurationHint = document.getElementById('checkDurationHint');
   var checkResultBox = document.getElementById('checkResultBox');
   var checkCancelledBox = document.getElementById('checkCancelledBox');
   var checkCancelledList = document.getElementById('checkCancelledList');
@@ -1311,6 +1359,9 @@ document.addEventListener('DOMContentLoaded', function () {
   var refreshReservationsBtn = document.getElementById('refreshReservationsBtn');
   var selectedBuilding = null;
   var detailPollTimer = null;
+  var checkTimetableData = { schedules: [], reservations: [] };
+  var checkTimetableRequestId = 0;
+  var checkTimetableWeek = null;
 
   function closeAll() {
     document.querySelectorAll('.profile-dropdown').forEach(el => el.classList.remove('is-open'));
@@ -1658,11 +1709,61 @@ document.addEventListener('DOMContentLoaded', function () {
   function ttHourLabel(minutes){
     return ttTimeLabel(minutes)+' '+(minutes<12*60?'AM':'PM');
   }
+  function selectedCheckWindow(){
+    if(!checkStartAt.value||!checkEndAt.value)return null;
+    var start=new Date(checkStartAt.value);
+    var end=new Date(checkEndAt.value);
+    if(Number.isNaN(start.getTime())||Number.isNaN(end.getTime()))return null;
+    var dayName=TT_DAYMAP[start.getDay()];
+    if(!dayName||formatDateOnly(start)!==formatDateOnly(end))return null;
+    var startMinutes=start.getHours()*60+start.getMinutes();
+    var endMinutes=end.getHours()*60+end.getMinutes();
+    if(endMinutes<=startMinutes)return null;
+    return {
+      day:dayName,
+      startSlot:Math.floor((startMinutes-TT_START_MINUTES)/TT_SLOT_MINUTES),
+      endSlot:Math.ceil((endMinutes-TT_START_MINUTES)/TT_SLOT_MINUTES)
+    };
+  }
+  function updateCheckDuration(){
+    if(!checkDurationHint)return;
+    checkDurationHint.classList.remove('is-invalid');
+    if(!checkStartAt.value||!checkEndAt.value){
+      checkDurationHint.textContent='Choose a start and end time. Use 30-minute increments between 7:00 AM and 5:00 PM.';
+      return;
+    }
+    var start=new Date(checkStartAt.value);
+    var end=new Date(checkEndAt.value);
+    var duration=Math.round((end.getTime()-start.getTime())/60000);
+    var isWeekday=start.getDay()>=1&&start.getDay()<=5&&start.getDay()===end.getDay();
+    var isHalfHourIncrement=start.getMinutes()%30===0&&end.getMinutes()%30===0;
+    var isWithinHours=start.getHours()*60+start.getMinutes()>=TT_START_MINUTES
+      &&end.getHours()*60+end.getMinutes()<=17*60
+      &&formatDateOnly(start)===formatDateOnly(end);
+    if(duration<=0){
+      checkDurationHint.textContent='End time must be after start time.';
+      checkDurationHint.classList.add('is-invalid');
+    }else if(!isWeekday||!isHalfHourIncrement||!isWithinHours){
+      checkDurationHint.textContent='Choose a weekday time between 7:00 AM and 5:00 PM. Each hour has two 30-minute slots.';
+      checkDurationHint.classList.add('is-invalid');
+    }else{
+      var hours=Math.floor(duration/60);
+      var minutes=duration%60;
+      var durationText=hours?hours+' hr'+(hours===1?'':'s')+(minutes?' '+minutes+' min':''):minutes+' min';
+      var dateLabel=start.toLocaleDateString([], {weekday:'short',day:'numeric',month:'short',year:'numeric'});
+      var startLabel=start.toLocaleTimeString([], {hour:'numeric',minute:'2-digit'});
+      var endLabel=end.toLocaleTimeString([], {hour:'numeric',minute:'2-digit'});
+      checkDurationHint.textContent='Duration '+durationText+' · '+dateLabel+' · '+startLabel+'–'+endLabel+'. Press Run Check to confirm availability.';
+    }
+    renderTimetable(checkTimetableData);
+  }
   function renderTimetable(payload){
     if(!checkTimetable)return;
+    checkTimetableData=payload||{schedules:[],reservations:[]};
+    var selection=selectedCheckWindow();
     var entries=[];
-    (payload.schedules||[]).forEach(function(s){entries.push(Object.assign({},s,{kind:'class'}));});
-    (payload.reservations||[]).forEach(function(r){entries.push(Object.assign({},r,{kind:'reservation',course:r.course||'Reserved'}));});
+    (checkTimetableData.schedules||[]).forEach(function(s){entries.push(Object.assign({},s,{kind:'class'}));});
+    (checkTimetableData.reservations||[]).forEach(function(r){entries.push(Object.assign({},r,{kind:'reservation',course:r.course||'Reserved'}));});
     var grid={};TT_DAYS.forEach(function(d){grid[d]={};});
     entries.forEach(function(e){
       var st=e.start_time?e.start_time.split(':').map(Number):null;
@@ -1704,20 +1805,56 @@ document.addEventListener('DOMContentLoaded', function () {
       for(var i=0;i<TT_SLOT_COUNT;i++){
         var c=grid[day][i];
         if(c==='skip')continue;
+        var inSelection=selection&&selection.day===day&&i>=selection.startSlot&&i<selection.endSlot;
+        var selectionClasses=inSelection?' is-selected'+(i===selection.startSlot?' is-selection-start is-selection-top is-selection-bottom':'')+(i===selection.endSlot-1?' is-selection-end is-selection-top is-selection-bottom':''):'';
+        var slotAttributes=' data-day="'+day+'" data-slot="'+i+'"';
         if(c&&c.course){
           var cs=c.span>1?' colspan="'+Math.min(c.span,TT_SLOT_COUNT-i)+'"':'';
           var bg=c.kind==='reservation'?'background:linear-gradient(135deg,#fef5cd,#fdf0b8);color:#7a5d0a;border:1px solid #f0dc7a;':'background:linear-gradient(135deg,#e8ecfb,#dde3fa);color:#0b1640;border:1px solid #c7d0ee;';
-          h+='<td style="'+tds+'"'+cs+'><div title="'+escapeHtml(c.title)+'" style="'+bg+'border-radius:4px;margin:1px;padding:2px;font-size:.57rem;font-weight:800;line-height:1.15;min-height:24px;display:flex;flex-direction:column;align-items:center;justify-content:center"><span>'+escapeHtml(c.course)+'</span><small style="font-size:.6rem;font-weight:600;margin-top:1px">'+escapeHtml(c.title)+'</small></div></td>';
-        }else{h+='<td style="'+tds+'"></td>';}
+          h+='<td class="check-slot is-occupied'+selectionClasses+'"'+slotAttributes+' style="'+tds+'"'+cs+'><div class="check-class-block" title="'+escapeHtml(c.title)+'" style="'+bg+'"><span>'+escapeHtml(c.course)+'</span><small>'+escapeHtml(c.title)+'</small></div></td>';
+        }else{h+='<td class="check-slot'+selectionClasses+'"'+slotAttributes+' style="'+tds+'"></td>';}
       }h+='</tr>';
     });h+='</tbody>';
     checkTimetable.innerHTML=h;
     checkTimetableWrap.style.display='block';
-    checkTimetableLegend.style.display=entries.length?'flex':'none';
   }
-  function ttWeekStart(d){var v=new Date(d);var dy=v.getDay();v.setDate(v.getDate()-(dy===0?6:dy-1));return v.toISOString().slice(0,10);}
+  function ttWeekStart(d){var v=new Date(d);var dy=v.getDay();v.setDate(v.getDate()-(dy===0?6:dy-1));return formatDateOnly(v);}
+  function loadCheckTimetable(roomId,date){
+    var requestId=++checkTimetableRequestId;
+    var selectedDate=date?new Date(date+'T00:00:00'):new Date();
+    checkTimetableWeek=ttWeekStart(selectedDate);
+    checkTimetableData={schedules:[],reservations:[]};
+    renderTimetable(checkTimetableData);
+    fetch('<?= url('/api/v1/map/rooms') ?>/'+encodeURIComponent(roomId)+'/fixed-schedules?week_start='+checkTimetableWeek,{headers:{Accept:'application/json'}})
+      .then(function(response){if(!response.ok)throw new Error('Unable to load room timetable.');return response.json();})
+      .then(function(payload){if(requestId===checkTimetableRequestId)renderTimetable(payload.data||{});})
+      .catch(function(){
+        if(requestId!==checkTimetableRequestId)return;
+        renderTimetable({schedules:[],reservations:[]});
+        if(!checkResultBox.classList.contains('is-visible')){
+          checkResultBox.textContent='The schedule could not be loaded. Run Check to verify this time directly.';
+          checkResultBox.classList.add('is-visible','warn');
+        }
+      });
+  }
+  function selectCheckSlot(dayName,slotIndex){
+    var currentDate=checkStartAt.value?new Date(checkStartAt.value):new Date();
+    var weekStart=new Date(currentDate.getFullYear(),currentDate.getMonth(),currentDate.getDate());
+    var daysFromMonday=(weekStart.getDay()+6)%7;
+    weekStart.setDate(weekStart.getDate()-daysFromMonday);
+    var dayOffset=TT_DAYS.indexOf(dayName);
+    if(dayOffset<0)return;
+    weekStart.setDate(weekStart.getDate()+dayOffset);
+    var start=new Date(weekStart);
+    var startMinutes=TT_START_MINUTES+slotIndex*TT_SLOT_MINUTES;
+    start.setHours(Math.floor(startMinutes/60),startMinutes%60,0,0);
+    var end=new Date(start.getTime()+Math.min(60,17*60-startMinutes)*60000);
+    checkStartAt.value=localDateTimeInput(start);
+    checkEndAt.value=localDateTimeInput(end);
+    updateCheckDuration();
+  }
 
-  function openCheckOverlay(roomId, roomName) {
+  function openCheckOverlay(roomId, roomName, checkButton) {
     if (!checkOverlay || !checkForm) {
       return;
     }
@@ -1725,10 +1862,19 @@ document.addEventListener('DOMContentLoaded', function () {
     var now = new Date();
     var startDefault = new Date(now.getTime() + 30 * 60000);
     startDefault.setMinutes(Math.ceil(startDefault.getMinutes() / 30) * 30, 0, 0);
+    if (startDefault.getHours() < 7) startDefault.setHours(7, 0, 0, 0);
+    while (startDefault.getDay() === 0 || startDefault.getDay() === 6 || startDefault.getHours() * 60 + startDefault.getMinutes() >= 16 * 60 + 30) {
+      startDefault.setDate(startDefault.getDate() + 1);
+      startDefault.setHours(7, 0, 0, 0);
+    }
     var endDefault = new Date(startDefault.getTime() + 60 * 60000);
 
     checkRoomId.value = String(roomId);
     checkRoomName.textContent = roomName;
+    var roomCard = checkButton ? checkButton.closest('.room-card') : null;
+    var statusLabel = roomCard ? roomCard.querySelector('[data-status-label]') : null;
+    checkRoomStatus.textContent = statusLabel ? statusLabel.textContent.trim() : 'Check availability';
+    checkRoomStatus.classList.toggle('is-busy', !/available/i.test(checkRoomStatus.textContent));
     checkStartAt.value = localDateTimeInput(startDefault);
     checkEndAt.value = localDateTimeInput(endDefault);
     checkResultBox.textContent = '';
@@ -1736,14 +1882,9 @@ document.addEventListener('DOMContentLoaded', function () {
     checkCancelledList.innerHTML = '';
     checkCancelledBox.classList.remove('is-visible');
     checkSubmitBtn.disabled = false;
+    updateCheckDuration();
 
-    // Render empty timetable, then fetch data
-    if(checkTimetable){renderTimetable({schedules:[],reservations:[]});
-      fetch('<?= url('/api/v1/map/rooms') ?>/'+encodeURIComponent(roomId)+'/fixed-schedules?week_start='+ttWeekStart(new Date()),{headers:{Accept:'application/json'}})
-        .then(function(r){if(!r.ok)throw new Error();return r.json();})
-        .then(function(p){renderTimetable(p.data||{});})
-        .catch(function(){});
-    }
+    loadCheckTimetable(roomId,formatDateOnly(startDefault));
     checkOverlay.classList.add('is-open');
     checkOverlay.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
@@ -2368,15 +2509,41 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   if (checkForm) {
+    checkStartAt.addEventListener('change', function () {
+      updateCheckDuration();
+      var selectedDate=checkStartAt.value.slice(0,10);
+      if(selectedDate){
+        var selectedWeek=ttWeekStart(new Date(selectedDate+'T00:00:00'));
+        if(selectedWeek!==checkTimetableWeek)loadCheckTimetable(checkRoomId.value,selectedDate);
+      }
+      checkResultBox.classList.remove('is-visible','ok','warn');
+    });
+    checkEndAt.addEventListener('change', function () {
+      updateCheckDuration();
+      checkResultBox.classList.remove('is-visible','ok','warn');
+    });
+    checkTimetable.addEventListener('click', function (event) {
+      var slot=event.target.closest('td[data-day][data-slot]');
+      if(!slot)return;
+      selectCheckSlot(slot.dataset.day,Number(slot.dataset.slot));
+      checkResultBox.classList.remove('is-visible','ok','warn');
+    });
     checkForm.addEventListener('submit', function (event) {
       event.preventDefault();
 
       var roomId = Number(checkRoomId.value);
       var startAt = checkStartAt.value;
       var endAt = checkEndAt.value;
+      updateCheckDuration();
 
       if (!startAt || !endAt) {
         checkResultBox.textContent = 'Start and end date/time are required.';
+        checkResultBox.classList.add('is-visible', 'warn');
+        return;
+      }
+
+      if (checkDurationHint.classList.contains('is-invalid')) {
+        checkResultBox.textContent = checkDurationHint.textContent;
         checkResultBox.classList.add('is-visible', 'warn');
         return;
       }
@@ -2387,7 +2554,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   document.querySelectorAll('.js-check-btn').forEach(function (button) {
     button.addEventListener('click', function () {
-      openCheckOverlay(button.dataset.roomId, button.dataset.roomName || 'Room');
+      openCheckOverlay(button.dataset.roomId, button.dataset.roomName || 'Room', button);
     });
   });
 
