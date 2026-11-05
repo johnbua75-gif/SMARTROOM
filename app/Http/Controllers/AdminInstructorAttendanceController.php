@@ -143,15 +143,15 @@ class AdminInstructorAttendanceController extends Controller
         }
 
         $sessions = $sessionsQuery->get();
-        $sessionsByScheduleAndDate = $sessions
+        $sessionsBySchedule = $sessions
             ->filter(fn (AttendanceSession $session): bool => $session->schedule_id !== null)
-            ->groupBy(fn (AttendanceSession $session): string => $session->schedule_id.'|'.Carbon::parse((string) $session->date)->toDateString());
+            ->groupBy('schedule_id');
         $matchedSessionIds = [];
         $rows = collect();
 
         foreach ($schedules as $schedule) {
             $date = $schedule->start_at?->toDateString() ?? '';
-            $scheduleSessions = $sessionsByScheduleAndDate->get($schedule->id.'|'.$date, collect());
+            $scheduleSessions = $sessionsBySchedule->get($schedule->id, collect());
             $matchedSessionIds = [...$matchedSessionIds, ...$scheduleSessions->pluck('id')->all()];
             $instructor = $schedule->instructor ?? $schedule->courseOffering?->instructor ?? $schedule->course?->instructor;
 
@@ -196,7 +196,7 @@ class AdminInstructorAttendanceController extends Controller
         $scheduled = $schedules->where('status', '!=', 'cancelled');
         $recordedClasses = $schedules
             ->filter(fn (Schedule $schedule): bool => $schedule->status !== 'cancelled'
-                && $sessionsByScheduleAndDate->has($schedule->id.'|'.$schedule->start_at?->toDateString()))
+                && $sessionsBySchedule->has($schedule->id))
             ->count();
 
         return [

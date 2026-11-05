@@ -85,7 +85,7 @@ it('shows admin weekly instructor schedules and linked attendance sessions', fun
         ->assertSee('Alex Faculty')
         ->assertSee('IT101')
         ->assertSee('href="'.route('admin.instructor-attendance').'"', false)
-        ->assertSee('1 session(s) logged')
+        ->assertSee('1 session logged')
         ->assertSee('No session logged')
         ->assertSee('Download CSV')
         ->assertSee('2', false);
@@ -93,6 +93,36 @@ it('shows admin weekly instructor schedules and linked attendance sessions', fun
     $html = $this->get(route('admin.instructor-attendance'))->getContent();
     expect(strpos($html, '<span>Announcements</span></a>'))
         ->toBeLessThan(strpos($html, '<span>Faculty Reports</span></a>'));
+});
+
+it('matches a session to its scheduled class when their dates differ', function () {
+    $admin = instructorAttendanceUser('Date Match Admin', 'date-match-admin@example.com', 'admin');
+    $faculty = instructorAttendanceUser('Date Match Faculty', 'date-match-faculty@example.com', 'faculty');
+    $classroom = Classroom::query()->create([
+        'name' => 'Room 21',
+        'building' => 'Main',
+        'capacity' => 30,
+        'status' => 'available',
+    ]);
+    $schedule = instructorAttendanceSchedule($faculty, $classroom, 'IT301', '2026-11-02');
+
+    AttendanceSession::query()->create([
+        'schedule_id' => $schedule->id,
+        'course_id' => $schedule->course_id,
+        'classroom_id' => $classroom->id,
+        'date' => '2026-11-03',
+        'started_at' => '09:03:00',
+        'status' => 'open',
+        'created_by' => $faculty->id,
+    ]);
+
+    $response = actingAs($admin)->get(route('admin.instructor-attendance', ['week' => '2026-11-04']));
+    $html = $response->assertOk()->getContent();
+
+    expect(substr_count($html, 'IT301 - IT301 Course'))->toBe(1)
+        ->and($html)->toContain('Classes with a session log')
+        ->toContain('1 session logged')
+        ->toContain('Started 9:03 AM');
 });
 
 it('filters instructor attendance and exports the selected week as csv', function () {

@@ -77,20 +77,20 @@
 
         <section class="stats" aria-label="Weekly summary">
             <article class="stat"><div class="stat-label">Scheduled classes</div><div class="stat-value">{{ number_format($stats['scheduled']) }}</div></article>
-            <article class="stat"><div class="stat-label">Classes with a session</div><div class="stat-value">{{ number_format($stats['recordedClasses']) }}</div></article>
-            <article class="stat"><div class="stat-label">Attendance sessions</div><div class="stat-value">{{ number_format($stats['sessions']) }}</div></article>
+            <article class="stat"><div class="stat-label">Classes with a session log</div><div class="stat-value">{{ number_format($stats['recordedClasses']) }}</div></article>
+            <article class="stat"><div class="stat-label">Session records</div><div class="stat-value">{{ number_format($stats['sessions']) }}</div></article>
             <article class="stat"><div class="stat-label">Cancelled classes</div><div class="stat-value">{{ number_format($stats['cancelled']) }}</div></article>
         </section>
 
         <p class="notice">
-            A recorded session means an attendance session exists for the scheduled class. It is not proof by itself that the instructor taught the class; “No session logged” is not automatically classified as an absence.
+            A session log does not confirm that the instructor taught the class. A missing log is not proof of absence, and student check-ins are shown separately.
         </p>
 
         <div class="table-wrap">
             <table>
                 <thead>
                     <tr>
-                        <th>Date / Time</th><th>Instructor</th><th>Course</th><th>Room</th><th>Record</th><th>Session Details</th>
+                        <th>Date / Time</th><th>Instructor</th><th>Course</th><th>Room</th><th>Session Log</th><th>Latest Session Details</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -112,7 +112,7 @@
                                 @if ($cancelled)
                                     <span class="pill cancelled">Cancelled</span>
                                 @elseif ($row['sessions']->isNotEmpty())
-                                    <span class="pill">{{ $row['sessions']->count() }} session(s) logged</span>
+                                    <span class="pill">{{ $row['sessions']->count() }} {{ $row['sessions']->count() === 1 ? 'session' : 'sessions' }} logged</span>
                                 @else
                                     <span class="pill missing">No session logged</span>
                                 @endif
@@ -120,7 +120,7 @@
                             <td>
                                 @if ($latestSession)
                                     <div class="primary">{{ ucfirst($latestSession->status) }}</div>
-                                    <div class="muted">Started {{ $latestSession->started_at ?: '—' }} · Ended {{ $latestSession->ended_at ?: '—' }}</div>
+                                    <div class="muted">Started {{ $latestSession->started_at ? \Illuminate\Support\Carbon::parse($latestSession->started_at)->format('g:i A') : '—' }} · Ended {{ $latestSession->ended_at ? \Illuminate\Support\Carbon::parse($latestSession->ended_at)->format('g:i A') : '—' }}</div>
                                     <div class="muted">{{ $row['checkins'] }} student check-in(s)</div>
                                 @else
                                     <span class="muted">No session details</span>
