@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\NotificationAdminController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminDataController;
+use App\Http\Controllers\AdminInstructorAttendanceController;
 use App\Http\Controllers\AiRecommendationController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\ReservationController as ApiReservationController;
@@ -180,6 +181,10 @@ Route::middleware(['auth', 'active', 'password.changed', 'role:admin'])->group(f
     Route::get('/admin/reports', function () {
         return view('frontend.admin.reports');
     })->name('admin.reports');
+    Route::get('/admin/instructor-attendance', [AdminInstructorAttendanceController::class, 'index'])
+        ->name('admin.instructor-attendance');
+    Route::get('/admin/instructor-attendance/export/csv', [AdminInstructorAttendanceController::class, 'export'])
+        ->name('admin.instructor-attendance.export');
 
     // Admin User Management
     Route::get('/admin/users', [AdminController::class, 'users'])->name('admin.users');
