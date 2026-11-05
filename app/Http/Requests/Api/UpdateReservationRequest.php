@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Api;
 
+use App\Rules\HalfHourTime;
 use App\Services\RoomAvailabilityService;
 use App\Support\RoomAvailabilityStatus;
 use Carbon\Carbon;
@@ -26,8 +27,8 @@ class UpdateReservationRequest extends FormRequest
         }
 
         return [
-            'start_at' => ['sometimes', 'date'],
-            'end_at' => ['sometimes', 'date'],
+            'start_at' => ['sometimes', 'date', new HalfHourTime],
+            'end_at' => ['sometimes', 'date', new HalfHourTime],
             'status' => ['sometimes', 'string', Rule::in($allowedStatuses)],
             'notes' => ['nullable', 'string', 'max:1000'],
         ];

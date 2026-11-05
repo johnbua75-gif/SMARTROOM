@@ -113,7 +113,30 @@ it('rejects reservation where end_at is before start_at', function () {
         ->assertJsonValidationErrors(['end_at']);
 });
 
-it('allows reservations that started in the past but are still active', function () {
+it('allows half-hour reservation times and rejects other minute values', function () {
+    Carbon::setTestNow('2026-06-15 08:00:00');
+
+    $faculty = makeFaculty();
+    $room = makeRoom();
+    actingAs($faculty);
+
+    postJson('/api/v1/reservations', [
+        'classroom_id' => $room->id,
+        'start_at' => '2026-06-15 09:30:00',
+        'end_at' => '2026-06-15 10:30:00',
+    ])->assertCreated();
+
+    postJson('/api/v1/reservations', [
+        'classroom_id' => $room->id,
+        'start_at' => '2026-06-15 11:15:00',
+        'end_at' => '2026-06-15 12:00:00',
+    ])->assertUnprocessable()
+        ->assertJsonValidationErrors(['start_at']);
+
+    expect(Reservation::query()->count())->toBe(1);
+});
+
+it('allows half-hour reservations that started in the past but are still active', function () {
     Carbon::setTestNow('2026-06-15 08:00:00');
 
     $faculty = makeFaculty();
@@ -123,8 +146,8 @@ it('allows reservations that started in the past but are still active', function
 
     postJson('/api/v1/reservations', [
         'classroom_id' => $room->id,
-        'start_at' => '2026-06-15 07:45:00',
-        'end_at' => '2026-06-15 08:15:00',
+        'start_at' => '2026-06-15 07:30:00',
+        'end_at' => '2026-06-15 08:30:00',
     ])
         ->assertCreated();
 

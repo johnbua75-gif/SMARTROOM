@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Cache;
 class RoomAvailabilityController extends Controller
 {
     /**
-     * Hourly free/busy slots for one room on one date, within operating hours.
+     * 30-minute free/busy slots for one room on one date, within operating hours.
      */
     public function slots(Request $request, RoomAvailabilityService $availabilityService): JsonResponse
     {
@@ -36,9 +36,10 @@ class RoomAvailabilityController extends Controller
             ->where('end_at', '>', $day)
             ->get(['start_at', 'end_at']);
 
-        for ($hour = RoomAvailabilityService::OPEN_HOUR; $hour < RoomAvailabilityService::CLOSE_HOUR; $hour++) {
-            $start = $day->copy()->setTime($hour, 0);
-            $end = $start->copy()->addHour();
+        for ($start = $day->copy()->setTime(RoomAvailabilityService::OPEN_HOUR, 0);
+            $start->lt($day->copy()->setTime(RoomAvailabilityService::CLOSE_HOUR, 0));
+            $start->addMinutes(30)) {
+            $end = $start->copy()->addMinutes(30);
 
             if ($end->lte($now)) {
                 $status = 'past';
@@ -68,6 +69,7 @@ class RoomAvailabilityController extends Controller
                 'date' => $validated['date'],
                 'open_hour' => RoomAvailabilityService::OPEN_HOUR,
                 'close_hour' => RoomAvailabilityService::CLOSE_HOUR,
+                'slot_minutes' => 30,
                 'slots' => $slots,
             ],
         ]);

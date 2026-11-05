@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Api;
 
+use App\Rules\HalfHourTime;
 use App\Services\RoomAvailabilityService;
 use App\Support\RoomAvailabilityStatus;
 use Carbon\Carbon;
@@ -21,8 +22,8 @@ class StoreReservationRequest extends FormRequest
     {
         return [
             'classroom_id' => ['required', 'integer', 'exists:classrooms,id'],
-            'start_at' => ['required', 'date'],
-            'end_at' => ['required', 'date', 'after:start_at', 'after:now'],
+            'start_at' => ['required', 'date', new HalfHourTime],
+            'end_at' => ['required', 'date', 'after:start_at', 'after:now', new HalfHourTime],
             'notes' => ['nullable', 'string', 'max:1000'],
         ];
     }

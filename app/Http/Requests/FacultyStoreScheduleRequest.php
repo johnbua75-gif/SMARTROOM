@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Rules\HalfHourTime;
 use Illuminate\Foundation\Http\FormRequest;
 
 class FacultyStoreScheduleRequest extends FormRequest
@@ -20,11 +21,11 @@ class FacultyStoreScheduleRequest extends FormRequest
             'semester_start' => ['required', 'date'],
             'semester_end' => ['required', 'date', 'after_or_equal:semester_start'],
             'day1' => ['nullable', 'integer', 'between:1,5', 'different:day2'],
-            'day1_start' => ['required_with:day1', 'date_format:H:i'],
-            'day1_end' => ['required_with:day1', 'date_format:H:i'],
+            'day1_start' => ['required_with:day1', 'date_format:H:i', new HalfHourTime],
+            'day1_end' => ['required_with:day1', 'date_format:H:i', new HalfHourTime],
             'day2' => ['nullable', 'integer', 'between:1,5', 'different:day1'],
-            'day2_start' => ['required_with:day2', 'date_format:H:i'],
-            'day2_end' => ['required_with:day2', 'date_format:H:i'],
+            'day2_start' => ['required_with:day2', 'date_format:H:i', new HalfHourTime],
+            'day2_end' => ['required_with:day2', 'date_format:H:i', new HalfHourTime],
             'enrolled' => ['nullable', 'integer', 'min:0'],
         ];
     }

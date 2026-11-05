@@ -907,8 +907,8 @@ body{
         <div class="booking-toolbar-title" id="bookingTitle"><i class="fas fa-calendar-plus"></i> Find a free room</div>
         <div class="booking-toolbar-sub">Choose a time, check all rooms, then use Reserve on an available room.</div>
       </div>
-      <div class="booking-field"><label for="bookingStartAt">Start</label><input id="bookingStartAt" type="datetime-local"></div>
-      <div class="booking-field"><label for="bookingEndAt">End</label><input id="bookingEndAt" type="datetime-local"></div>
+      <div class="booking-field"><label for="bookingStartAt">Start</label>      <input id="bookingStartAt" type="datetime-local" step="1800"></div>
+      <div class="booking-field"><label for="bookingEndAt">End</label>      <input id="bookingEndAt" type="datetime-local" step="1800"></div>
       <button type="button" class="btn-primary booking-search-btn" id="findFreeRoomsBtn"><i class="fas fa-magnifying-glass"></i> Find Free Rooms</button>
       <div class="booking-result" id="bookingResult"></div>
     </section>
@@ -1120,8 +1120,8 @@ body{
         </div>
 
         <div>
-          <div class="rv-label">Pick your hours</div>
-          <div class="slot-grid" id="slotGrid" role="group" aria-label="Hourly time slots"></div>
+          <div class="rv-label">Pick a time</div>
+          <div class="slot-grid" id="slotGrid" role="group" aria-label="30-minute time slots"></div>
         </div>
 
         <div class="slot-legend">
@@ -1135,7 +1135,7 @@ body{
       <aside class="rv-right">
         <div class="rv-card">
           <div class="rv-label">Your booking</div>
-          <div class="slot-summary" id="slotSummary">Select one or more consecutive free hours.</div>
+          <div class="slot-summary" id="slotSummary">Select one or more consecutive free 30-minute slots.</div>
         </div>
 
         <div class="rv-field rv-grow">
@@ -1180,12 +1180,12 @@ body{
 
       <div class="reserve-group">
         <label class="reserve-label" for="checkStartAt">Start</label>
-        <input class="reserve-input" id="checkStartAt" name="start_at" type="datetime-local" required>
+        <input class="reserve-input" id="checkStartAt" name="start_at" type="datetime-local" step="1800" required>
       </div>
 
       <div class="reserve-group">
         <label class="reserve-label" for="checkEndAt">End</label>
-        <input class="reserve-input" id="checkEndAt" name="end_at" type="datetime-local" required>
+        <input class="reserve-input" id="checkEndAt" name="end_at" type="datetime-local" step="1800" required>
       </div>
 
       <div class="check-result" id="checkResultBox"></div>
@@ -1383,16 +1383,18 @@ document.addEventListener('DOMContentLoaded', function () {
     loadSlots();
   }
 
-  /* ── Free-slot picker for the reserve modal (hourly, 5 AM - 6 PM) ── */
+  /* ── Free-slot picker for the reserve modal (30-minute slots, 5 AM - 6 PM) ── */
   var SLOT_OPEN_HOUR = 5;
   var SLOT_CLOSE_HOUR = 18;
   var slotData = [];
   var slotSel = null; // { from: index, to: index }
   var slotLoadToken = 0;
 
-  function slotHourLabel(hour) {
+  function slotTimeLabel(value) {
+    var hour = Number(value.slice(11, 13));
+    var minute = Number(value.slice(14, 16));
     var h12 = hour % 12 === 0 ? 12 : hour % 12;
-    return h12 + ':00 ' + (hour < 12 ? 'AM' : 'PM');
+    return h12 + ':' + String(minute).padStart(2, '0') + ' ' + (hour < 12 ? 'AM' : 'PM');
   }
 
   function clearSlotSelection() {
@@ -1404,7 +1406,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function updateSlotSummary() {
     if (!slotSel) {
-      slotSummary.textContent = 'Select one or more consecutive free hours.';
+      slotSummary.textContent = 'Select one or more consecutive free 30-minute slots.';
       slotSummary.classList.remove('is-ready');
       return;
     }
@@ -1414,9 +1416,11 @@ document.addEventListener('DOMContentLoaded', function () {
     reserveEndAt.value = last.end_at;
     var hours = slotSel.to - slotSel.from + 1;
     var dateLabel = new Date(first.start_at).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
-    var startHour = Number(first.start_at.slice(11, 13));
-    var endHour = Number(last.end_at.slice(11, 13));
-    slotSummary.textContent = dateLabel + ' · ' + slotHourLabel(startHour) + ' - ' + slotHourLabel(endHour) + ' (' + hours + ' hr' + (hours > 1 ? 's' : '') + ')';
+    var durationMinutes = hours * 30;
+    var durationLabel = durationMinutes % 60 === 0
+      ? (durationMinutes / 60) + ' hr' + (durationMinutes === 60 ? '' : 's')
+      : durationMinutes + ' min';
+    slotSummary.textContent = dateLabel + ' · ' + slotTimeLabel(first.start_at) + ' - ' + slotTimeLabel(last.end_at) + ' (' + durationLabel + ')';
     slotSummary.classList.add('is-ready');
   }
 
@@ -1429,25 +1433,24 @@ document.addEventListener('DOMContentLoaded', function () {
       var free = slot.status === 'free';
       if (free) freeCount++;
       var selected = slotSel && index >= slotSel.from && index <= slotSel.to;
-      var startHour = Number(slot.start_at.slice(11, 13));
       var title = free ? (slot.freed_by_cancellation ? (slot.reason || 'Class cancelled - free') : 'Available') : (slot.reason || 'Not available');
       return '<button type="button" class="slot-btn' + (selected ? ' is-selected' : '') + (slot.freed_by_cancellation ? ' is-freed' : '') + '" data-index="' + index + '"'
         + (free ? '' : ' disabled') + ' title="' + escapeHtml(title) + '" aria-pressed="' + (selected ? 'true' : 'false') + '">'
-        + slotHourLabel(startHour) + '</button>';
+        + slotTimeLabel(slot.start_at) + '</button>';
     }).join('');
 
     slotMeter.innerHTML = slotData.map(function (slot, index) {
       var selected = slotSel && index >= slotSel.from && index <= slotSel.to;
-      var startHour = Number(slot.start_at.slice(11, 13));
       var cls = selected ? 'is-sel' : (slot.status !== 'free' ? 'is-busy' : (slot.freed_by_cancellation ? 'is-freed' : ''));
-      if (isToday && startHour === nowDate.getHours()) cls += ' is-now';
+      var slotStart = new Date(slot.start_at);
+      if (isToday && slotStart.getHours() === nowDate.getHours() && slotStart.getMinutes() <= nowDate.getMinutes() && slotStart.getMinutes() + 30 > nowDate.getMinutes()) cls += ' is-now';
       return '<span class="' + cls + '"></span>';
     }).join('');
 
-    slotFreeCount.querySelector('span').textContent = freeCount + ' free hour' + (freeCount === 1 ? '' : 's');
+    slotFreeCount.querySelector('span').textContent = freeCount + ' free 30-minute slot' + (freeCount === 1 ? '' : 's');
 
     if (!slotData.some(function (slot) { return slot.status === 'free'; })) {
-      slotSummary.textContent = 'No free hours on this date. Try another day.';
+      slotSummary.textContent = 'No free times on this date. Try another day.';
       slotSummary.classList.remove('is-ready');
     }
   }
@@ -1526,6 +1529,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!bookingStartAt || !bookingEndAt) return;
     var now = new Date();
     var start = new Date(now.getTime() + 30 * 60000);
+    start.setMinutes(Math.ceil(start.getMinutes() / 30) * 30, 0, 0);
     var end = new Date(start.getTime() + 60 * 60000);
     bookingStartAt.value = localDateTimeInput(start);
     bookingEndAt.value = localDateTimeInput(end);
@@ -1695,6 +1699,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     var now = new Date();
     var startDefault = new Date(now.getTime() + 30 * 60000);
+    startDefault.setMinutes(Math.ceil(startDefault.getMinutes() / 30) * 30, 0, 0);
     var endDefault = new Date(startDefault.getTime() + 60 * 60000);
 
     checkRoomId.value = String(roomId);

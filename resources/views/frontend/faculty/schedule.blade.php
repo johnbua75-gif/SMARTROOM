@@ -1794,10 +1794,10 @@ $gridCols = implode(' ', array_map(function ($d) use ($isCurrentWeek) {
             </select>
           </div>
           <div class="fg"><label class="flabel">Day 1 Start</label>
-            <input aria-label="Day 1 start" type="time" name="day1_start" class="finput" value="{{ old('day1_start') }}">
+            <input aria-label="Day 1 start" type="time" name="day1_start" class="finput" step="1800" value="{{ old('day1_start') }}">
           </div>
           <div class="fg"><label class="flabel">Day 1 End</label>
-            <input aria-label="Day 1 end" type="time" name="day1_end" class="finput" value="{{ old('day1_end') }}">
+            <input aria-label="Day 1 end" type="time" name="day1_end" class="finput" step="1800" value="{{ old('day1_end') }}">
           </div>
         </div>
 
@@ -1813,10 +1813,10 @@ $gridCols = implode(' ', array_map(function ($d) use ($isCurrentWeek) {
             </select>
           </div>
           <div class="fg"><label class="flabel">Day 2 Start</label>
-            <input aria-label="Day 2 start" type="time" name="day2_start" class="finput" value="{{ old('day2_start') }}">
+            <input aria-label="Day 2 start" type="time" name="day2_start" class="finput" step="1800" value="{{ old('day2_start') }}">
           </div>
           <div class="fg"><label class="flabel">Day 2 End</label>
-            <input aria-label="Day 2 end" type="time" name="day2_end" class="finput" value="{{ old('day2_end') }}">
+            <input aria-label="Day 2 end" type="time" name="day2_end" class="finput" step="1800" value="{{ old('day2_end') }}">
           </div>
         </div>
 
@@ -1911,8 +1911,8 @@ $gridCols = implode(' ', array_map(function ($d) use ($isCurrentWeek) {
           <p class="edit-note">Move <strong>only this class</strong> to another date, time or room. The rest of the semester stays the same. We check room and schedule conflicts before saving.</p>
           <div class="edit-grid">
             <label>Date<input type="date" name="date" id="editDate" required></label>
-            <label>Start time<input type="time" name="start_time" id="editStart" min="06:00" max="17:00" required></label>
-            <label>End time<input type="time" name="end_time" id="editEnd" min="06:00" max="17:00" required></label>
+            <label>Start time<input type="time" name="start_time" id="editStart" min="06:00" max="17:00" step="1800" required></label>
+            <label>End time<input type="time" name="end_time" id="editEnd" min="06:00" max="17:00" step="1800" required></label>
             <label class="edit-room">Room
               <select name="classroom_id" id="editRoom" required>
                 @foreach ($classrooms as $editRoom)

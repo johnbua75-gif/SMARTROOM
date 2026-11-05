@@ -73,6 +73,24 @@ it('blocks reservation when room overlaps an existing class schedule', function 
     expect(Reservation::count())->toBe(0);
 });
 
+it('provides room reservation availability in half-hour slots', function () {
+    Carbon::setTestNow('2026-04-11 04:00:00');
+    $room = Classroom::create([
+        'name' => 'Half-Hour Slots Room',
+        'building' => 'Building A',
+        'capacity' => 40,
+    ]);
+
+    getJson('/api/v1/room-availability/slots?classroom_id='.$room->id.'&date=2026-04-11')
+        ->assertOk()
+        ->assertJsonPath('data.slot_minutes', 30)
+        ->assertJsonPath('data.slots.0.start_at', '2026-04-11T05:00')
+        ->assertJsonPath('data.slots.0.end_at', '2026-04-11T05:30')
+        ->assertJsonPath('data.slots.25.start_at', '2026-04-11T17:30')
+        ->assertJsonPath('data.slots.25.end_at', '2026-04-11T18:00')
+        ->assertJsonCount(26, 'data.slots');
+});
+
 it('blocks reservation when room overlaps an existing reservation', function () {
     Carbon::setTestNow('2026-04-11 08:00:00');
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Rules\HalfHourTime;
 use Illuminate\Foundation\Http\FormRequest;
 
 class FacultyUpdateScheduleRequest extends FormRequest
@@ -18,8 +19,8 @@ class FacultyUpdateScheduleRequest extends FormRequest
     {
         return [
             'date' => ['required', 'date', 'after_or_equal:today'],
-            'start_time' => ['required', 'date_format:H:i'],
-            'end_time' => ['required', 'date_format:H:i', 'after:start_time'],
+            'start_time' => ['required', 'date_format:H:i', new HalfHourTime],
+            'end_time' => ['required', 'date_format:H:i', 'after:start_time', new HalfHourTime],
             'classroom_id' => ['required', 'integer', 'exists:classrooms,id'],
         ];
     }

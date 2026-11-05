@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Api;
 
 use App\Models\Course;
+use App\Rules\HalfHourTime;
 use App\Services\RoomAvailabilityService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
@@ -35,8 +36,8 @@ class UpdateScheduleRequest extends FormRequest
                 'integer',
                 Rule::exists('users', 'id')->where('role', 'faculty')->where('status', 'active'),
             ],
-            'start_at' => ['sometimes', 'date'],
-            'end_at' => ['sometimes', 'date'],
+            'start_at' => ['sometimes', 'date', new HalfHourTime],
+            'end_at' => ['sometimes', 'date', new HalfHourTime],
             'repeat_until' => ['sometimes', 'date', 'after_or_equal:start_at'],
             'status' => ['sometimes', 'string', 'in:scheduled,ongoing,completed,cancelled'],
             'day_of_week' => ['nullable', 'integer', 'between:0,6'],

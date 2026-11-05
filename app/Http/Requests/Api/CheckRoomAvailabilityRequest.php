@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Api;
 
+use App\Rules\HalfHourTime;
 use Illuminate\Foundation\Http\FormRequest;
 
 class CheckRoomAvailabilityRequest extends FormRequest
@@ -18,8 +19,8 @@ class CheckRoomAvailabilityRequest extends FormRequest
     {
         return [
             'classroom_id' => ['required', 'integer', 'exists:classrooms,id'],
-            'start_at' => ['required', 'date'],
-            'end_at' => ['required', 'date', 'after:start_at'],
+            'start_at' => ['required', 'date', new HalfHourTime],
+            'end_at' => ['required', 'date', 'after:start_at', new HalfHourTime],
         ];
     }
 }

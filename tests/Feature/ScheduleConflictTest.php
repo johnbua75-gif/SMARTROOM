@@ -187,6 +187,50 @@ it('blocks API schedule creation when the assigned faculty member is already tea
     expect(Schedule::query()->where('course_id', $newCourse->id)->exists())->toBeFalse();
 });
 
+it('allows half-hour class times and rejects quarter-hour schedule times', function () {
+    $admin = User::factory()->create(['role' => 'admin', 'status' => 'active']);
+    $faculty = User::factory()->create([
+        'role' => 'faculty',
+        'status' => 'active',
+        'department' => 'Information Technology',
+    ]);
+    $room = Classroom::query()->create([
+        'name' => 'Half-Hour Schedule Room',
+        'building' => 'Building G',
+        'capacity' => 40,
+        'status' => 'available',
+    ]);
+    $course = Course::query()->create([
+        'code' => 'HALF-HOUR-101',
+        'title' => 'Half-Hour Schedule Course',
+        'department' => 'Information Technology',
+        'instructor_user_id' => $faculty->id,
+        'classroom_id' => $room->id,
+        'capacity' => 40,
+    ]);
+
+    actingAs($admin, 'sanctum')
+        ->postJson('/api/v1/schedules', [
+            'classroom_id' => $room->id,
+            'course_id' => $course->id,
+            'start_at' => '2026-04-06 09:30:00',
+            'end_at' => '2026-04-06 10:30:00',
+        ])
+        ->assertCreated();
+
+    actingAs($admin, 'sanctum')
+        ->postJson('/api/v1/schedules', [
+            'classroom_id' => $room->id,
+            'course_id' => $course->id,
+            'start_at' => '2026-04-06 11:15:00',
+            'end_at' => '2026-04-06 12:00:00',
+        ])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['start_at']);
+
+    expect(Schedule::query()->where('course_id', $course->id)->count())->toBe(1);
+});
+
 it('updates a schedule instructor and class type through the admin API', function () {
     $admin = User::factory()->create(['role' => 'admin', 'status' => 'active']);
     $oldInstructor = User::factory()->create(['role' => 'faculty', 'status' => 'active', 'department' => 'Information Technology']);
@@ -216,6 +260,13 @@ it('updates a schedule instructor and class type through the admin API', functio
         'day_of_week' => 1,
         'enrolled' => 20,
     ]);
+
+    actingAs($admin, 'sanctum')
+        ->putJson("/api/v1/schedules/{$schedule->id}", [
+            'start_at' => '2026-04-06 10:15:00',
+        ])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['start_at']);
 
     actingAs($admin, 'sanctum')
         ->putJson("/api/v1/schedules/{$schedule->id}", [

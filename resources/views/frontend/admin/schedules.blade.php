@@ -811,12 +811,12 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
 
         <div class="edit-field">
           <label class="edit-label" for="editScheduleStart">Start</label>
-          <input class="edit-input" id="editScheduleStart" type="datetime-local" required>
+          <input class="edit-input" id="editScheduleStart" type="datetime-local" step="1800" required>
         </div>
 
         <div class="edit-field">
           <label class="edit-label" for="editScheduleEnd">End</label>
-          <input class="edit-input" id="editScheduleEnd" type="datetime-local" required>
+          <input class="edit-input" id="editScheduleEnd" type="datetime-local" step="1800" required>
         </div>
 
         <div class="edit-field">

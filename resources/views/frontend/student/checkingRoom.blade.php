@@ -402,8 +402,8 @@ $availableRoomsCount = $classrooms->where('status', 'available')->count();
           <div class="room-schedule-check">
             <div class="room-schedule-check-title"><i class="bi bi-calendar-check"></i> Check Availability</div>
             <div class="room-schedule-check-grid">
-              <div><label for="roomCheckStart">Start</label><input id="roomCheckStart" type="datetime-local"></div>
-              <div><label for="roomCheckEnd">End</label><input id="roomCheckEnd" type="datetime-local"></div>
+              <div><label for="roomCheckStart">Start</label><input id="roomCheckStart" type="datetime-local" step="1800"></div>
+              <div><label for="roomCheckEnd">End</label><input id="roomCheckEnd" type="datetime-local" step="1800"></div>
             </div>
             <div class="room-schedule-check-result" id="roomCheckResult" aria-live="polite"></div>
             <div class="room-schedule-check-actions"><button type="button" class="room-schedule-check-close" id="roomCheckClose">Cancel</button><button type="button" class="room-schedule-check-run" id="roomCheckButton">Run Check</button></div>

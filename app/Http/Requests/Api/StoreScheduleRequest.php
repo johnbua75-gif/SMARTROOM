@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Api;
 
 use App\Models\Course;
+use App\Rules\HalfHourTime;
 use App\Services\RoomAvailabilityService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
@@ -34,17 +35,17 @@ class StoreScheduleRequest extends FormRequest
                 'integer',
                 Rule::exists('users', 'id')->where('role', 'faculty')->where('status', 'active'),
             ],
-            'start_at' => ['required_without:semester_start', 'date'],
-            'end_at' => ['required_without:semester_start', 'date', 'after:start_at'],
+            'start_at' => ['required_without:semester_start', 'date', new HalfHourTime],
+            'end_at' => ['required_without:semester_start', 'date', 'after:start_at', new HalfHourTime],
             'repeat_until' => ['nullable', 'date', 'after_or_equal:start_at'],
             'semester_start' => ['nullable', 'date'],
             'semester_end' => ['nullable', 'date', 'after_or_equal:semester_start'],
             'day1' => ['nullable', 'integer', 'between:1,5', 'different:day2'],
-            'day1_start' => ['nullable', 'date_format:H:i'],
-            'day1_end' => ['nullable', 'date_format:H:i'],
+            'day1_start' => ['nullable', 'date_format:H:i', new HalfHourTime],
+            'day1_end' => ['nullable', 'date_format:H:i', new HalfHourTime],
             'day2' => ['nullable', 'integer', 'between:1,5'],
-            'day2_start' => ['nullable', 'date_format:H:i'],
-            'day2_end' => ['nullable', 'date_format:H:i'],
+            'day2_start' => ['nullable', 'date_format:H:i', new HalfHourTime],
+            'day2_end' => ['nullable', 'date_format:H:i', new HalfHourTime],
             'status' => ['nullable', 'string', 'in:scheduled,ongoing,completed,cancelled'],
             'day_of_week' => ['nullable', 'integer', 'between:0,6'],
             'enrolled' => ['nullable', 'integer', 'min:0'],
