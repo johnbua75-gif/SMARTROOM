@@ -71,6 +71,7 @@ Route::middleware(['auth', 'active', 'password.changed', 'role:faculty'])->group
     Route::get('/rooms/export/csv', [FacultyController::class, 'exportRoomsCsv'])->name('faculty.rooms.export.csv');
     Route::get('/rfid-verification', [FacultyController::class, 'rfidVerification'])->name('faculty.rfid.verification');
     Route::get('/faculty-notifications', [FacultyController::class, 'notifications'])->name('faculty.notifications');
+    Route::get('/faculty-notifications/unread-count', [NotificationController::class, 'unreadCount'])->name('faculty.notifications.unread-count');
     Route::get('/faculty-notifications/data', [NotificationController::class, 'index'])->name('faculty.notifications.data');
     Route::get('/faculty-notifications/rfid', [NotificationController::class, 'rfidSince'])->name('faculty.notifications.rfid');
     Route::post('/faculty/enrollment-requests/{enrollment}/approve', [FacultyController::class, 'approveEnrollmentRequest'])->name('faculty.enrollment-requests.approve');

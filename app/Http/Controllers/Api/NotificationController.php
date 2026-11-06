@@ -11,6 +11,16 @@ use Illuminate\Support\Facades\Cache;
 
 class NotificationController extends Controller
 {
+    public function unreadCount(Request $request): JsonResponse
+    {
+        $count = Notification::query()
+            ->where('user_id', $request->user()->id)
+            ->whereNull('read_at')
+            ->count();
+
+        return response()->json(['count' => $count]);
+    }
+
     public function index(Request $request)
     {
         $userId = $request->user()->id;

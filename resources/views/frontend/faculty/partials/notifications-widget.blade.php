@@ -321,10 +321,16 @@ body.faculty-sidebar-collapsed .faculty-sidebar-toggle{right:-13px;transform:tra
 .fac-mobile-menu summary i{color:#f5c518}
 .fac-mobile-menu summary:focus-visible,.fac-mobile-link:focus-visible{outline:3px solid #6785d4;outline-offset:2px}
 .fac-mobile-panel{position:absolute;top:calc(100% + 8px);right:0;display:grid;gap:3px;width:min(270px,calc(100vw - 32px));padding:8px;border:1px solid #e2e8f0;border-radius:10px;background:#fff;box-shadow:0 10px 26px rgba(15,23,42,.18)}
-.fac-mobile-link{display:flex;align-items:center;gap:10px;width:100%;min-height:42px;padding:9px 11px;border:0;border-radius:7px;background:transparent;color:#101828;text-decoration:none;font:500 .86rem 'DM Sans',sans-serif;text-align:left;cursor:pointer}
+.fac-mobile-link{position:relative;display:flex;align-items:center;gap:10px;width:100%;min-height:42px;padding:9px 11px;border:0;border-radius:7px;background:transparent;color:#101828;text-decoration:none;font:500 .86rem 'DM Sans',sans-serif;text-align:left;cursor:pointer}
+.mobile-menu-link{position:relative}
 .fac-mobile-link i{width:18px;color:#1a2f80;text-align:center}
 .fac-mobile-link:hover,.fac-mobile-link.active{color:#0b1640;background:#e8ecfb}
 .fac-mobile-link.active{font-weight:700}
+.faculty-unread-badge{position:absolute;z-index:2;display:inline-flex;align-items:center;justify-content:center;min-width:17px;height:17px;padding:0 4px;border:2px solid #0b1640;border-radius:999px;background:#dc2626;color:#fff;font:700 9px/1 Arial,sans-serif;font-variant-numeric:tabular-nums}
+.sidebar-nav .nav-icon{position:relative}
+.sidebar-nav .nav-icon .faculty-unread-badge{top:-5px;right:-6px}
+.fac-mobile-link .faculty-unread-badge{top:3px;right:7px}
+.mobile-menu-link .faculty-unread-badge{top:3px;right:7px}
 </style>
 <nav class="fac-mobile-bar" aria-label="Faculty navigation">
   <a href="{{ route('faculty.dashboard') }}" class="fac-mobile-brand"><span class="mark"><i class="fas fa-door-open" aria-hidden="true"></i></span><span>SmartRoom</span></a>
@@ -355,6 +361,84 @@ body.faculty-sidebar-collapsed .faculty-sidebar-toggle{right:-13px;transform:tra
     var menu = document.getElementById('facMobileMenu');
     if (menu && menu.open && !event.target.closest('#facMobileMenu')) menu.open = false;
   });
+})();
+</script>
+<script>
+(function () {
+  const notificationsPath = new URL(@json(route('faculty.notifications')), window.location.origin).pathname;
+  const countEndpoint = @json(route('faculty.notifications.unread-count'));
+  let requestInFlight = false;
+
+  function getNotificationLinks() {
+    return Array.from(document.querySelectorAll('a[href]')).filter(function (link) {
+      return new URL(link.href, window.location.origin).pathname === notificationsPath;
+    });
+  }
+
+  function updateNotificationBadges(count) {
+    const displayCount = count > 99 ? '99+' : String(count);
+    getNotificationLinks().forEach(function (link) {
+      const icon = link.querySelector('.nav-icon');
+      const badgeHost = icon || link;
+      let badge = badgeHost.querySelector('.faculty-unread-badge');
+
+      if (count === 0) {
+        if (badge) badge.remove();
+      } else {
+        if (!badge) {
+          badge = document.createElement('span');
+          badge.className = 'faculty-unread-badge';
+          badge.setAttribute('aria-hidden', 'true');
+          badgeHost.appendChild(badge);
+        }
+
+        badge.textContent = displayCount;
+        badge.title = count+' unread notification'+(count === 1 ? '' : 's');
+      }
+
+      link.setAttribute('aria-label', count > 0 ? 'Notifications, '+count+' unread' : 'Notifications');
+    });
+
+    const widgetBadge = document.getElementById('facultyNotificationBadge');
+    if (widgetBadge) {
+      widgetBadge.textContent = displayCount;
+      widgetBadge.style.display = count > 0 ? 'inline-flex' : 'none';
+      widgetBadge.setAttribute('aria-label', count+' unread notifications');
+    }
+  }
+
+  async function refreshUnreadCount() {
+    if (requestInFlight || document.hidden) return;
+    requestInFlight = true;
+
+    try {
+      const response = await fetch(countEndpoint, {
+        headers: { Accept: 'application/json' },
+        credentials: 'same-origin',
+        cache: 'no-store',
+      });
+
+      if (!response.ok) {
+        throw new Error('Unread notification count request failed: '+response.status);
+      }
+
+      const payload = await response.json();
+      const count = Number(payload.count);
+      if (!Number.isInteger(count) || count < 0) {
+        throw new Error('Unread notification count response was invalid.');
+      }
+
+      updateNotificationBadges(count);
+    } catch (error) {
+      console.error('Unable to refresh unread notification badges.', error);
+    } finally {
+      requestInFlight = false;
+    }
+  }
+
+  refreshUnreadCount();
+  window.setInterval(refreshUnreadCount, 30000);
+  document.addEventListener('visibilitychange', refreshUnreadCount);
 })();
 </script>
 @include('partials.ui-dialogs')
