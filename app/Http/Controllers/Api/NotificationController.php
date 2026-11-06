@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Notification;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
@@ -105,37 +106,36 @@ class NotificationController extends Controller
         return response()->json(['data' => $items]);
     }
 
-    public function markRead(Request $request, $id)
+    public function markRead(Request $request, int $id): RedirectResponse
     {
-        $n = Notification::find($id);
-        if (! $n) {
-            return response()->json(['message' => 'Not found'], 404);
-        }
-
         $userId = $request->user()->id;
-        if ($n->user_id && $n->user_id !== $userId) {
-            return response()->json(['message' => 'Forbidden'], 403);
-        }
+        $notification = Notification::query()
+            ->where('user_id', $userId)
+            ->findOrFail($id);
 
-        $n->read_at = now();
-        $n->save();
+        if ($notification->read_at === null) {
+            $notification->update(['read_at' => now()]);
+        }
         Cache::forget('faculty:notifications:v1:'.$userId);
 
-        return response()->json(['message' => 'Marked read', 'data' => [
-            'id' => $n->id,
-            'read_at' => $n->read_at?->toIso8601String(),
-        ]]);
+        return redirect()
+            ->route('faculty.notifications')
+            ->with('success', 'Notification marked as read.');
     }
 
-    public function markAllRead(Request $request)
+    public function markAllRead(Request $request): RedirectResponse
     {
         $userId = $request->user()->id;
 
-        $affected = Notification::where(function ($q) use ($userId) {
-            $q->whereNull('user_id')->orWhere('user_id', $userId);
-        })->whereNull('read_at')->update(['read_at' => now()]);
+        Notification::query()
+            ->where('user_id', $userId)
+            ->whereNull('read_at')
+            ->update(['read_at' => now()]);
+
         Cache::forget('faculty:notifications:v1:'.$userId);
 
-        return response()->json(['message' => 'Marked all read', 'affected' => $affected]);
+        return redirect()
+            ->route('faculty.notifications')
+            ->with('success', 'All notifications marked as read.');
     }
 }

@@ -74,6 +74,8 @@ Route::middleware(['auth', 'active', 'password.changed', 'role:faculty'])->group
     Route::get('/faculty-notifications/unread-count', [NotificationController::class, 'unreadCount'])->name('faculty.notifications.unread-count');
     Route::get('/faculty-notifications/data', [NotificationController::class, 'index'])->name('faculty.notifications.data');
     Route::get('/faculty-notifications/rfid', [NotificationController::class, 'rfidSince'])->name('faculty.notifications.rfid');
+    Route::post('/faculty-notifications/{id}/read', [NotificationController::class, 'markRead'])->whereNumber('id')->name('faculty.notifications.read');
+    Route::post('/faculty-notifications/read-all', [NotificationController::class, 'markAllRead'])->name('faculty.notifications.read-all');
     Route::post('/faculty/enrollment-requests/{enrollment}/approve', [FacultyController::class, 'approveEnrollmentRequest'])->name('faculty.enrollment-requests.approve');
     Route::post('/faculty/enrollment-requests/{enrollment}/reject', [FacultyController::class, 'rejectEnrollmentRequest'])->name('faculty.enrollment-requests.reject');
 
