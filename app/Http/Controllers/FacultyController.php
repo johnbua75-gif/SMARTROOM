@@ -433,55 +433,58 @@ class FacultyController extends Controller
             ->whereBetween('start_at', [$previousWeekStart, $previousWeekEnd])
             ->get();
 
-        $weeklyBookings = $currentWeek->count();
-        $prevWeeklyBookings = max(1, $previousWeek->count());
-        $bookingDelta = round((($weeklyBookings - $prevWeeklyBookings) / $prevWeeklyBookings) * 100, 1);
+        $scheduledWeek = $currentWeek->where('status', '!=', 'cancelled');
+        $previousScheduledCount = $previousWeek->where('status', '!=', 'cancelled')->count();
+        $weeklyBookings = $scheduledWeek->count();
+        $bookingChange = $previousScheduledCount > 0
+            ? (($weeklyBookings - $previousScheduledCount >= 0 ? '+' : '').round((($weeklyBookings - $previousScheduledCount) / $previousScheduledCount) * 100, 1).'% vs last week')
+            : ($weeklyBookings > 0 ? 'New this week' : 'No change');
 
-        $totalMinutes = $currentWeek->sum(function (Schedule $schedule): int {
+        $totalMinutes = $scheduledWeek->sum(function (Schedule $schedule): int {
             if (! $schedule->start_at || ! $schedule->end_at) {
                 return 0;
             }
 
             return max(0, $schedule->start_at->diffInMinutes($schedule->end_at));
         });
-        $utilization = min(100, round(($totalMinutes / max(1, 5 * 8 * 60)) * 100, 1));
-
-        $activeUsers = (int) $currentWeek->sum('enrolled');
-        $totalSchedules = max(1, $weeklyBookings);
-        $conflicts = $currentWeek->where('status', 'cancelled')->count();
-        $conflictRate = round(($conflicts / $totalSchedules) * 100, 1);
+        $teachingHours = $totalMinutes / 60;
+        $scheduledCourseCount = $scheduledWeek->pluck('course_id')->filter()->unique()->count();
+        $cancelledSchedules = $currentWeek->where('status', 'cancelled')->count();
+        $cancellationRate = $currentWeek->isNotEmpty()
+            ? round(($cancelledSchedules / $currentWeek->count()) * 100, 1)
+            : 0;
 
         $stats = [
             [
                 'icon' => 'fas fa-calendar-check',
-                'label' => 'Total Weekly Bookings',
+                'label' => 'Scheduled Classes',
                 'value' => number_format($weeklyBookings),
-                'change' => ($bookingDelta >= 0 ? '+' : '').$bookingDelta.'%',
-                'positive' => $bookingDelta >= 0,
+                'change' => $bookingChange,
+                'positive' => $weeklyBookings >= $previousScheduledCount,
                 'color' => 'blue',
             ],
             [
                 'icon' => 'fas fa-chart-line',
-                'label' => 'Avg. Utilization',
-                'value' => number_format($utilization, 1).'%',
-                'change' => 'Week view',
+                'label' => 'Teaching Hours',
+                'value' => number_format($teachingHours, 1).' hrs',
+                'change' => 'This week',
                 'positive' => true,
                 'color' => 'green',
             ],
             [
-                'icon' => 'fas fa-users',
-                'label' => 'Active Users',
-                'value' => number_format($activeUsers),
-                'change' => 'From enrollments',
+                'icon' => 'fas fa-book-open',
+                'label' => 'Courses Scheduled',
+                'value' => number_format($scheduledCourseCount),
+                'change' => 'This week',
                 'positive' => true,
                 'color' => 'purple',
             ],
             [
                 'icon' => 'fas fa-triangle-exclamation',
-                'label' => 'Conflict Rate',
-                'value' => number_format($conflictRate, 1).'%',
-                'change' => 'Cancelled schedules',
-                'positive' => $conflictRate < 2,
+                'label' => 'Cancellation Rate',
+                'value' => number_format($cancellationRate, 1).'%',
+                'change' => number_format($cancelledSchedules).' cancelled',
+                'positive' => $cancelledSchedules === 0,
                 'color' => 'red',
             ],
         ];
@@ -536,16 +539,18 @@ class FacultyController extends Controller
         $dailyCounts = [];
         $labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
         foreach ([1, 2, 3, 4, 5, 6] as $isoDay) {
-            $dailyCounts[] = $currentWeek->filter(function (Schedule $schedule) use ($isoDay): bool {
+            $dailyCounts[] = $scheduledWeek->filter(function (Schedule $schedule) use ($isoDay): bool {
                 return $schedule->start_at !== null && $schedule->start_at->dayOfWeekIso === $isoDay;
             })->count();
         }
 
-        $hourBuckets = [7, 9, 11, 13, 15, 17, 19];
+        $hourBuckets = [7, 9, 11, 13, 15];
         $lineData = [];
         foreach ($hourBuckets as $hour) {
-            $lineData[] = $currentWeek->filter(function (Schedule $schedule) use ($hour): bool {
-                return $schedule->start_at !== null && $schedule->start_at->hour === $hour;
+            $lineData[] = $scheduledWeek->filter(function (Schedule $schedule) use ($hour): bool {
+                return $schedule->start_at !== null
+                    && $schedule->start_at->hour >= $hour
+                    && $schedule->start_at->hour < $hour + 2;
             })->count();
         }
 
@@ -563,7 +568,7 @@ class FacultyController extends Controller
             'bar_data' => $dailyCounts,
             'bar_labels' => $labels,
             'line_data' => $lineData,
-            'line_labels' => ['7 AM', '9 AM', '11 AM', '1 PM', '3 PM', '5 PM', '7 PM'],
+            'line_labels' => ['7–9 AM', '9–11 AM', '11 AM–1 PM', '1–3 PM', '3–5 PM'],
         ]);
     }
 

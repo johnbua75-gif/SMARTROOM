@@ -13,9 +13,12 @@ $bar_labels = $bar_labels ?? ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 $line_data = $line_data ?? [0, 0, 0, 0, 0, 0, 0];
 $line_labels = $line_labels ?? ["7 AM", "9 AM", "11 AM", "1 PM", "3 PM", "5 PM", "7 PM"];
 
-// SVG line chart coords
+$barMax = max(4, (int) (ceil(max($bar_data ?: [0]) / 4) * 4));
+$barTicks = [$barMax, (int) round($barMax * .75), (int) round($barMax * .5), (int) round($barMax * .25), 0];
+$lineMax = max(4, (int) (ceil(max($line_data ?: [0]) / 4) * 4));
+$lineTicks = [$lineMax, (int) round($lineMax * .75), (int) round($lineMax * .5), (int) round($lineMax * .25), 0];
+
 $pts = max(1, count($line_data));
-$lineMax = 60;
 $svgW = 420; $svgH = 180; $padX = 10; $padY = 16;
 $xs = []; $ys = [];
 for ($i = 0; $i < $pts; $i++) {
@@ -491,19 +494,15 @@ svg.lc{width:100%;overflow:visible;display:block}
       <div class="chart-card">
         <div class="card-header">
           <div>
-            <div class="card-title">Classroom Usage Trends</div>
-            <div class="card-subtitle">Weekly booking activity per day</div>
+            <div class="card-title">Scheduled Classes by Day</div>
+            <div class="card-subtitle">Class sessions scheduled this week</div>
           </div>
           <span style="font-size:.72rem;color:var(--text-3);font-weight:600;background:var(--bg);padding:4px 10px;border-radius:20px;border:1px solid var(--border)">This Week</span>
         </div>
         <div class="bar-chart-wrap">
           <!-- Y axis -->
           <div class="bar-y-axis">
-            <span>100</span>
-            <span>75</span>
-            <span>50</span>
-            <span>25</span>
-            <span>0</span>
+            <?php foreach ($barTicks as $tick): ?><span><?= $tick ?></span><?php endforeach; ?>
           </div>
           <!-- Canvas -->
           <div class="bar-canvas" style="flex:1">
@@ -514,8 +513,8 @@ svg.lc{width:100%;overflow:visible;display:block}
               <div class="bars-row">
                 <?php foreach ($bar_data as $i => $val): ?>
                 <div class="bar-item">
-                  <div class="bar-tooltip"><?= $val ?>%</div>
-                  <div class="bar-fill" style="height:<?= ($val/100)*100 ?>%"></div>
+                  <div class="bar-tooltip"><?= $val ?> <?= $val === 1 ? 'class' : 'classes' ?></div>
+                  <div class="bar-fill" style="height:<?= min(100, ($val/$barMax)*100) ?>%"></div>
                 </div>
                 <?php endforeach; ?>
               </div>
@@ -533,18 +532,14 @@ svg.lc{width:100%;overflow:visible;display:block}
       <div class="chart-card">
         <div class="card-header">
           <div>
-            <div class="card-title">Peak Hours Capacity Load</div>
-            <div class="card-subtitle">Real-time room utilization by hour</div>
+            <div class="card-title">Class Starts by Time Block</div>
+            <div class="card-subtitle">Scheduled classes grouped by start time</div>
           </div>
-          <span style="font-size:.72rem;color:var(--text-3);font-weight:600;background:var(--bg);padding:4px 10px;border-radius:20px;border:1px solid var(--border)">Today</span>
+          <span style="font-size:.72rem;color:var(--text-3);font-weight:600;background:var(--bg);padding:4px 10px;border-radius:20px;border:1px solid var(--border)">This Week</span>
         </div>
         <div class="line-chart-wrap">
           <div class="lc-y-axis">
-            <span>60</span>
-            <span>45</span>
-            <span>30</span>
-            <span>15</span>
-            <span>0</span>
+            <?php foreach ($lineTicks as $tick): ?><span><?= $tick ?></span><?php endforeach; ?>
           </div>
           <div class="lc-plot">
             <svg class="lc" viewBox="0 0 <?=$svgW?> <?=$svgH?>" preserveAspectRatio="none" style="height:180px">
@@ -556,7 +551,7 @@ svg.lc{width:100%;overflow:visible;display:block}
               </defs>
 
               <!-- dashed horizontal guides -->
-              <?php foreach ([0, 15, 30, 45, 60] as $gVal):
+              <?php foreach (array_reverse($lineTicks) as $gVal):
                 $gy = round($svgH - $padY - ($gVal / $lineMax) * ($svgH - $padY * 2), 2);
               ?>
               <line x1="<?=$padX?>" y1="<?=$gy?>" x2="<?=$svgW - $padX?>" y2="<?=$gy?>" stroke="#dbe4f0" stroke-width="1" stroke-dasharray="3 4"/>

@@ -144,3 +144,76 @@ it('keeps the faculty reports page efficient by avoiding full schedule in-memory
 
     expect($queryCount)->toBeLessThan(8);
 });
+
+it('reports faculty schedule counts and teaching metrics accurately', function () {
+    $faculty = User::factory()->create([
+        'role' => 'faculty',
+        'name' => 'Faculty Metrics',
+        'email' => 'faculty.metrics@example.com',
+    ]);
+
+    $classroom = Classroom::query()->create([
+        'name' => 'Room Metrics',
+        'building' => 'Building C',
+        'capacity' => 40,
+        'status' => 'available',
+    ]);
+
+    $courseA = Course::query()->create([
+        'code' => 'CS401',
+        'title' => 'Course A',
+        'instructor_user_id' => $faculty->id,
+        'capacity' => 40,
+    ]);
+    $courseB = Course::query()->create([
+        'code' => 'CS402',
+        'title' => 'Course B',
+        'instructor_user_id' => $faculty->id,
+        'capacity' => 40,
+    ]);
+
+    $monday = Carbon::now()->startOfWeek();
+    $schedules = [
+        [$courseA, $monday->copy()->setTime(9, 0), $monday->copy()->setTime(10, 0), 'scheduled'],
+        [$courseB, $monday->copy()->addDays(2)->setTime(10, 30), $monday->copy()->addDays(2)->setTime(12, 0), 'scheduled'],
+        [$courseA, $monday->copy()->addDays(2)->setTime(13, 0), $monday->copy()->addDays(2)->setTime(14, 0), 'scheduled'],
+        [$courseB, $monday->copy()->addDays(4)->setTime(15, 0), $monday->copy()->addDays(4)->setTime(16, 0), 'cancelled'],
+    ];
+
+    foreach ($schedules as [$course, $startAt, $endAt, $status]) {
+        Schedule::query()->create([
+            'classroom_id' => $classroom->id,
+            'course_id' => $course->id,
+            'instructor_user_id' => $faculty->id,
+            'start_at' => $startAt,
+            'end_at' => $endAt,
+            'status' => $status,
+            'enrolled' => 25,
+        ]);
+    }
+
+    $response = actingAs($faculty)->get('/reports');
+
+    $response->assertOk()
+        ->assertViewHas('stats', function (array $stats): bool {
+            return $stats[0]['label'] === 'Scheduled Classes'
+                && $stats[0]['value'] === '3'
+                && $stats[1]['label'] === 'Teaching Hours'
+                && $stats[1]['value'] === '3.5 hrs'
+                && $stats[2]['label'] === 'Courses Scheduled'
+                && $stats[2]['value'] === '2'
+                && $stats[3]['label'] === 'Cancellation Rate'
+                && $stats[3]['value'] === '25.0%'
+                && $stats[3]['change'] === '1 cancelled';
+        })
+        ->assertSee('Scheduled Classes by Day')
+        ->assertSee('Class Starts by Time Block')
+        ->assertSee('9–11 AM')
+        ->assertSee('11 AM–1 PM')
+        ->assertDontSee('Avg. Utilization')
+        ->assertDontSee('Active Users')
+        ->assertDontSee('Conflict Rate');
+
+    expect($response->viewData('bar_data'))->toBe([1, 0, 2, 0, 0, 0])
+        ->and($response->viewData('line_data'))->toBe([0, 2, 0, 1, 0]);
+});
