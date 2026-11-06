@@ -221,45 +221,37 @@ class FacultyController extends Controller
             ->get()
             ->sum('max_enrolled');
 
-        $upcomingReservations = (clone $facultyScheduleQuery)
+        $nextClass = (clone $facultyScheduleQuery)
             ->select(['id', 'classroom_id', 'course_id', 'start_at', 'end_at', 'status', 'enrolled'])
-            ->where('start_at', '>=', $now)
-            ->orderBy('start_at')
-            ->limit(6)
-            ->get()
-            ->map(function (Schedule $schedule) use ($now): array {
-                $startAt = $schedule->start_at;
-                $endAt = $schedule->end_at;
-
-                $dateDay = $startAt ? $startAt->format('D') : '-';
-                if ($startAt && $startAt->isToday()) {
-                    $dateDay = 'Today';
-                } elseif ($startAt && $startAt->isTomorrow()) {
-                    $dateDay = 'Tomorrow';
-                }
-
-                $status = $schedule->status === 'cancelled' ? 'cancelled' : 'confirmed';
-                if ($schedule->status === 'scheduled' && $startAt && $startAt->greaterThan($now)) {
-                    $status = 'pending';
-                }
-
-                $time = $startAt ? $startAt->format('g:i A') : '-';
-                if ($startAt && $endAt) {
-                    $time = $startAt->format('g:i A').' - '.$endAt->format('g:i A');
-                }
-
-                return [
-                    'room' => trim(((string) ($schedule->classroom?->building ?? '')).' - '.((string) ($schedule->classroom?->name ?? 'Room N/A')), ' -'),
-                    'subject' => (string) ($schedule->course?->title ?? 'Untitled Subject'),
-                    'date_day' => $dateDay,
-                    'date_num' => $startAt ? $startAt->format('j') : '-',
-                    'time' => $time,
-                    'students' => (int) ($schedule->enrolled ?? 0),
-                    'status' => $status,
-                    'is_today' => (bool) ($startAt?->isToday()),
-                ];
+            ->whereIn('status', ['scheduled', 'ongoing'])
+            ->where(function ($query) use ($now): void {
+                $query->where('start_at', '>=', $now)
+                    ->orWhere(function ($ongoingQuery) use ($now): void {
+                        $ongoingQuery->where('status', 'ongoing')
+                            ->where('start_at', '<=', $now)
+                            ->where('end_at', '>', $now);
+                    });
             })
-            ->values();
+            ->orderBy('start_at')
+            ->first();
+
+        if ($nextClass) {
+            $startAt = $nextClass->start_at;
+            $endAt = $nextClass->end_at;
+            $dateDay = $startAt?->isToday() ? 'Today' : ($startAt?->isTomorrow() ? 'Tomorrow' : $startAt?->format('M'));
+
+            $nextClass = [
+                'room' => (string) ($nextClass->classroom?->name ?? 'Room not assigned'),
+                'building' => (string) ($nextClass->classroom?->building ?? ''),
+                'subject' => (string) ($nextClass->course?->title ?? 'Untitled Subject'),
+                'date_day' => $dateDay ?? '-',
+                'date_num' => $startAt?->format('j') ?? '-',
+                'time' => $startAt && $endAt
+                    ? $startAt->format('g:i A').' - '.$endAt->format('g:i A')
+                    : ($startAt?->format('g:i A') ?? '-'),
+                'status' => $nextClass->status,
+            ];
+        }
 
         $availableNowRooms = $availableClassroomsQuery
             ->select(['id', 'name', 'building', 'floor', 'capacity', 'rfid_status'])
@@ -295,7 +287,7 @@ class FacultyController extends Controller
                 'active_classes' => $activeClasses,
                 'total_students' => $totalStudents,
             ],
-            'upcomingReservations' => $upcomingReservations,
+            'nextClass' => $nextClass,
             'availableNowRooms' => $availableNowRooms,
         ]);
     }

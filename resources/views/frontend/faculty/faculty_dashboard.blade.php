@@ -4,6 +4,7 @@ $facultyName = $facultyName ?? request()->user()?->name ?? 'Faculty';
 $facultyDept = $facultyDept ?? request()->user()?->department ?? 'Faculty';
 $facultyEmail = $facultyEmail ?? request()->user()?->email ?? '';
 $facultyInitials = $facultyInitials ?? strtoupper(substr((string) $facultyName, 0, 1));
+$nextClass = $nextClass ?? null;
 $stats = $stats ?? [
   'available_rooms' => 0,
   'my_reservations' => 0,
@@ -521,10 +522,6 @@ body {
   padding: 4px 9px; border-radius: 999px;
   letter-spacing: 0.02em; white-space: nowrap;
 }
-.stat-card .tag-green  { background: #e8f8ef; color: #15803d; border: 1px solid #b7e5c8; }
-.stat-card .tag-blue   { background: #eaf2ff; color: #1d4ed8; border: 1px solid #bfd1fd; }
-.stat-card .tag-amber  { background: #fff7df; color: #b45309; border: 1px solid #f5d98b; }
-.stat-card .tag-purple { background: #f3efff; color: #6d28d9; border: 1px solid #d8cafa; }
 
 .stat-bottom {
   display: flex; align-items: baseline; gap: 6px;
@@ -551,6 +548,48 @@ body {
   min-width: 0;
   margin-top: -48px;
 }
+.next-class-panel { grid-column: 1 / -1; }
+.next-class-content {
+  display: flex; align-items: center; gap: 20px;
+  padding: 22px 24px;
+}
+.next-class-date {
+  width: 68px; min-height: 68px; flex-shrink: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  border: 1px solid var(--blue-border); border-radius: 16px;
+  background: linear-gradient(145deg, #f0f5ff, #e5edff);
+}
+.next-class-date-label {
+  color: var(--blue-text); font-size: 0.67rem; font-weight: 800;
+  letter-spacing: 0.06em; text-transform: uppercase;
+}
+.next-class-date-number {
+  color: var(--navy); font-family: var(--font-head);
+  font-size: 1.55rem; font-weight: 800; line-height: 1.15;
+}
+.next-class-details { flex: 1; min-width: 0; }
+.next-class-status {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-bottom: 5px; color: var(--green-text);
+  font-size: 0.68rem; font-weight: 800; letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.next-class-status.upcoming { color: var(--blue-text); }
+.next-class-title {
+  color: var(--text); font-family: var(--font-head);
+  font-size: 1.05rem; font-weight: 800; line-height: 1.35;
+}
+.next-class-meta {
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  margin-top: 9px; color: var(--text-2); font-size: 0.79rem;
+}
+.next-class-meta span { display: inline-flex; align-items: center; gap: 7px; }
+.next-class-meta i { color: var(--text-3); font-size: 0.75rem; }
+.next-class-panel .empty-state { padding: 28px 24px; }
+.next-class-panel .empty-state-icon { width: 48px; height: 48px; border-radius: 14px; font-size: 1.1rem; }
+.next-class-panel .empty-state i { margin: 0; }
+.next-class-panel .panel-header { gap: 12px; }
+.next-class-panel .link-all { padding-right: 10px; padding-left: 10px; white-space: nowrap; }
 
 /* ── SHARED PANEL ──────────────────────────────────── */
 .panel {
@@ -968,6 +1007,7 @@ body {
   .topbar { padding: 0 14px; gap: 8px; }
   .content { padding: 16px 14px 36px; gap: 18px; }
   .panel-header { padding: 14px 16px 12px; }
+  .next-class-panel .panel-header { flex-wrap: wrap; }
   .rec-list { padding: 10px 14px; }
   .res-row, .room-row { padding: 12px 16px; }
   .assistant-quick, .assistant-form, .assistant-chat { padding-left: 16px; padding-right: 16px; }
@@ -1160,7 +1200,6 @@ body {
               <div class="stat-icon"><i class="fas fa-door-open"></i></div>
               <span class="stat-title">Available Rooms</span>
             </div>
-            <span class="stat-tag tag-green">+3 new</span>
           </div>
           <div class="stat-bottom">
             <div class="stat-value"><?= (int) ($stats['available_rooms'] ?? 0) ?></div>
@@ -1201,6 +1240,43 @@ body {
 
     <!-- ── Bottom Grid ── -->
     <div class="bottom-grid">
+
+      <section class="panel next-class-panel" aria-labelledby="next-class-heading">
+        <div class="panel-header">
+          <div class="panel-title" id="next-class-heading">
+            <span class="panel-title-icon pti-blue"><i class="fas fa-calendar-day" aria-hidden="true"></i></span>
+            <span>Today / Next Class</span>
+          </div>
+          <a href="<?= htmlspecialchars(url('/faculty-schedule')) ?>" class="link-all">
+            View schedule <i class="fas fa-arrow-right" style="font-size:0.6rem;" aria-hidden="true"></i>
+          </a>
+        </div>
+        <?php if ($nextClass): ?>
+          <div class="next-class-content">
+            <div class="next-class-date" aria-label="<?= htmlspecialchars($nextClass['date_day'].' '.$nextClass['date_num']) ?>">
+              <span class="next-class-date-label"><?= htmlspecialchars($nextClass['date_day']) ?></span>
+              <span class="next-class-date-number"><?= htmlspecialchars($nextClass['date_num']) ?></span>
+            </div>
+            <div class="next-class-details">
+              <div class="next-class-status <?= $nextClass['status'] === 'ongoing' ? '' : 'upcoming' ?>">
+                <i class="fas <?= $nextClass['status'] === 'ongoing' ? 'fa-circle-play' : 'fa-clock' ?>" aria-hidden="true"></i>
+                <?= $nextClass['status'] === 'ongoing' ? 'In progress' : 'Upcoming class' ?>
+              </div>
+              <h2 class="next-class-title"><?= htmlspecialchars($nextClass['subject']) ?></h2>
+              <div class="next-class-meta">
+                <span><i class="fas fa-clock" aria-hidden="true"></i><?= htmlspecialchars($nextClass['time']) ?></span>
+                <span><i class="fas fa-location-dot" aria-hidden="true"></i><?= htmlspecialchars($nextClass['room']) ?><?= $nextClass['building'] !== '' ? ' · '.htmlspecialchars($nextClass['building']) : '' ?></span>
+              </div>
+            </div>
+          </div>
+        <?php else: ?>
+          <div class="empty-state">
+            <div class="empty-state-icon"><i class="fas fa-calendar-check" aria-hidden="true"></i></div>
+            <div class="empty-state-title">No upcoming classes</div>
+            <div class="empty-state-desc">There are no scheduled classes at the moment. Your next class will appear here.</div>
+          </div>
+        <?php endif; ?>
+      </section>
 
       <!-- AI Recommendations -->
       <div class="panel" id="ai-recommendations-panel">
