@@ -51,7 +51,11 @@ class FacultyController extends Controller
     public function rfidVerification(Request $request): View
     {
         $cards = AccessCard::query()
-            ->with(['user', 'classroom'])
+            ->with([
+                'user',
+                'classroom',
+                'accessLogs' => fn ($query) => $query->orderByDesc('accessed_at')->limit(1),
+            ])
             ->where('user_id', $request->user()->id)
             ->orderByDesc('last_accessed_at')
             ->orderByDesc('id')

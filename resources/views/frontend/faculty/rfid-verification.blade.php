@@ -136,7 +136,13 @@
             <div class="card-list">
                 @forelse($cards as $card)
                     @php
-                        $isExpired = $card->expires_at && $card->expires_at->isPast();
+                        $isExpired = $card->expires_at && $card->expires_at->isBefore(today());
+                        $expiresToday = $card->expires_at?->isToday() ?? false;
+                        $expiryDescription = $expiresToday ? 'Expires today' : $card->expires_at?->diffForHumans(today());
+                        $lastSeenAt = $card->accessLogs->first()?->accessed_at;
+                        if ($card->last_accessed_at && (! $lastSeenAt || $card->last_accessed_at->gt($lastSeenAt))) {
+                            $lastSeenAt = $card->last_accessed_at;
+                        }
                         $condition = $isExpired ? 'Expired' : ucfirst((string) $card->status);
                         $conditionClass = $isExpired || strtolower((string) $card->status) !== 'active' ? 'inactive' : 'active';
                     @endphp
@@ -155,8 +161,8 @@
                         <dl class="rfid-details">
                             <div class="rfid-detail"><span class="rfid-detail-icon"><i class="fas fa-door-open" aria-hidden="true"></i></span><div><dt>Assigned room</dt><dd>{{ $card->classroom?->name ?? 'No room assigned' }}</dd></div></div>
                             <div class="rfid-detail"><span class="rfid-detail-icon"><i class="fas fa-fingerprint" aria-hidden="true"></i></span><div><dt>RFID UID</dt><dd class="mono">{{ $card->rfid_uid ?? 'No RFID UID' }}</dd></div></div>
-                            <div class="rfid-detail"><span class="rfid-detail-icon"><i class="far fa-calendar-check" aria-hidden="true"></i></span><div><dt>Expires</dt><dd>{{ $card->expires_at?->format('M j, Y') ?? 'No expiry date' }}@if ($card->expires_at)<small class="{{ $isExpired ? 'bad' : '' }}">{{ $card->expires_at->diffForHumans() }}</small>@endif</dd></div></div>
-                            <div class="rfid-detail"><span class="rfid-detail-icon"><i class="far fa-clock" aria-hidden="true"></i></span><div><dt>Last seen</dt><dd>{{ $card->last_accessed_at?->format('M j, Y g:i A') ?? 'Never' }}@if ($card->last_accessed_at)<small>{{ $card->last_accessed_at->diffForHumans() }}</small>@endif</dd></div></div>
+                            <div class="rfid-detail"><span class="rfid-detail-icon"><i class="far fa-calendar-check" aria-hidden="true"></i></span><div><dt>Expires</dt><dd>{{ $card->expires_at?->format('M j, Y') ?? 'No expiry date' }}@if ($card->expires_at)<small class="{{ $isExpired ? 'bad' : '' }}">{{ $expiryDescription }}</small>@endif</dd></div></div>
+                            <div class="rfid-detail"><span class="rfid-detail-icon"><i class="far fa-clock" aria-hidden="true"></i></span><div><dt>Last seen</dt><dd>{{ $lastSeenAt?->format('M j, Y g:i A') ?? 'Never' }}@if ($lastSeenAt)<small>{{ $lastSeenAt->diffForHumans() }}</small>@endif</dd></div></div>
                         </dl>
                     </article>
                 @empty
