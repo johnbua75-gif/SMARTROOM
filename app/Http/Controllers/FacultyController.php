@@ -50,18 +50,29 @@ class FacultyController extends Controller
 
     public function rfidVerification(Request $request): View
     {
+        $faculty = $request->user();
         $cards = AccessCard::query()
             ->with([
                 'user',
                 'classroom',
                 'accessLogs' => fn ($query) => $query->orderByDesc('accessed_at')->limit(1),
             ])
-            ->where('user_id', $request->user()->id)
+            ->where('user_id', $faculty->id)
             ->orderByDesc('last_accessed_at')
             ->orderByDesc('id')
             ->get();
 
-        return view('frontend.faculty.rfid-verification', compact('cards'));
+        $scheduledClassrooms = Classroom::query()
+            ->whereIn('id', Schedule::query()
+                ->forInstructor((int) $faculty->id)
+                ->whereIn('status', ['scheduled', 'ongoing'])
+                ->whereNotNull('classroom_id')
+                ->select('classroom_id')
+                ->distinct())
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        return view('frontend.faculty.rfid-verification', compact('cards', 'scheduledClassrooms'));
     }
 
     public function notifications(Request $request): View

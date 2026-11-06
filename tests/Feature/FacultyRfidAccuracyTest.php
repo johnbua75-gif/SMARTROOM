@@ -3,6 +3,8 @@
 use App\Models\AccessCard;
 use App\Models\AccessLog;
 use App\Models\Classroom;
+use App\Models\Course;
+use App\Models\Schedule;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
@@ -70,4 +72,63 @@ it('shows the latest RFID access log as the card last seen time', function () {
         ->assertOk()
         ->assertSee($loggedLastSeen->format('M j, Y g:i A'))
         ->assertDontSee($storedLastSeen->format('M j, Y g:i A'));
+});
+
+it('shows scheduled rooms when the card has no card-specific room assignment', function () {
+    $faculty = User::factory()->create([
+        'role' => 'faculty',
+        'status' => 'active',
+        'must_change_password' => false,
+    ]);
+    $course = Course::create([
+        'code' => 'RFID-ROOM-101',
+        'title' => 'RFID Room Assignment',
+        'instructor_user_id' => $faculty->id,
+    ]);
+    $roomOne = Classroom::create([
+        'name' => 'Scheduled Room 15',
+        'building' => 'Main Building',
+    ]);
+    $roomTwo = Classroom::create([
+        'name' => 'Scheduled Room 16',
+        'building' => 'Main Building',
+    ]);
+    $cancelledRoom = Classroom::create([
+        'name' => 'Cancelled Room',
+        'building' => 'Main Building',
+    ]);
+    AccessCard::create([
+        'user_id' => $faculty->id,
+        'card_number' => 'SCHEDULED-ROOM-CARD',
+        'rfid_uid' => 'A1:B2:C3:D4',
+        'status' => 'active',
+    ]);
+
+    foreach ([$roomOne, $roomTwo] as $index => $classroom) {
+        Schedule::create([
+            'classroom_id' => $classroom->id,
+            'course_id' => $course->id,
+            'instructor_user_id' => $faculty->id,
+            'start_at' => now()->addDays($index + 1)->setTime(9, 0),
+            'end_at' => now()->addDays($index + 1)->setTime(10, 0),
+            'status' => 'scheduled',
+        ]);
+    }
+
+    Schedule::create([
+        'classroom_id' => $cancelledRoom->id,
+        'course_id' => $course->id,
+        'instructor_user_id' => $faculty->id,
+        'start_at' => now()->addDays(3)->setTime(9, 0),
+        'end_at' => now()->addDays(3)->setTime(10, 0),
+        'status' => 'cancelled',
+    ]);
+
+    $this->actingAs($faculty)
+        ->get(route('faculty.rfid.verification'))
+        ->assertOk()
+        ->assertSee('Scheduled Room 15')
+        ->assertSee('Scheduled Room 16')
+        ->assertDontSee('Cancelled Room')
+        ->assertDontSee('No room assigned');
 });
