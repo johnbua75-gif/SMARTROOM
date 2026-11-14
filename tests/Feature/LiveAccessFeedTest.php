@@ -96,6 +96,43 @@ it('restricts ending-class reminders to authenticated faculty', function () {
         ->assertForbidden();
 });
 
+it('includes only the faculty members active reservations ending within ten minutes', function () {
+    Carbon::setTestNow('2026-11-15 10:00:00');
+
+    $faculty = liveFeedUser('faculty');
+    $otherFaculty = liveFeedUser('faculty');
+    $room = liveFeedRoom();
+
+    $createReservation = function (User $owner, string $startAt, string $endAt, string $status) use ($room): Reservation {
+        return Reservation::query()->create([
+            'classroom_id' => $room->id,
+            'user_id' => $owner->id,
+            'start_at' => $startAt,
+            'end_at' => $endAt,
+            'status' => $status,
+        ]);
+    };
+
+    $approvedReservation = $createReservation($faculty, '2026-11-15 09:00:00', '2026-11-15 10:05:00', 'approved');
+    $reservedReservation = $createReservation($faculty, '2026-11-15 09:30:00', '2026-11-15 10:09:00', 'reserved');
+    $createReservation($faculty, '2026-11-15 09:00:00', '2026-11-15 10:04:00', 'cancelled');
+    $createReservation($faculty, '2026-11-15 10:01:00', '2026-11-15 10:08:00', 'approved');
+    $createReservation($faculty, '2026-11-15 09:00:00', '2026-11-15 10:11:00', 'approved');
+    $createReservation($otherFaculty, '2026-11-15 09:00:00', '2026-11-15 10:03:00', 'approved');
+
+    actingAs($faculty)
+        ->getJson('/faculty-notifications/ending-classes')
+        ->assertOk()
+        ->assertJsonCount(2, 'data')
+        ->assertJsonPath('data.0.kind', 'reservation')
+        ->assertJsonPath('data.0.id', $approvedReservation->id)
+        ->assertJsonPath('data.0.room', $room->name)
+        ->assertJsonPath('data.0.remaining_seconds', 300)
+        ->assertJsonPath('data.1.kind', 'reservation')
+        ->assertJsonPath('data.1.id', $reservedReservation->id)
+        ->assertJsonPath('data.1.remaining_seconds', 540);
+});
+
 it('returns only new owned RFID notifications in ascending order without caching', function () {
     Carbon::setTestNow('2026-10-10 09:30:00');
 

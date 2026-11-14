@@ -375,7 +375,7 @@ body.faculty-sidebar-collapsed .faculty-sidebar-toggle{right:-13px;transform:tra
     return button;
   }
 
-  function showReminder(schedule, threshold) {
+  function showReminder(activity, threshold) {
     const toast = document.createElement('div');
     toast.className = 'faculty-schedule-toast';
     toast.setAttribute('role', 'status');
@@ -387,11 +387,13 @@ body.faculty-sidebar-collapsed .faculty-sidebar-toggle{right:-13px;transform:tra
     const message = document.createElement('div');
     message.className = 'faculty-schedule-toast-message';
     const heading = document.createElement('strong');
-    heading.textContent = 'Class ending soon';
+    const isReservation = activity.kind === 'reservation';
+    heading.textContent = isReservation ? 'Reservation ending soon' : 'Class ending soon';
     const details = document.createElement('span');
-    const course = [schedule.course_code, schedule.course_title].filter(Boolean).join(' - ') || 'Your class';
-    const room = schedule.room ? ' in '+schedule.room : '';
-    details.textContent = course+room+' ends in '+(threshold === 120 ? '2 minutes' : '10 minutes')+' ('+schedule.end_time+').';
+    const course = [activity.course_code, activity.course_title].filter(Boolean).join(' - ') || 'Your class';
+    const room = activity.room || 'your reserved room';
+    const subject = isReservation ? 'Your reservation for '+room : course+(activity.room ? ' in '+activity.room : '');
+    details.textContent = subject+' ends in '+(threshold === 120 ? '2 minutes' : '10 minutes')+' ('+activity.end_time+').';
     message.append(heading, details);
 
     const actions = document.createElement('div');
@@ -431,12 +433,12 @@ body.faculty-sidebar-collapsed .faculty-sidebar-toggle{right:-13px;transform:tra
       });
       if (!response.ok) throw new Error('Schedule reminder request failed: '+response.status);
       const payload = await response.json();
-      (Array.isArray(payload.data) ? payload.data : []).forEach(function (schedule) {
-        const secondsRemaining = Number(schedule.remaining_seconds);
+      (Array.isArray(payload.data) ? payload.data : []).forEach(function (activity) {
+        const secondsRemaining = Number(activity.remaining_seconds);
         const threshold = secondsRemaining <= 120 ? 120 : secondsRemaining <= 600 ? 600 : null;
         if (threshold === null) return;
-        const key = [schedule.id, schedule.end_at, threshold].join(':');
-        if (claimAlert(key)) showReminder(schedule, threshold);
+        const key = [activity.kind, activity.id, activity.end_at, threshold].join(':');
+        if (claimAlert(key)) showReminder(activity, threshold);
       });
       pollDelayMs = 30000;
     } catch (error) {

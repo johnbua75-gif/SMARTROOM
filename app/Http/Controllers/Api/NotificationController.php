@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Notification;
+use App\Models\Reservation;
 use App\Models\Schedule;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -111,7 +112,7 @@ class NotificationController extends Controller
     {
         $now = now();
 
-        $items = Schedule::query()
+        $classes = Schedule::query()
             ->with(['course', 'classroom', 'courseOffering.course', 'courseOffering.classroom'])
             ->forInstructor((int) $request->user()->id)
             ->whereIn('status', ['scheduled', 'ongoing'])
@@ -125,6 +126,7 @@ class NotificationController extends Controller
                 $classroom = $schedule->classroom ?? $schedule->courseOffering?->classroom;
 
                 return [
+                    'kind' => 'class',
                     'id' => $schedule->id,
                     'end_at' => $schedule->end_at?->toIso8601String(),
                     'end_time' => $schedule->end_at?->format('g:i A'),
@@ -135,6 +137,29 @@ class NotificationController extends Controller
                 ];
             })
             ->values();
+
+        $reservations = Reservation::query()
+            ->with('classroom')
+            ->where('user_id', $request->user()->id)
+            ->whereIn('status', ['reserved', 'approved'])
+            ->where('start_at', '<=', $now)
+            ->where('end_at', '>', $now)
+            ->where('end_at', '<=', $now->copy()->addMinutes(10))
+            ->orderBy('end_at')
+            ->get()
+            ->map(fn (Reservation $reservation): array => [
+                'kind' => 'reservation',
+                'id' => $reservation->id,
+                'end_at' => $reservation->end_at?->toIso8601String(),
+                'end_time' => $reservation->end_at?->format('g:i A'),
+                'remaining_seconds' => max(0, (int) $now->diffInSeconds($reservation->end_at)),
+                'course_code' => null,
+                'course_title' => null,
+                'room' => $reservation->classroom?->name,
+            ])
+            ->values();
+
+        $items = $classes->concat($reservations)->sortBy('remaining_seconds')->values();
 
         return response()->json(['data' => $items]);
     }
