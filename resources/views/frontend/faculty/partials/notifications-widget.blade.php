@@ -38,6 +38,13 @@ body.faculty-sidebar-collapsed .faculty-sidebar-toggle{right:-13px;transform:tra
 .faculty-access-toast-list{position:fixed;right:18px;bottom:70px;z-index:2300;display:grid;gap:8px;width:min(340px,calc(100vw - 36px));pointer-events:none}
 .faculty-access-toast{padding:12px 14px;border:1px solid #bfdbfe;border-radius:10px;background:#fff;color:#1e3a8a;box-shadow:0 12px 35px rgba(7,22,64,.18);font-size:.82rem;line-height:1.45}
 .faculty-access-toast.is-denied{border-color:#fecaca;color:#991b1b}
+.faculty-schedule-toast{display:flex;align-items:flex-start;gap:10px;padding:12px;border:1px solid #fcd34d;border-radius:10px;background:#fff;color:#713f12;box-shadow:0 12px 35px rgba(7,22,64,.18);font-size:.82rem;line-height:1.45;pointer-events:auto}
+.faculty-schedule-toast>i{margin-top:2px;color:#b45309}
+.faculty-schedule-toast-message{flex:1;min-width:0}
+.faculty-schedule-toast-message strong{display:block;margin-bottom:2px;color:#422006;font-size:.83rem}
+.faculty-schedule-toast-actions{display:flex;align-items:center;gap:4px}
+.faculty-schedule-toast-actions button{width:28px;height:28px;border:0;border-radius:6px;background:transparent;color:#78350f;cursor:pointer}
+.faculty-schedule-toast-actions button:hover{background:#fef3c7}
 @media(prefers-reduced-motion:reduce){.faculty-access-modal,.faculty-access-card,.faculty-access-toast{animation:none!important;transition:none!important}}
 </style>
 <div class="faculty-notification-widget" id="facultyNotificationWidget">
@@ -282,6 +289,173 @@ body.faculty-sidebar-collapsed .faculty-sidebar-toggle{right:-13px;transform:tra
     if (event.key === 'Escape') closeModal();
   });
   pollNotifications();
+})();
+</script>
+<script>
+(function () {
+  const toastList = document.getElementById('facultyAccessToastList');
+  const currentUserId = @json((int) auth()->id());
+  const endpoint = '{{ route('faculty.notifications.ending-classes') }}';
+  const storageKey = 'facultyScheduleEndAlerts:v1:'+currentUserId;
+  const soundStorageKey = 'facultyScheduleEndAlertSoundMuted';
+  const alertLifetimeMs = 24 * 60 * 60 * 1000;
+  let nextPollTimer = null;
+  let requestInFlight = false;
+  let pollDelayMs = 30000;
+  let audioContext = null;
+  let soundsMuted = window.localStorage.getItem(soundStorageKey) === '1';
+
+  if (!toastList) return;
+
+  function activateAudio() {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return;
+    try {
+      audioContext ??= new AudioContextClass();
+      if (audioContext.state === 'suspended') audioContext.resume().catch(function () {});
+    } catch (error) {
+      audioContext = null;
+    }
+  }
+
+  function playReminderTone() {
+    if (soundsMuted || !audioContext || audioContext.state !== 'running') return;
+    try {
+      [659, 784].forEach(function (frequency, index) {
+        const startAt = audioContext.currentTime + index * 0.16;
+        const oscillator = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        oscillator.type = 'sine';
+        oscillator.frequency.value = frequency;
+        gain.gain.setValueAtTime(0.0001, startAt);
+        gain.gain.exponentialRampToValueAtTime(0.035, startAt + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, startAt + 0.14);
+        oscillator.connect(gain);
+        gain.connect(audioContext.destination);
+        oscillator.start(startAt);
+        oscillator.stop(startAt + 0.15);
+      });
+    } catch (error) {
+      audioContext = null;
+    }
+  }
+
+  function claimAlert(key) {
+    const now = Date.now();
+    let seen = {};
+    try {
+      seen = JSON.parse(window.localStorage.getItem(storageKey) || '{}');
+    } catch (error) {
+      seen = {};
+    }
+    if (!seen || typeof seen !== 'object' || Array.isArray(seen)) seen = {};
+    Object.keys(seen).forEach(function (seenKey) {
+      if (now - Number(seen[seenKey]) > alertLifetimeMs) delete seen[seenKey];
+    });
+    if (seen[key]) return false;
+    seen[key] = now;
+    try {
+      window.localStorage.setItem(storageKey, JSON.stringify(seen));
+    } catch (error) {
+      // The reminder can still be shown if browser storage is unavailable.
+    }
+    return true;
+  }
+
+  function makeActionButton(iconName, label, onClick) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.setAttribute('aria-label', label);
+    button.title = label;
+    const icon = document.createElement('i');
+    icon.className = 'fas '+iconName;
+    icon.setAttribute('aria-hidden', 'true');
+    button.appendChild(icon);
+    button.addEventListener('click', onClick);
+    return button;
+  }
+
+  function showReminder(schedule, threshold) {
+    const toast = document.createElement('div');
+    toast.className = 'faculty-schedule-toast';
+    toast.setAttribute('role', 'status');
+
+    const icon = document.createElement('i');
+    icon.className = 'fas fa-clock';
+    icon.setAttribute('aria-hidden', 'true');
+
+    const message = document.createElement('div');
+    message.className = 'faculty-schedule-toast-message';
+    const heading = document.createElement('strong');
+    heading.textContent = 'Class ending soon';
+    const details = document.createElement('span');
+    const course = [schedule.course_code, schedule.course_title].filter(Boolean).join(' - ') || 'Your class';
+    const room = schedule.room ? ' in '+schedule.room : '';
+    details.textContent = course+room+' ends in '+(threshold === 120 ? '2 minutes' : '10 minutes')+' ('+schedule.end_time+').';
+    message.append(heading, details);
+
+    const actions = document.createElement('div');
+    actions.className = 'faculty-schedule-toast-actions';
+    const muteButton = makeActionButton(soundsMuted ? 'fa-volume-xmark' : 'fa-volume-high', soundsMuted ? 'Unmute reminder sound' : 'Mute reminder sound', function () {
+      soundsMuted = !soundsMuted;
+      window.localStorage.setItem(soundStorageKey, soundsMuted ? '1' : '0');
+      muteButton.setAttribute('aria-label', soundsMuted ? 'Unmute reminder sound' : 'Mute reminder sound');
+      muteButton.title = soundsMuted ? 'Unmute reminder sound' : 'Mute reminder sound';
+      muteButton.querySelector('i').className = 'fas '+(soundsMuted ? 'fa-volume-xmark' : 'fa-volume-high');
+    });
+    const dismissButton = makeActionButton('fa-xmark', 'Dismiss reminder', function () {
+      window.clearTimeout(removeTimer);
+      toast.remove();
+    });
+    actions.append(muteButton, dismissButton);
+    toast.append(icon, message, actions);
+    toastList.appendChild(toast);
+    playReminderTone();
+
+    const removeTimer = window.setTimeout(function () { toast.remove(); }, 10000);
+  }
+
+  function scheduleNextPoll() {
+    window.clearTimeout(nextPollTimer);
+    if (!document.hidden) nextPollTimer = window.setTimeout(pollSchedules, pollDelayMs);
+  }
+
+  async function pollSchedules() {
+    if (document.hidden || requestInFlight) return;
+    requestInFlight = true;
+    try {
+      const response = await fetch(endpoint, {
+        headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+        cache: 'no-store',
+        credentials: 'same-origin',
+      });
+      if (!response.ok) throw new Error('Schedule reminder request failed: '+response.status);
+      const payload = await response.json();
+      (Array.isArray(payload.data) ? payload.data : []).forEach(function (schedule) {
+        const secondsRemaining = Number(schedule.remaining_seconds);
+        const threshold = secondsRemaining <= 120 ? 120 : secondsRemaining <= 600 ? 600 : null;
+        if (threshold === null) return;
+        const key = [schedule.id, schedule.end_at, threshold].join(':');
+        if (claimAlert(key)) showReminder(schedule, threshold);
+      });
+      pollDelayMs = 30000;
+    } catch (error) {
+      pollDelayMs = Math.min(120000, pollDelayMs * 2);
+    } finally {
+      requestInFlight = false;
+      scheduleNextPoll();
+    }
+  }
+
+  document.addEventListener('pointerdown', activateAudio, { once: true });
+  document.addEventListener('keydown', activateAudio, { once: true });
+  document.addEventListener('visibilitychange', function () {
+    window.clearTimeout(nextPollTimer);
+    if (document.hidden) return;
+    pollDelayMs = 30000;
+    pollSchedules();
+  });
+  pollSchedules();
 })();
 </script>
 <script>

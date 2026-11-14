@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Notification;
+use App\Models\Schedule;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -102,6 +103,38 @@ class NotificationController extends Controller
                 'created_at' => $notification->created_at?->toIso8601String(),
             ])
             ->all();
+
+        return response()->json(['data' => $items]);
+    }
+
+    public function endingClasses(Request $request): JsonResponse
+    {
+        $now = now();
+
+        $items = Schedule::query()
+            ->with(['course', 'classroom', 'courseOffering.course', 'courseOffering.classroom'])
+            ->forInstructor((int) $request->user()->id)
+            ->whereIn('status', ['scheduled', 'ongoing'])
+            ->where('start_at', '<=', $now)
+            ->where('end_at', '>', $now)
+            ->where('end_at', '<=', $now->copy()->addMinutes(10))
+            ->orderBy('end_at')
+            ->get()
+            ->map(function (Schedule $schedule) use ($now): array {
+                $course = $schedule->course ?? $schedule->courseOffering?->course;
+                $classroom = $schedule->classroom ?? $schedule->courseOffering?->classroom;
+
+                return [
+                    'id' => $schedule->id,
+                    'end_at' => $schedule->end_at?->toIso8601String(),
+                    'end_time' => $schedule->end_at?->format('g:i A'),
+                    'remaining_seconds' => max(0, (int) $now->diffInSeconds($schedule->end_at)),
+                    'course_code' => $course?->code,
+                    'course_title' => $course?->title,
+                    'room' => $classroom?->name,
+                ];
+            })
+            ->values();
 
         return response()->json(['data' => $items]);
     }

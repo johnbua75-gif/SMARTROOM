@@ -3,8 +3,10 @@
 use App\Models\AccessCard;
 use App\Models\AccessLog;
 use App\Models\Classroom;
+use App\Models\Course;
 use App\Models\Notification;
 use App\Models\Reservation;
+use App\Models\Schedule;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
@@ -31,6 +33,68 @@ function liveFeedRoom(): Classroom
         'access_mode' => 'esp32',
     ]);
 }
+
+it('returns only this faculty members active classes ending within ten minutes', function () {
+    Carbon::setTestNow('2026-11-14 10:00:00');
+
+    $faculty = liveFeedUser('faculty');
+    $otherFaculty = liveFeedUser('faculty');
+    $room = liveFeedRoom();
+    $course = Course::query()->create([
+        'code' => 'IT101',
+        'title' => 'Current Class',
+        'instructor_user_id' => $faculty->id,
+        'classroom_id' => $room->id,
+        'capacity' => 30,
+    ]);
+    $otherCourse = Course::query()->create([
+        'code' => 'IT102',
+        'title' => 'Other Class',
+        'instructor_user_id' => $otherFaculty->id,
+        'classroom_id' => $room->id,
+        'capacity' => 30,
+    ]);
+
+    $createSchedule = function (Course $course, ?int $instructorId, string $startAt, string $endAt, string $status): Schedule {
+        return Schedule::query()->create([
+            'classroom_id' => $course->classroom_id,
+            'course_id' => $course->id,
+            'instructor_user_id' => $instructorId,
+            'start_at' => $startAt,
+            'end_at' => $endAt,
+            'status' => $status,
+            'day_of_week' => 6,
+            'enrolled' => 20,
+        ]);
+    };
+
+    $legacySchedule = $createSchedule($course, null, '2026-11-14 09:00:00', '2026-11-14 10:09:30', 'scheduled');
+    $ongoingSchedule = $createSchedule($course, $faculty->id, '2026-11-14 09:30:00', '2026-11-14 10:05:00', 'ongoing');
+    $createSchedule($course, $faculty->id, '2026-11-14 10:01:00', '2026-11-14 10:08:00', 'scheduled');
+    $createSchedule($course, $faculty->id, '2026-11-14 09:00:00', '2026-11-14 10:05:00', 'cancelled');
+    $createSchedule($course, $faculty->id, '2026-11-14 09:00:00', '2026-11-14 10:11:00', 'scheduled');
+    $createSchedule($otherCourse, null, '2026-11-14 09:00:00', '2026-11-14 10:05:00', 'scheduled');
+
+    actingAs($faculty)
+        ->getJson('/faculty-notifications/ending-classes')
+        ->assertOk()
+        ->assertJsonCount(2, 'data')
+        ->assertJsonPath('data.0.id', $ongoingSchedule->id)
+        ->assertJsonPath('data.0.course_code', 'IT101')
+        ->assertJsonPath('data.0.course_title', 'Current Class')
+        ->assertJsonPath('data.0.room', $room->name)
+        ->assertJsonPath('data.0.remaining_seconds', 300)
+        ->assertJsonPath('data.1.id', $legacySchedule->id)
+        ->assertJsonPath('data.1.remaining_seconds', 570);
+});
+
+it('restricts ending-class reminders to authenticated faculty', function () {
+    $this->getJson('/faculty-notifications/ending-classes')->assertUnauthorized();
+
+    actingAs(liveFeedUser('student'))
+        ->getJson('/faculty-notifications/ending-classes')
+        ->assertForbidden();
+});
 
 it('returns only new owned RFID notifications in ascending order without caching', function () {
     Carbon::setTestNow('2026-10-10 09:30:00');
