@@ -1478,8 +1478,6 @@ $gridCols = implode(' ', array_map(function ($d) use ($isCurrentWeek) {
           <p class="sch-hero-sub"><?= htmlspecialchars($facultyName) ?> &middot; <?= htmlspecialchars($semester) ?></p>
         </div>
         <div class="hero-actions">
-          <button type="button" class="hero-btn" id="themeToggle" aria-pressed="false"><span>Dark mode</span></button>
-          <a class="hero-btn" href="{{ route('faculty.schedule.export.ics') }}">Export</a>
           <button type="button" class="hero-btn hero-btn-gold" id="openAddModal2">+ Add schedule</button>
         </div>
       </div>
