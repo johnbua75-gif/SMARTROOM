@@ -38,7 +38,7 @@ body.faculty-sidebar-collapsed .faculty-sidebar-toggle{right:-13px;transform:tra
 .faculty-access-toast-list{position:fixed;right:18px;bottom:70px;z-index:2300;display:grid;gap:8px;width:min(340px,calc(100vw - 36px));pointer-events:none}
 .faculty-access-toast{padding:12px 14px;border:1px solid #bfdbfe;border-radius:10px;background:#fff;color:#1e3a8a;box-shadow:0 12px 35px rgba(7,22,64,.18);font-size:.82rem;line-height:1.45}
 .faculty-access-toast.is-denied{border-color:#fecaca;color:#991b1b}
-.faculty-schedule-modal{position:fixed;inset:0;z-index:2500;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(7,22,64,.94);backdrop-filter:blur(2px)}
+.faculty-schedule-modal{position:fixed;inset:0;z-index:2500;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(7,22,64,.55);backdrop-filter:blur(3px)}
 .faculty-schedule-modal.is-open{display:flex}
 .faculty-schedule-dialog{width:min(360px,100%);padding:28px;border:1px solid #e8ecf3;border-radius:18px;background:#fff;box-shadow:0 24px 70px rgba(7,22,64,.3);color:#111827}
 .faculty-schedule-dialog:focus{outline:none}
