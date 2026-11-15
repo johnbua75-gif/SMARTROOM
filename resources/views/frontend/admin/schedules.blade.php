@@ -694,10 +694,10 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
 
       $facultySummaries = $facultySummaries->concat(
         $scheduledFacultySummaries->filter(function ($summary) use ($facultyUsers) {
-          $isUnassignedOrUnknown = (int) $summary['id'] === 0 || !$facultyUsers->contains('id', $summary['id']);
+          $isUnknownInstructor = (int) $summary['id'] > 0 && !$facultyUsers->contains('id', $summary['id']);
           $hasAssignments = ((int) ($summary['course_count'] ?? 0) > 0) || ((int) ($summary['class_count'] ?? 0) > 0);
 
-          return $isUnassignedOrUnknown && $hasAssignments;
+          return $isUnknownInstructor && $hasAssignments;
         })->values()
       )->sortBy(function ($summary) {
         return $summary['id'] === 0 ? 'zzzzz' : $summary['name'];
