@@ -38,14 +38,21 @@ body.faculty-sidebar-collapsed .faculty-sidebar-toggle{right:-13px;transform:tra
 .faculty-access-toast-list{position:fixed;right:18px;bottom:70px;z-index:2300;display:grid;gap:8px;width:min(340px,calc(100vw - 36px));pointer-events:none}
 .faculty-access-toast{padding:12px 14px;border:1px solid #bfdbfe;border-radius:10px;background:#fff;color:#1e3a8a;box-shadow:0 12px 35px rgba(7,22,64,.18);font-size:.82rem;line-height:1.45}
 .faculty-access-toast.is-denied{border-color:#fecaca;color:#991b1b}
-.faculty-schedule-toast{display:flex;align-items:flex-start;gap:10px;padding:12px;border:1px solid #fcd34d;border-radius:10px;background:#fff;color:#713f12;box-shadow:0 12px 35px rgba(7,22,64,.18);font-size:.82rem;line-height:1.45;pointer-events:auto}
-.faculty-schedule-toast>i{margin-top:2px;color:#b45309}
-.faculty-schedule-toast-message{flex:1;min-width:0}
-.faculty-schedule-toast-message strong{display:block;margin-bottom:2px;color:#422006;font-size:.83rem}
-.faculty-schedule-toast-actions{display:flex;align-items:center;gap:4px}
-.faculty-schedule-toast-actions button{width:28px;height:28px;border:0;border-radius:6px;background:transparent;color:#78350f;cursor:pointer}
-.faculty-schedule-toast-actions button:hover{background:#fef3c7}
-@media(prefers-reduced-motion:reduce){.faculty-access-modal,.faculty-access-card,.faculty-access-toast{animation:none!important;transition:none!important}}
+.faculty-schedule-modal{position:fixed;inset:0;z-index:2500;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(7,22,64,.55);backdrop-filter:blur(3px)}
+.faculty-schedule-modal.is-open{display:flex}
+.faculty-schedule-dialog{width:min(440px,100%);padding:26px;border:1px solid #e8ecf3;border-radius:14px;background:#fff;box-shadow:0 24px 70px rgba(7,22,64,.3);color:#111827}
+.faculty-schedule-dialog:focus{outline:none}
+.faculty-schedule-dialog-icon{width:50px;height:50px;display:flex;align-items:center;justify-content:center;margin-bottom:16px;border:1px solid #fcd34d;border-radius:12px;background:#fff8e1;color:#92400e;font-size:1.25rem}
+.faculty-schedule-dialog h2{margin:0 0 8px;color:#111827;font-size:1.1rem;font-weight:800}
+.faculty-schedule-dialog p{margin:0;color:#4b5563;font-size:.9rem;line-height:1.55}
+.faculty-schedule-dialog-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:24px}
+.faculty-schedule-mute{width:40px;height:40px;border:1px solid #d1d5db;border-radius:8px;background:#fff;color:#374151;cursor:pointer}
+.faculty-schedule-mute:hover{background:#f3f4f6}
+.faculty-schedule-close{min-width:108px;min-height:40px;padding:0 16px;border:0;border-radius:8px;background:#0b1640;color:#fff;cursor:pointer;font:700 .85rem 'DM Sans',sans-serif}
+.faculty-schedule-close:hover{background:#1a2f80}
+.faculty-schedule-mute:focus-visible,.faculty-schedule-close:focus-visible{outline:3px solid #f5c518;outline-offset:3px}
+@media(max-width:480px){.faculty-schedule-dialog{padding:22px}}
+@media(prefers-reduced-motion:reduce){.faculty-access-modal,.faculty-access-card,.faculty-access-toast,.faculty-schedule-modal,.faculty-schedule-dialog{animation:none!important;transition:none!important}}
 </style>
 <div class="faculty-notification-widget" id="facultyNotificationWidget">
   <button type="button" class="faculty-notification-button" id="facultyNotificationButton" aria-label="Notifications" aria-expanded="false">
@@ -67,6 +74,19 @@ body.faculty-sidebar-collapsed .faculty-sidebar-toggle{right:-13px;transform:tra
     <div class="faculty-access-message" id="facultyAccessMessage">Your RFID card was accepted.</div>
     <button type="button" class="faculty-access-close" id="facultyAccessClose">Continue</button>
   </div>
+</div>
+<div class="faculty-schedule-modal" id="facultyScheduleModal" aria-hidden="true">
+  <section class="faculty-schedule-dialog" id="facultyScheduleDialog" role="alertdialog" aria-modal="true" aria-labelledby="facultyScheduleTitle" aria-describedby="facultyScheduleMessage" tabindex="-1">
+    <div class="faculty-schedule-dialog-icon"><i class="fas fa-clock" aria-hidden="true"></i></div>
+    <h2 id="facultyScheduleTitle">Class ending soon</h2>
+    <p id="facultyScheduleMessage"></p>
+    <div class="faculty-schedule-dialog-actions">
+      <button type="button" class="faculty-schedule-mute" id="facultyScheduleMute" aria-label="Mute reminder sound" title="Mute reminder sound">
+        <i class="fas fa-volume-high" aria-hidden="true"></i>
+      </button>
+      <button type="button" class="faculty-schedule-close" id="facultyScheduleClose">Close reminder</button>
+    </div>
+  </section>
 </div>
 <script>
 (function () {
@@ -293,7 +313,12 @@ body.faculty-sidebar-collapsed .faculty-sidebar-toggle{right:-13px;transform:tra
 </script>
 <script>
 (function () {
-  const toastList = document.getElementById('facultyAccessToastList');
+  const modal = document.getElementById('facultyScheduleModal');
+  const dialog = document.getElementById('facultyScheduleDialog');
+  const title = document.getElementById('facultyScheduleTitle');
+  const message = document.getElementById('facultyScheduleMessage');
+  const closeButton = document.getElementById('facultyScheduleClose');
+  const muteButton = document.getElementById('facultyScheduleMute');
   const currentUserId = @json((int) auth()->id());
   const endpoint = '{{ route('faculty.notifications.ending-classes') }}';
   const storageKey = 'facultyScheduleEndAlerts:v1:'+currentUserId;
@@ -304,8 +329,13 @@ body.faculty-sidebar-collapsed .faculty-sidebar-toggle{right:-13px;transform:tra
   let pollDelayMs = 30000;
   let audioContext = null;
   let soundsMuted = window.localStorage.getItem(soundStorageKey) === '1';
+  let reminderQueue = [];
+  let modalIsOpen = false;
+  let reminderCycleIsActive = false;
+  let previousBodyOverflow = '';
+  let returnFocusTarget = null;
 
-  if (!toastList) return;
+  if (!modal || !dialog || !title || !message || !closeButton || !muteButton) return;
 
   function activateAudio() {
     const AudioContextClass = window.AudioContext || window.webkitAudioContext;
@@ -321,19 +351,19 @@ body.faculty-sidebar-collapsed .faculty-sidebar-toggle{right:-13px;transform:tra
   function playReminderTone() {
     if (soundsMuted || !audioContext || audioContext.state !== 'running') return;
     try {
-      [659, 784].forEach(function (frequency, index) {
-        const startAt = audioContext.currentTime + index * 0.16;
+      [784, 988, 1175].forEach(function (frequency, index) {
+        const startAt = audioContext.currentTime + index * 0.23;
         const oscillator = audioContext.createOscillator();
         const gain = audioContext.createGain();
-        oscillator.type = 'sine';
+        oscillator.type = 'triangle';
         oscillator.frequency.value = frequency;
         gain.gain.setValueAtTime(0.0001, startAt);
-        gain.gain.exponentialRampToValueAtTime(0.035, startAt + 0.02);
-        gain.gain.exponentialRampToValueAtTime(0.0001, startAt + 0.14);
+        gain.gain.exponentialRampToValueAtTime(0.075, startAt + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, startAt + 0.2);
         oscillator.connect(gain);
         gain.connect(audioContext.destination);
         oscillator.start(startAt);
-        oscillator.stop(startAt + 0.15);
+        oscillator.stop(startAt + 0.21);
       });
     } catch (error) {
       audioContext = null;
@@ -375,46 +405,58 @@ body.faculty-sidebar-collapsed .faculty-sidebar-toggle{right:-13px;transform:tra
     return button;
   }
 
-  function showReminder(activity, threshold) {
-    const toast = document.createElement('div');
-    toast.className = 'faculty-schedule-toast';
-    toast.setAttribute('role', 'status');
-
-    const icon = document.createElement('i');
-    icon.className = 'fas fa-clock';
-    icon.setAttribute('aria-hidden', 'true');
-
-    const message = document.createElement('div');
-    message.className = 'faculty-schedule-toast-message';
-    const heading = document.createElement('strong');
+  function showNextReminder() {
+    if (modalIsOpen || !reminderQueue.length) return;
+    const reminder = reminderQueue.shift();
+    const activity = reminder.activity;
+    const threshold = reminder.threshold;
     const isReservation = activity.kind === 'reservation';
-    heading.textContent = isReservation ? 'Reservation ending soon' : 'Class ending soon';
-    const details = document.createElement('span');
+    title.textContent = isReservation ? 'Reservation ending soon' : 'Class ending soon';
     const course = [activity.course_code, activity.course_title].filter(Boolean).join(' - ') || 'Your class';
     const room = activity.room || 'your reserved room';
     const subject = isReservation ? 'Your reservation for '+room : course+(activity.room ? ' in '+activity.room : '');
-    details.textContent = subject+' ends in '+(threshold === 120 ? '2 minutes' : '10 minutes')+' ('+activity.end_time+').';
-    message.append(heading, details);
-
-    const actions = document.createElement('div');
-    actions.className = 'faculty-schedule-toast-actions';
-    const muteButton = makeActionButton(soundsMuted ? 'fa-volume-xmark' : 'fa-volume-high', soundsMuted ? 'Unmute reminder sound' : 'Mute reminder sound', function () {
-      soundsMuted = !soundsMuted;
-      window.localStorage.setItem(soundStorageKey, soundsMuted ? '1' : '0');
-      muteButton.setAttribute('aria-label', soundsMuted ? 'Unmute reminder sound' : 'Mute reminder sound');
-      muteButton.title = soundsMuted ? 'Unmute reminder sound' : 'Mute reminder sound';
-      muteButton.querySelector('i').className = 'fas '+(soundsMuted ? 'fa-volume-xmark' : 'fa-volume-high');
-    });
-    const dismissButton = makeActionButton('fa-xmark', 'Dismiss reminder', function () {
-      window.clearTimeout(removeTimer);
-      toast.remove();
-    });
-    actions.append(muteButton, dismissButton);
-    toast.append(icon, message, actions);
-    toastList.appendChild(toast);
+    message.textContent = subject+' ends in '+(threshold === 120 ? '2 minutes' : '10 minutes')+' ('+activity.end_time+').';
+    muteButton.setAttribute('aria-label', soundsMuted ? 'Unmute reminder sound' : 'Mute reminder sound');
+    muteButton.title = soundsMuted ? 'Unmute reminder sound' : 'Mute reminder sound';
+    muteButton.querySelector('i').className = 'fas '+(soundsMuted ? 'fa-volume-xmark' : 'fa-volume-high');
+    if (!reminderCycleIsActive) {
+      returnFocusTarget = document.activeElement;
+      previousBodyOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      reminderCycleIsActive = true;
+    }
+    modal.classList.add('is-open');
+    modal.setAttribute('aria-hidden', 'false');
+    modalIsOpen = true;
+    closeButton.focus();
     playReminderTone();
+  }
 
-    const removeTimer = window.setTimeout(function () { toast.remove(); }, 10000);
+  function queueReminder(activity, threshold) {
+    reminderQueue.push({ activity: activity, threshold: threshold });
+    showNextReminder();
+  }
+
+  function closeReminder() {
+    if (!modalIsOpen) return;
+    modal.classList.remove('is-open');
+    modal.setAttribute('aria-hidden', 'true');
+    modalIsOpen = false;
+    if (reminderQueue.length) {
+      showNextReminder();
+      return;
+    }
+    document.body.style.overflow = previousBodyOverflow;
+    reminderCycleIsActive = false;
+    if (returnFocusTarget instanceof HTMLElement && returnFocusTarget.isConnected) returnFocusTarget.focus();
+  }
+
+  function updateSoundPreference() {
+    soundsMuted = !soundsMuted;
+    window.localStorage.setItem(soundStorageKey, soundsMuted ? '1' : '0');
+    muteButton.setAttribute('aria-label', soundsMuted ? 'Unmute reminder sound' : 'Mute reminder sound');
+    muteButton.title = soundsMuted ? 'Unmute reminder sound' : 'Mute reminder sound';
+    muteButton.querySelector('i').className = 'fas '+(soundsMuted ? 'fa-volume-xmark' : 'fa-volume-high');
   }
 
   function scheduleNextPoll() {
@@ -438,7 +480,7 @@ body.faculty-sidebar-collapsed .faculty-sidebar-toggle{right:-13px;transform:tra
         const threshold = secondsRemaining <= 120 ? 120 : secondsRemaining <= 600 ? 600 : null;
         if (threshold === null) return;
         const key = [activity.kind, activity.id, activity.end_at, threshold].join(':');
-        if (claimAlert(key)) showReminder(activity, threshold);
+        if (claimAlert(key)) queueReminder(activity, threshold);
       });
       pollDelayMs = 30000;
     } catch (error) {
@@ -451,6 +493,26 @@ body.faculty-sidebar-collapsed .faculty-sidebar-toggle{right:-13px;transform:tra
 
   document.addEventListener('pointerdown', activateAudio, { once: true });
   document.addEventListener('keydown', activateAudio, { once: true });
+  closeButton.addEventListener('click', closeReminder);
+  muteButton.addEventListener('click', updateSoundPreference);
+  modal.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closeReminder();
+      return;
+    }
+    if (event.key !== 'Tab') return;
+    const focusableButtons = Array.from(dialog.querySelectorAll('button:not([disabled])'));
+    const firstButton = focusableButtons[0];
+    const lastButton = focusableButtons[focusableButtons.length - 1];
+    if (event.shiftKey && document.activeElement === firstButton) {
+      event.preventDefault();
+      lastButton.focus();
+    } else if (!event.shiftKey && document.activeElement === lastButton) {
+      event.preventDefault();
+      firstButton.focus();
+    }
+  });
   document.addEventListener('visibilitychange', function () {
     window.clearTimeout(nextPollTimer);
     if (document.hidden) return;
