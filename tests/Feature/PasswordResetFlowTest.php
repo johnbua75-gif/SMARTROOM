@@ -4,8 +4,10 @@ use App\Mail\TemporaryPasswordMail;
 use App\Models\User;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Middleware\TrustHosts;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Password;
 use Symfony\Component\Mailer\Bridge\Brevo\Transport\BrevoApiTransport;
 
 uses(RefreshDatabase::class);
@@ -29,6 +31,30 @@ it('sends a reset link notification without contacting an external mail service'
         ->assertSessionHas('status');
 
     Notification::assertSentTo($user, ResetPassword::class);
+});
+
+it('revokes existing API tokens after a successful password reset', function () {
+    $user = User::factory()->create();
+    $user->createToken('before-password-reset');
+    $token = Password::createToken($user);
+
+    $this->post(route('password.update'), [
+        'token' => $token,
+        'email' => $user->email,
+        'password' => 'NewPassword123!',
+        'password_confirmation' => 'NewPassword123!',
+    ])->assertRedirect(route('auth.login'));
+
+    expect($user->fresh()->tokens()->count())->toBe(0);
+});
+
+it('does not trust arbitrary hostnames', function () {
+    $hostPatterns = app(TrustHosts::class)->hosts();
+
+    expect($hostPatterns)->not->toBeEmpty();
+    foreach ($hostPatterns as $pattern) {
+        expect(preg_match('/'.$pattern.'/', 'untrusted.example'))->toBe(0);
+    }
 });
 
 it('sends a temporary password email when an admin creates a user', function () {

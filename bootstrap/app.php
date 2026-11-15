@@ -21,7 +21,19 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->trustProxies(at: '*');
+        $middleware->trustProxies(headers: Request::HEADER_X_FORWARDED_FOR | Request::HEADER_X_FORWARDED_PROTO);
+        $middleware->trustHosts(at: static function (): array {
+            $applicationHost = parse_url((string) config('app.url'), PHP_URL_HOST);
+            $trustedHosts = is_string($applicationHost)
+                ? ['^'.preg_quote($applicationHost, '/').'$']
+                : [];
+
+            if (app()->environment(['local', 'testing'])) {
+                $trustedHosts = [...$trustedHosts, '^localhost$', '^127\\.0\\.0\\.1$', '^\\[::1\\]$'];
+            }
+
+            return $trustedHosts;
+        }, subdomains: false);
 
         $middleware->web(append: [
             TrackUserLastSeen::class,

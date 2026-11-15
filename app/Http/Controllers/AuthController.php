@@ -177,6 +177,7 @@ class AuthController extends Controller
                     'must_change_password' => false,
                     'remember_token' => Str::random(60),
                 ])->save();
+                $user->tokens()->delete();
 
                 event(new PasswordReset($user));
             }
@@ -229,6 +230,7 @@ class AuthController extends Controller
                 'must_change_password' => false,
                 'remember_token' => Str::random(60),
             ])->save();
+            $user->tokens()->delete();
         });
 
         $request->session()->regenerate();

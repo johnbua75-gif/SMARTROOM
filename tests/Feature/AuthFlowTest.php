@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 
 use function Pest\Laravel\actingAs;
 use function Pest\Laravel\assertAuthenticated;
@@ -144,6 +145,8 @@ it('blocks faculty from admin pages', function () {
 });
 
 it('admin can reset a user password and force password change', function () {
+    Mail::fake();
+
     $admin = User::create([
         'name' => 'Admin User',
         'email' => 'admin.reset@example.com',
@@ -160,6 +163,7 @@ it('admin can reset a user password and force password change', function () {
         'role' => 'faculty',
         'must_change_password' => false,
     ]);
+    $user->createToken('before-admin-reset');
 
     actingAs($admin)
         ->post('/admin/users/'.$user->id.'/reset-password')
@@ -168,6 +172,7 @@ it('admin can reset a user password and force password change', function () {
     $user->refresh();
 
     expect($user->must_change_password)->toBeTrue();
+    expect($user->tokens()->count())->toBe(0);
     expect(Hash::check('OldPassword123!', $user->password))->toBeFalse();
     expect($user->password)->not->toBe('OldPassword123!');
 });
@@ -201,6 +206,7 @@ it('sets a new password without asking for the temporary one and then skips the 
         'role' => 'faculty',
         'must_change_password' => true,
     ]);
+    $user->createToken('before-password-change');
 
     actingAs($user)
         ->post('/password/change', [
@@ -213,10 +219,10 @@ it('sets a new password without asking for the temporary one and then skips the 
 
     expect($user->must_change_password)->toBeFalse();
     expect(Hash::check('BrandNewPass1!', $user->password))->toBeTrue();
+    expect($user->tokens()->count())->toBe(0);
 
     actingAs($user)->get('/password/change')->assertRedirect();
 });
-
 
 it('blocks suspended users from logging in', function () {
     $user = User::create([

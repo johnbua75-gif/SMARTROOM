@@ -245,10 +245,12 @@ class AdminDataController extends Controller
     {
         $tempPassword = Str::random(10);
 
-        $user->update([
+        $user->forceFill([
             'password' => Hash::make($tempPassword),
             'must_change_password' => true,
-        ]);
+            'remember_token' => Str::random(60),
+        ])->save();
+        $user->tokens()->delete();
 
         try {
             Mail::to($user->email)->send(new TemporaryPasswordMail(

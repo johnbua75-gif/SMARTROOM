@@ -23,7 +23,7 @@ services:
       - key: APP_TIMEZONE
         value: Asia/Manila
       - key: TRUSTED_PROXIES
-        value: "*"
+        value: REMOTE_ADDR
       - key: DB_CONNECTION
         value: pgsql
       - key: DB_URL
