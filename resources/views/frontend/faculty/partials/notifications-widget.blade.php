@@ -38,20 +38,25 @@ body.faculty-sidebar-collapsed .faculty-sidebar-toggle{right:-13px;transform:tra
 .faculty-access-toast-list{position:fixed;right:18px;bottom:70px;z-index:2300;display:grid;gap:8px;width:min(340px,calc(100vw - 36px));pointer-events:none}
 .faculty-access-toast{padding:12px 14px;border:1px solid #bfdbfe;border-radius:10px;background:#fff;color:#1e3a8a;box-shadow:0 12px 35px rgba(7,22,64,.18);font-size:.82rem;line-height:1.45}
 .faculty-access-toast.is-denied{border-color:#fecaca;color:#991b1b}
-.faculty-schedule-modal{position:fixed;inset:0;z-index:2500;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(7,22,64,.55);backdrop-filter:blur(3px)}
+.faculty-schedule-modal{position:fixed;inset:0;z-index:2500;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(7,22,64,.94);backdrop-filter:blur(2px)}
 .faculty-schedule-modal.is-open{display:flex}
-.faculty-schedule-dialog{width:min(440px,100%);padding:26px;border:1px solid #e8ecf3;border-radius:14px;background:#fff;box-shadow:0 24px 70px rgba(7,22,64,.3);color:#111827}
+.faculty-schedule-dialog{width:min(360px,100%);padding:28px;border:1px solid #e8ecf3;border-radius:18px;background:#fff;box-shadow:0 24px 70px rgba(7,22,64,.3);color:#111827}
 .faculty-schedule-dialog:focus{outline:none}
-.faculty-schedule-dialog-icon{width:50px;height:50px;display:flex;align-items:center;justify-content:center;margin-bottom:16px;border:1px solid #fcd34d;border-radius:12px;background:#fff8e1;color:#92400e;font-size:1.25rem}
-.faculty-schedule-dialog h2{margin:0 0 8px;color:#111827;font-size:1.1rem;font-weight:800}
-.faculty-schedule-dialog p{margin:0;color:#4b5563;font-size:.9rem;line-height:1.55}
-.faculty-schedule-dialog-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:24px}
-.faculty-schedule-mute{width:40px;height:40px;border:1px solid #d1d5db;border-radius:8px;background:#fff;color:#374151;cursor:pointer}
-.faculty-schedule-mute:hover{background:#f3f4f6}
-.faculty-schedule-close{min-width:108px;min-height:40px;padding:0 16px;border:0;border-radius:8px;background:#0b1640;color:#fff;cursor:pointer;font:700 .85rem 'DM Sans',sans-serif}
+.faculty-schedule-dialog-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.faculty-schedule-dialog-icon{width:40px;height:40px;display:flex;align-items:center;justify-content:center;border:1px solid #fef3c7;border-radius:11px;background:#fff8e1;color:#a84800;font-size:1rem}
+.faculty-schedule-dialog h2{margin:0 0 8px;color:#0b1640;font-size:1.05rem;font-weight:800}
+.faculty-schedule-dialog p{min-height:42px;margin:0;color:#334155;font-size:.82rem;line-height:1.55}
+.faculty-schedule-mute{width:32px;height:32px;border:0;border-radius:7px;background:transparent;color:#64748b;cursor:pointer}
+.faculty-schedule-mute:hover{background:#f3f4f6;color:#0b1640}
+.faculty-schedule-progress{height:4px;margin-top:19px;overflow:hidden;border-radius:99px;background:#e5e7eb}
+.faculty-schedule-progress-bar{width:100%;height:100%;border-radius:inherit;background:#f5b900;transform:scaleX(1);transform-origin:left center;transition:transform .3s linear}
+.faculty-schedule-time{display:flex;align-items:center;justify-content:space-between;margin-top:10px;color:#64748b;font-size:.72rem}
+.faculty-schedule-time strong{color:#0b1640;font-size:.73rem;font-weight:800;font-variant-numeric:tabular-nums}
+.faculty-schedule-dialog-actions{display:flex;margin-top:28px}
+.faculty-schedule-close{width:100%;min-height:42px;padding:0 16px;border:0;border-radius:8px;background:#0b1640;color:#fff;cursor:pointer;font:700 .84rem 'DM Sans',sans-serif}
 .faculty-schedule-close:hover{background:#1a2f80}
 .faculty-schedule-mute:focus-visible,.faculty-schedule-close:focus-visible{outline:3px solid #f5c518;outline-offset:3px}
-@media(max-width:480px){.faculty-schedule-dialog{padding:22px}}
+@media(max-width:480px){.faculty-schedule-dialog{padding:24px}}
 @media(prefers-reduced-motion:reduce){.faculty-access-modal,.faculty-access-card,.faculty-access-toast,.faculty-schedule-modal,.faculty-schedule-dialog{animation:none!important;transition:none!important}}
 </style>
 <div class="faculty-notification-widget" id="facultyNotificationWidget">
@@ -77,13 +82,19 @@ body.faculty-sidebar-collapsed .faculty-sidebar-toggle{right:-13px;transform:tra
 </div>
 <div class="faculty-schedule-modal" id="facultyScheduleModal" aria-hidden="true">
   <section class="faculty-schedule-dialog" id="facultyScheduleDialog" role="alertdialog" aria-modal="true" aria-labelledby="facultyScheduleTitle" aria-describedby="facultyScheduleMessage" tabindex="-1">
-    <div class="faculty-schedule-dialog-icon"><i class="fas fa-clock" aria-hidden="true"></i></div>
-    <h2 id="facultyScheduleTitle">Class ending soon</h2>
-    <p id="facultyScheduleMessage"></p>
-    <div class="faculty-schedule-dialog-actions">
+    <div class="faculty-schedule-dialog-head">
+      <div class="faculty-schedule-dialog-icon"><i class="fas fa-clock" aria-hidden="true"></i></div>
       <button type="button" class="faculty-schedule-mute" id="facultyScheduleMute" aria-label="Mute reminder sound" title="Mute reminder sound">
         <i class="fas fa-volume-high" aria-hidden="true"></i>
       </button>
+    </div>
+    <h2 id="facultyScheduleTitle">Class ending soon</h2>
+    <p id="facultyScheduleMessage"></p>
+    <div class="faculty-schedule-progress" role="progressbar" aria-label="Time remaining" aria-valuemin="0" aria-valuemax="600" aria-valuenow="600" id="facultyScheduleProgress">
+      <div class="faculty-schedule-progress-bar" id="facultyScheduleProgressBar"></div>
+    </div>
+    <div class="faculty-schedule-time"><span>Time remaining</span><strong id="facultyScheduleTime" aria-live="off">0:00</strong></div>
+    <div class="faculty-schedule-dialog-actions">
       <button type="button" class="faculty-schedule-close" id="facultyScheduleClose">Close reminder</button>
     </div>
   </section>
@@ -317,6 +328,9 @@ body.faculty-sidebar-collapsed .faculty-sidebar-toggle{right:-13px;transform:tra
   const dialog = document.getElementById('facultyScheduleDialog');
   const title = document.getElementById('facultyScheduleTitle');
   const message = document.getElementById('facultyScheduleMessage');
+  const progress = document.getElementById('facultyScheduleProgress');
+  const progressBar = document.getElementById('facultyScheduleProgressBar');
+  const remainingTime = document.getElementById('facultyScheduleTime');
   const closeButton = document.getElementById('facultyScheduleClose');
   const muteButton = document.getElementById('facultyScheduleMute');
   const currentUserId = @json((int) auth()->id());
@@ -332,10 +346,11 @@ body.faculty-sidebar-collapsed .faculty-sidebar-toggle{right:-13px;transform:tra
   let reminderQueue = [];
   let modalIsOpen = false;
   let reminderCycleIsActive = false;
+  let countdownTimer = null;
   let previousBodyOverflow = '';
   let returnFocusTarget = null;
 
-  if (!modal || !dialog || !title || !message || !closeButton || !muteButton) return;
+  if (!modal || !dialog || !title || !message || !progress || !progressBar || !remainingTime || !closeButton || !muteButton) return;
 
   function activateAudio() {
     const AudioContextClass = window.AudioContext || window.webkitAudioContext;
@@ -410,12 +425,36 @@ body.faculty-sidebar-collapsed .faculty-sidebar-toggle{right:-13px;transform:tra
     const reminder = reminderQueue.shift();
     const activity = reminder.activity;
     const threshold = reminder.threshold;
+    window.clearInterval(countdownTimer);
     const isReservation = activity.kind === 'reservation';
     title.textContent = isReservation ? 'Reservation ending soon' : 'Class ending soon';
     const course = [activity.course_code, activity.course_title].filter(Boolean).join(' - ') || 'Your class';
     const room = activity.room || 'your reserved room';
     const subject = isReservation ? 'Your reservation for '+room : course+(activity.room ? ' in '+activity.room : '');
-    message.textContent = subject+' ends in '+(threshold === 120 ? '2 minutes' : '10 minutes')+' ('+activity.end_time+').';
+    const initialSeconds = Math.max(0, Number(activity.remaining_seconds) || 0);
+    const polledAt = reminder.polledAt;
+    const maxSeconds = threshold / 60;
+    progress.setAttribute('aria-valuemax', String(maxSeconds));
+
+    function updateCountdown() {
+      const elapsedSeconds = Math.floor((Date.now() - polledAt) / 1000);
+      const seconds = Math.max(0, initialSeconds - elapsedSeconds);
+      const minutes = Math.floor(seconds / 60);
+      const secondsPart = String(seconds % 60).padStart(2, '0');
+      const remainingMinutes = Math.ceil(seconds / 60);
+      const remainingText = seconds === 0
+        ? 'now'
+        : remainingMinutes+' minute'+(remainingMinutes === 1 ? '' : 's');
+      remainingTime.textContent = minutes+':'+secondsPart;
+      progress.setAttribute('aria-valuenow', String(Math.ceil(seconds / 60)));
+      progressBar.style.transform = 'scaleX('+Math.min(1, seconds / threshold)+')';
+      message.textContent = seconds === 0
+        ? subject+' has reached its scheduled end time ('+activity.end_time+').'
+        : subject+' ends in '+remainingText+' ('+activity.end_time+').';
+    }
+
+    updateCountdown();
+    countdownTimer = window.setInterval(updateCountdown, 1000);
     muteButton.setAttribute('aria-label', soundsMuted ? 'Unmute reminder sound' : 'Mute reminder sound');
     muteButton.title = soundsMuted ? 'Unmute reminder sound' : 'Mute reminder sound';
     muteButton.querySelector('i').className = 'fas '+(soundsMuted ? 'fa-volume-xmark' : 'fa-volume-high');
@@ -433,7 +472,7 @@ body.faculty-sidebar-collapsed .faculty-sidebar-toggle{right:-13px;transform:tra
   }
 
   function queueReminder(activity, threshold) {
-    reminderQueue.push({ activity: activity, threshold: threshold });
+    reminderQueue.push({ activity: activity, threshold: threshold, polledAt: Date.now() });
     showNextReminder();
   }
 
@@ -442,6 +481,7 @@ body.faculty-sidebar-collapsed .faculty-sidebar-toggle{right:-13px;transform:tra
     modal.classList.remove('is-open');
     modal.setAttribute('aria-hidden', 'true');
     modalIsOpen = false;
+    window.clearInterval(countdownTimer);
     if (reminderQueue.length) {
       showNextReminder();
       return;
