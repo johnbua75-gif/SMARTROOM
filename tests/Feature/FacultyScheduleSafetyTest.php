@@ -2,10 +2,12 @@
 
 use App\Models\Classroom;
 use App\Models\Course;
+use App\Models\Notification;
 use App\Models\Schedule;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 
 use function Pest\Laravel\actingAs;
 
@@ -140,6 +142,96 @@ it('cancels one class occurrence with a reason and releases its room slot', func
 
     expect($schedule->refresh()->status)->toBe('cancelled')
         ->and($schedule->cancellation_reason)->toBe('Emergency faculty absence');
+});
+
+it('notifies all other active faculty when a class is cancelled', function () {
+    Carbon::setTestNow('2026-04-06 08:00:00');
+
+    $faculty = User::factory()->create([
+        'role' => 'faculty',
+        'status' => 'active',
+        'department' => 'Information Technology',
+    ]);
+    $otherFaculty = User::factory()->create([
+        'role' => 'faculty',
+        'status' => 'active',
+        'department' => 'Business Administration',
+    ]);
+    $secondFaculty = User::factory()->create([
+        'role' => 'faculty',
+        'status' => 'active',
+        'department' => 'Computer Science',
+    ]);
+    $inactiveFaculty = User::factory()->create([
+        'role' => 'faculty',
+        'status' => 'inactive',
+    ]);
+    $student = User::factory()->create(['role' => 'student']);
+    $secondStudent = User::factory()->create(['role' => 'student', 'status' => 'active']);
+    $inactiveStudent = User::factory()->create(['role' => 'student', 'status' => 'inactive']);
+    $classroom = Classroom::query()->create([
+        'name' => 'Room Notification',
+        'building' => 'Building A',
+        'capacity' => 40,
+        'status' => 'available',
+    ]);
+    $course = Course::query()->create([
+        'code' => 'IT-NOTIFY',
+        'title' => 'Cancellation Notification Class',
+        'instructor_user_id' => $faculty->id,
+        'classroom_id' => $classroom->id,
+        'capacity' => 40,
+    ]);
+    $schedule = Schedule::query()->create([
+        'classroom_id' => $classroom->id,
+        'course_id' => $course->id,
+        'start_at' => '2026-04-07 09:00:00',
+        'end_at' => '2026-04-07 10:00:00',
+        'status' => 'scheduled',
+        'day_of_week' => 2,
+        'enrolled' => 0,
+    ]);
+
+    Cache::put('faculty:notifications:v1:'.$otherFaculty->id, []);
+    Cache::put('faculty:notifications:v1:'.$secondFaculty->id, []);
+
+    actingAs($faculty)
+        ->patch(route('faculty.schedule.cancel', $schedule), [
+            'cancellation_reason' => 'Room released for other classes.',
+        ])
+        ->assertRedirect(route('faculty.schedule', ['week' => '2026-04-06']));
+
+    $notification = Notification::query()
+        ->where('type', 'class_cancelled')
+        ->where('user_id', $otherFaculty->id)
+        ->firstOrFail();
+
+    expect($notification->title)->toBe('Class cancelled: IT-NOTIFY - Cancellation Notification Class')
+        ->and($notification->body)->toContain('Room Notification')
+        ->and($notification->body)->toContain('check availability before reserving')
+        ->and($notification->data)->toMatchArray([
+            'schedule_id' => $schedule->id,
+            'classroom_id' => $classroom->id,
+            'room' => 'Room Notification',
+        ])
+        ->and(Notification::query()->where('type', 'class_cancelled')->where('user_id', $student->id)->exists())->toBeTrue()
+        ->and(Notification::query()->where('type', 'class_cancelled')->where('user_id', $secondStudent->id)->exists())->toBeTrue()
+        ->and(Notification::query()->where('type', 'class_cancelled')->where('user_id', $secondFaculty->id)->exists())->toBeTrue()
+        ->and(Notification::query()->where('type', 'class_cancelled')->where('user_id', $faculty->id)->exists())->toBeFalse()
+        ->and(Notification::query()->where('type', 'class_cancelled')->where('user_id', $inactiveFaculty->id)->exists())->toBeFalse()
+        ->and(Notification::query()->where('type', 'class_cancelled')->where('user_id', $inactiveStudent->id)->exists())->toBeFalse()
+        ->and(Cache::has('faculty:notifications:v1:'.$otherFaculty->id))->toBeFalse()
+        ->and(Cache::has('faculty:notifications:v1:'.$secondFaculty->id))->toBeFalse();
+
+    actingAs($otherFaculty)
+        ->getJson(route('faculty.notifications.data'))
+        ->assertSuccessful()
+        ->assertJsonPath('data.0.title', $notification->title);
+
+    actingAs($student)
+        ->get(route('student.home'))
+        ->assertSuccessful()
+        ->assertSee($notification->title);
 });
 
 // ── Faculty: move a single class occurrence ──────────────────────────────────

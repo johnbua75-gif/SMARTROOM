@@ -256,6 +256,8 @@ class ScheduleService
             'status' => 'cancelled',
             'cancellation_reason' => $validated['cancellation_reason'],
         ]);
+
+        app(ScheduleNotifier::class)->classCancelled($ownedSchedule->refresh());
     }
 
     /**
