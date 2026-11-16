@@ -437,10 +437,12 @@ body { font-family:var(--fb); background:var(--bg); color:var(--text); min-heigh
 .check-timetable td.check-slot.is-occupied:hover{background:#fff}
 .check-timetable td.check-slot .check-class-block{min-height:34px;margin:1px;padding:3px 4px;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;line-height:1.15;font-size:.61rem;font-weight:800}
 .check-timetable td.check-slot .check-class-block small{margin-top:2px;font-size:.59rem;font-weight:600}
+.check-timetable td.check-slot .check-class-block.is-cancelled{background:linear-gradient(135deg,#fff1f2,#ffe4e6);color:#9f1239;border:1px dashed #fb7185}
 .check-timetable-legend{display:flex;align-items:center;gap:16px;flex-wrap:wrap;color:#65728a;font-size:.7rem;font-weight:600}
 .check-legend-item{display:inline-flex;align-items:center;gap:6px}
 .check-legend-mark{width:10px;height:10px;border-radius:3px;background:#dfe5ff;border:1px solid #bdc9f5}
 .check-legend-mark.is-reservation{background:#fff0c8;border-color:#f1d36d}
+.check-legend-mark.is-cancelled{background:#ffe4e6;border:1px dashed #fb7185}
 .check-legend-mark.is-selection{background:#e8f5ef;border:1px dashed #14865a}
 .check-time-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .check-time-field{display:flex;flex-direction:column;gap:6px;min-width:0}
@@ -1125,6 +1127,7 @@ body{
       <div class="check-timetable-legend" id="checkTimetableLegend">
         <span class="check-legend-item"><span class="check-legend-mark"></span>Class</span>
         <span class="check-legend-item"><span class="check-legend-mark is-reservation"></span>Reservation</span>
+        <span class="check-legend-item"><span class="check-legend-mark is-cancelled"></span>Cancelled · available</span>
         <span class="check-legend-item"><span class="check-legend-mark is-selection"></span>Your selection</span>
       </div>
 
@@ -1629,6 +1632,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var selection=selectedCheckWindow();
     var entries=[];
     (checkTimetableData.schedules||[]).forEach(function(s){entries.push(Object.assign({},s,{kind:'class'}));});
+    (checkTimetableData.cancelled_schedules||[]).forEach(function(s){entries.push(Object.assign({},s,{kind:'cancelled'}));});
     (checkTimetableData.reservations||[]).forEach(function(r){entries.push(Object.assign({},r,{kind:'reservation',course:r.course||'Reserved'}));});
     var grid={};TT_DAYS.forEach(function(d){grid[d]={};});
     var hasHalfHourTime=[checkStartAt.value,checkEndAt.value].some(function(value){
@@ -1677,8 +1681,12 @@ document.addEventListener('DOMContentLoaded', function () {
         if(c&&c.course){
           var visibleSpan=Math.max(1,Math.ceil(c.span/columnStep));
           var cs=visibleSpan>1?' colspan="'+Math.min(visibleSpan,(TT_SLOT_COUNT-i)/columnStep)+'"':'';
-          var bg=c.kind==='reservation'?'background:linear-gradient(135deg,#fef5cd,#fdf0b8);color:#7a5d0a;border:1px solid #f0dc7a;':'background:linear-gradient(135deg,#e8ecfb,#dde3fa);color:#0b1640;border:1px solid #c7d0ee;';
-          h+='<td class="check-slot is-occupied'+selectionClasses+'"'+slotAttributes+' style="'+tds+'"'+cs+'><div class="check-class-block" title="'+escapeHtml(c.title)+'" style="'+bg+'"><span>'+escapeHtml(c.course)+'</span><small>'+escapeHtml(c.title)+'</small></div></td>';
+          var isCancelled=c.kind==='cancelled';
+          var bg=c.kind==='reservation'?'background:linear-gradient(135deg,#fef5cd,#fdf0b8);color:#7a5d0a;border:1px solid #f0dc7a;':(isCancelled?'':'background:linear-gradient(135deg,#e8ecfb,#dde3fa);color:#0b1640;border:1px solid #c7d0ee;');
+          var blockClass='check-class-block'+(isCancelled?' is-cancelled':'');
+          var classTitle=isCancelled?'Cancelled — room available':c.title;
+          var cellClass='check-slot'+(isCancelled?'':' is-occupied')+selectionClasses;
+          h+='<td class="'+cellClass+'"'+slotAttributes+' style="'+tds+'"'+cs+'><div class="'+blockClass+'" title="'+escapeHtml(classTitle)+'" style="'+bg+'"><span>'+escapeHtml(c.course)+'</span><small>'+escapeHtml(isCancelled?'Cancelled · Available':c.title)+'</small></div></td>';
         }else{h+='<td class="check-slot'+selectionClasses+'"'+slotAttributes+' style="'+tds+'"></td>';}
       }h+='</tr>';
     });h+='</tbody>';

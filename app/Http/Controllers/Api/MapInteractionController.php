@@ -86,6 +86,11 @@ class MapInteractionController extends Controller
             $rangeEnd,
             $mode === 'week'
         );
+        $cancelledSchedules = $roomMapService->cancelledSchedulesByRoom(
+            $classroom->id,
+            $rangeStart,
+            $rangeEnd
+        );
         $reservations = $availabilityService->itScopedReservations()
             ->where('classroom_id', $classroom->id)
             ->whereIn('status', ['reserved', 'approved'])
@@ -110,6 +115,7 @@ class MapInteractionController extends Controller
                 'range_start' => $rangeStart->toIso8601String(),
                 'range_end' => $rangeEnd->toIso8601String(),
                 'schedules' => $schedules,
+                'cancelled_schedules' => $cancelledSchedules,
                 'reservations' => $reservations,
             ],
         ]);

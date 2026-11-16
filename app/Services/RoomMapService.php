@@ -86,17 +86,26 @@ class RoomMapService
             })
             ->orderBy('start_at')
             ->get()
-            ->map(fn (Schedule $schedule): array => [
-                'id' => $schedule->id,
-                'start_at' => optional($schedule->start_at)->toIso8601String(),
-                'end_at' => optional($schedule->end_at)->toIso8601String(),
-                'day_of_week' => (int) $schedule->day_of_week,
-                'start_time' => optional($schedule->start_at)->format('H:i'),
-                'end_time' => optional($schedule->end_at)->format('H:i'),
-                'status' => (string) ($schedule->status ?? 'scheduled'),
-                'course_code' => (string) ($schedule->course?->code ?? ''),
-                'course_title' => (string) ($schedule->course?->title ?? 'Scheduled class'),
-            ])
+            ->map(fn (Schedule $schedule): array => $this->formatSchedule($schedule))
+            ->values();
+    }
+
+    /**
+     * @return Collection<int, array<string, mixed>>
+     */
+    public function cancelledSchedulesByRoom(
+        int $classroomId,
+        CarbonInterface $rangeStart,
+        CarbonInterface $rangeEnd
+    ): Collection {
+        return $this->availabilityService->itScopedCancelledSchedules()
+            ->where('classroom_id', $classroomId)
+            ->where('start_at', '<', $rangeEnd)
+            ->where('end_at', '>', $rangeStart)
+            ->with(['course.instructor', 'courseOffering.instructor'])
+            ->orderBy('start_at')
+            ->get()
+            ->map(fn (Schedule $schedule): array => $this->formatSchedule($schedule))
             ->values();
     }
 
@@ -198,6 +207,24 @@ class RoomMapService
             'start_at' => optional($schedule->start_at)->toIso8601String(),
             'end_at' => optional($schedule->end_at)->toIso8601String(),
             'status' => (string) ($schedule->status ?? 'scheduled'),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function formatSchedule(Schedule $schedule): array
+    {
+        return [
+            'id' => $schedule->id,
+            'start_at' => optional($schedule->start_at)->toIso8601String(),
+            'end_at' => optional($schedule->end_at)->toIso8601String(),
+            'day_of_week' => (int) $schedule->day_of_week,
+            'start_time' => optional($schedule->start_at)->format('H:i'),
+            'end_time' => optional($schedule->end_at)->format('H:i'),
+            'status' => (string) ($schedule->status ?? 'scheduled'),
+            'course_code' => (string) ($schedule->course?->code ?? ''),
+            'course_title' => (string) ($schedule->course?->title ?? 'Scheduled class'),
         ];
     }
 }

@@ -157,6 +157,57 @@ it('does not expose course or instructor details in public availability checks',
         ->assertJsonMissingPath('data.cancelled_classes.0.instructor');
 });
 
+it('shows cancelled class occurrences as available in the room timetable', function () {
+    Carbon::setTestNow('2026-04-10 08:00:00');
+
+    $faculty = createFacultyUser();
+    $room = Classroom::create([
+        'name' => 'Cancelled Timetable Room',
+        'building' => 'IT Building',
+        'capacity' => 30,
+    ]);
+    $course = Course::create([
+        'code' => 'IT-CANCEL-TIMETABLE',
+        'title' => 'Cancelled Timetable Class',
+        'description' => 'Scope fixture',
+        'instructor_user_id' => $faculty->id,
+        'capacity' => 30,
+    ]);
+    $cancelled = Schedule::create([
+        'classroom_id' => $room->id,
+        'course_id' => $course->id,
+        'start_at' => '2026-04-14 09:00:00',
+        'end_at' => '2026-04-14 10:00:00',
+        'status' => 'cancelled',
+        'day_of_week' => 2,
+        'enrolled' => 0,
+    ]);
+    Schedule::create([
+        'classroom_id' => $room->id,
+        'course_id' => $course->id,
+        'start_at' => '2026-04-21 09:00:00',
+        'end_at' => '2026-04-21 10:00:00',
+        'status' => 'scheduled',
+        'day_of_week' => 2,
+        'enrolled' => 0,
+    ]);
+
+    getJson("/api/v1/map/rooms/{$room->id}/fixed-schedules?week_start=2026-04-13")
+        ->assertOk()
+        ->assertJsonPath('data.cancelled_schedules.0.id', $cancelled->id)
+        ->assertJsonPath('data.cancelled_schedules.0.status', 'cancelled');
+
+    getJson("/api/v1/map/rooms/{$room->id}/fixed-schedules?week_start=2026-04-20")
+        ->assertOk()
+        ->assertJsonCount(0, 'data.cancelled_schedules');
+
+    getJson('/api/v1/room-availability/check?classroom_id='.$room->id.'&start_at=2026-04-14T09:00:00&end_at=2026-04-14T10:00:00')
+        ->assertOk()
+        ->assertJsonPath('data.available', true)
+        ->assertJsonPath('data.status', 'available')
+        ->assertJsonPath('data.cancelled_classes.0.schedule_id', $cancelled->id);
+});
+
 it('only exposes IT cancelled classes in public availability checks', function () {
     $itFaculty = createFacultyUser();
     $otherFaculty = User::create([
@@ -295,7 +346,7 @@ it('does not expose non-IT reservations in public fixed room schedules', functio
 
     getJson("/api/v1/map/rooms/{$room->id}/fixed-schedules?date=2026-04-11")
         ->assertOk()
-        ->assertJsonMissing(['id' => $otherReservation->id]);
+        ->assertJsonCount(0, 'data.reservations');
 });
 
 it('blocks official schedules in unavailable classrooms', function () {
