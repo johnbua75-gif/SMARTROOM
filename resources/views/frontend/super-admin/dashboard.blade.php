@@ -37,7 +37,7 @@ h1 { margin: 0; font-size: 1.75rem; font-weight: 800; letter-spacing: -.035em; }
 .stat-icon.gold { background: #fff9db; color: #a17a00; }
 .stat-value { margin-top: 15px; font-size: 1.8rem; font-weight: 800; letter-spacing: -.04em; line-height: 1; }
 .stat-detail { margin-top: 7px; color: var(--muted); font-size: .73rem; }
-.grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 .panel { min-width: 0; padding: 21px 22px; border: 1px solid var(--line); border-radius: 16px; background: var(--card); box-shadow: 0 2px 8px rgba(11,22,64,.035); }
 .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 17px; }
 .panel-title { margin: 0; font-size: .96rem; font-weight: 800; }
@@ -59,14 +59,19 @@ h1 { margin: 0; font-size: 1.75rem; font-weight: 800; letter-spacing: -.035em; }
 .pill.off { border-color: #fecaca; background: #fef2f2; color: var(--red); }
 .access-icon { display: grid; width: 32px; height: 32px; flex: 0 0 32px; place-items: center; border-radius: 10px; background: #f3f5fa; color: #75809a; }
 .log-time { color: var(--muted); font-size: .67rem; white-space: nowrap; }
+.role-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.role-item { min-width: 0; padding: 13px 14px; border: 1px solid #edf0f6; border-radius: 11px; background: #fbfcff; }
+.role-label { color: var(--muted); font-size: .68rem; font-weight: 750; letter-spacing: .06em; text-transform: uppercase; }
+.role-value { margin-top: 8px; font-size: 1.35rem; font-weight: 800; }
 .actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .action { display: flex; min-height: 72px; align-items: center; gap: 10px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; color: var(--text); font-size: .75rem; font-weight: 750; text-decoration: none; transition: border-color .15s, transform .15s, background-color .15s; }
 .action i { display: grid; width: 32px; height: 32px; flex: 0 0 32px; place-items: center; border-radius: 9px; background: #eef2ff; color: var(--navy-mid); }
 .action:hover { transform: translateY(-1px); border-color: #b7c4e3; background: #fbfcff; }
 .empty { padding: 20px 0 4px; color: var(--muted); font-size: .8rem; text-align: center; }
 @media (max-width: 1250px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
 @media (max-width: 768px) { :root { --sidebar-w: 0px; } .main { gap: 18px; padding: 24px 16px 36px; } h1 { font-size: 1.45rem; } .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; } .stat { padding: 14px; } .stat-value { font-size: 1.55rem; } .panel { padding: 17px; } .actions { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 390px) { .stats { grid-template-columns: 1fr; } .actions { grid-template-columns: 1fr; } .pills { max-width: 96px; } }
+@media (max-width: 390px) { .stats, .role-grid { grid-template-columns: 1fr; } .actions { grid-template-columns: 1fr; } .pills { max-width: 96px; } }
 @media (prefers-reduced-motion: reduce) { .action { transition: none; } }
 </style>
 @include('frontend.admin.partials.minimal-ui-overrides')
@@ -79,31 +84,38 @@ h1 { margin: 0; font-size: 1.75rem; font-weight: 800; letter-spacing: -.035em; }
     <div>
       <div class="eyebrow">{{ now()->format('l, F j, Y') }} · System administration</div>
       <h1>System Overview</h1>
-      <p class="subtitle">Users, rooms and connected devices at a glance.</p>
+      <p class="subtitle">Current account totals, room statuses and device connections.</p>
     </div>
     <span class="secure-label"><i class="fas fa-shield-halved" aria-hidden="true"></i> Super administrator</span>
   </header>
 
   <section class="stats" aria-label="System summary">
     <article class="stat">
-      <div class="stat-top"><span class="stat-label">Total users</span><span class="stat-icon"><i class="fas fa-users" aria-hidden="true"></i></span></div>
+      <div class="stat-top"><span class="stat-label">User accounts</span><span class="stat-icon"><i class="fas fa-users" aria-hidden="true"></i></span></div>
       <div class="stat-value">{{ number_format($stats['users']) }}</div>
       <div class="stat-detail">{{ number_format($stats['active_users']) }} active accounts</div>
     </article>
     <article class="stat">
-      <div class="stat-top"><span class="stat-label">Administrators</span><span class="stat-icon gold"><i class="fas fa-user-shield" aria-hidden="true"></i></span></div>
+      <div class="stat-top"><span class="stat-label">Admin accounts</span><span class="stat-icon gold"><i class="fas fa-user-shield" aria-hidden="true"></i></span></div>
       <div class="stat-value">{{ number_format($stats['administrators'] + $stats['super_administrators']) }}</div>
-      <div class="stat-detail">{{ number_format($stats['super_administrators']) }} super-admin accounts</div>
+      <div class="stat-detail">{{ number_format($stats['administrators']) }} admins · {{ number_format($stats['super_administrators']) }} super admins</div>
     </article>
     <article class="stat">
       <div class="stat-top"><span class="stat-label">Classrooms</span><span class="stat-icon"><i class="fas fa-school" aria-hidden="true"></i></span></div>
       <div class="stat-value">{{ number_format($stats['classrooms']) }}</div>
-      <div class="stat-detail">Campus rooms in SmartRoom</div>
+      <div class="stat-detail">
+        Saved status:
+        @forelse ($roomStatusCounts as $roomStatus)
+          {{ number_format($roomStatus->total) }} {{ ucfirst(str_replace('_', ' ', (string) $roomStatus->status)) }}@if (! $loop->last) · @endif
+        @empty
+          No rooms registered
+        @endforelse
+      </div>
     </article>
     <article class="stat">
-      <div class="stat-top"><span class="stat-label">Active devices</span><span class="stat-icon"><i class="fas fa-microchip" aria-hidden="true"></i></span></div>
-      <div class="stat-value">{{ number_format($stats['active_devices']) }} <small style="font-size:.82rem;color:#74809b;font-weight:650;">/ {{ number_format($stats['devices']) }}</small></div>
-      <div class="stat-detail">Devices marked active</div>
+      <div class="stat-top"><span class="stat-label">Devices online now</span><span class="stat-icon"><i class="fas fa-microchip" aria-hidden="true"></i></span></div>
+      <div class="stat-value">{{ number_format($stats['online_devices']) }}</div>
+      <div class="stat-detail">{{ number_format($stats['enabled_devices']) }} enabled of {{ number_format($stats['devices']) }} configured · {{ number_format($stats['awaiting_devices']) }} awaiting · {{ number_format($stats['offline_devices']) }} offline · {{ number_format($stats['disabled_devices']) }} disabled. Online means a heartbeat within 5 minutes.</div>
     </article>
   </section>
 
@@ -127,7 +139,7 @@ h1 { margin: 0; font-size: 1.75rem; font-weight: 800; letter-spacing: -.035em; }
                 ->take(2)
                 ->map(fn (string $part): string => strtoupper(substr($part, 0, 1)))
                 ->join('');
-            $active = strtolower((string) ($administrator->status ?? 'active')) === 'active';
+            $active = strtolower(trim((string) ($administrator->status ?? 'active'))) === 'active';
           @endphp
           <div class="admin-row">
             <span class="avatar" aria-hidden="true">{{ $initials ?: 'A' }}</span>
@@ -146,6 +158,32 @@ h1 { margin: 0; font-size: 1.75rem; font-weight: 800; letter-spacing: -.035em; }
       </div>
     </article>
 
+    <article class="panel">
+      <div class="panel-head">
+        <div>
+          <h2 class="panel-title">Accounts by role</h2>
+          <p class="panel-caption">Counts include every account type in the system.</p>
+        </div>
+      </div>
+      <div class="role-grid">
+        @foreach ($userRoleCounts as $roleCount)
+          @php
+            $roleLabel = match (strtolower(trim((string) $roleCount->role))) {
+              'admin' => 'Admins',
+              'super_admin' => 'Super admins',
+              'faculty' => 'Faculty',
+              'student' => 'Students',
+              'service' => 'Service accounts',
+              default => ucfirst(str_replace('_', ' ', (string) $roleCount->role)),
+            };
+          @endphp
+          <div class="role-item">
+            <div class="role-label">{{ $roleLabel }}</div>
+            <div class="role-value">{{ number_format($roleCount->total) }}</div>
+          </div>
+        @endforeach
+      </div>
+    </article>
   </section>
 
   <section class="panel">

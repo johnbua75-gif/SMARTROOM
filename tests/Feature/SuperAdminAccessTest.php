@@ -2,6 +2,8 @@
 
 use App\Mail\TemporaryPasswordMail;
 use App\Models\AdminAuditLog;
+use App\Models\Classroom;
+use App\Models\Device;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
@@ -19,6 +21,53 @@ it('shows the system overview and administrator access to super admins', functio
         'role' => 'admin',
         'status' => 'active',
     ]);
+    User::factory()->create(['role' => 'student', 'status' => 'active']);
+    User::factory()->create(['role' => 'student', 'status' => 'ACTIVE']);
+    User::factory()->create(['role' => 'faculty', 'status' => 'active']);
+    User::factory()->create(['role' => 'service', 'status' => 'active']);
+
+    $availableRoom = Classroom::query()->create([
+        'name' => 'Available Room One',
+        'building' => 'Main Building',
+        'capacity' => 20,
+        'status' => 'available',
+    ]);
+    Classroom::query()->create([
+        'name' => 'Available Room Two',
+        'building' => 'Main Building',
+        'capacity' => 20,
+        'status' => 'available',
+    ]);
+    Classroom::query()->create([
+        'name' => 'Maintenance Room',
+        'building' => 'Main Building',
+        'capacity' => 20,
+        'status' => 'maintenance',
+    ]);
+    Device::query()->create([
+        'name' => 'Online Dashboard Device',
+        'classroom_id' => $availableRoom->id,
+        'status' => 'active',
+        'last_seen_at' => now()->subMinutes(2),
+    ]);
+    Device::query()->create([
+        'name' => 'Awaiting Dashboard Device',
+        'classroom_id' => $availableRoom->id,
+        'status' => 'active',
+    ]);
+    Device::query()->create([
+        'name' => 'Offline Dashboard Device',
+        'classroom_id' => $availableRoom->id,
+        'status' => 'active',
+        'last_seen_at' => now()->subMinutes(10),
+    ]);
+    Device::query()->create([
+        'name' => 'Disabled Dashboard Device',
+        'classroom_id' => $availableRoom->id,
+        'status' => 'inactive',
+        'last_seen_at' => now()->subMinutes(2),
+    ]);
+
     AdminAuditLog::query()->create([
         'actor_user_id' => $superAdmin->id,
         'target_user_id' => null,
@@ -36,6 +85,17 @@ it('shows the system overview and administrator access to super admins', functio
         ->assertSee('Changed an account role')
         ->assertSee('User & Admin Access')
         ->assertSee('Room Management')
+        ->assertSee('6 active accounts')
+        ->assertSee('2 Available')
+        ->assertSee('1 Maintenance')
+        ->assertSee('Devices online now')
+        ->assertSee('3 enabled of 4 configured')
+        ->assertSee('1 awaiting')
+        ->assertSee('1 offline')
+        ->assertSee('1 disabled')
+        ->assertSee('Accounts by role')
+        ->assertSee('Students')
+        ->assertSee('Service accounts')
         ->assertDontSee('Recent door activity')
         ->assertDontSee('Schedule')
         ->assertDontSee('SmartLocking')
