@@ -34,10 +34,16 @@ it('shows the system overview and administrator access to super admins', functio
         ->assertSee('Room Admin')
         ->assertSee('Recent account changes')
         ->assertSee('Changed an account role')
-        ->assertSee('User & Admin Access');
+        ->assertSee('User & Admin Access')
+        ->assertSee('Room Management')
+        ->assertDontSee('Recent door activity')
+        ->assertDontSee('Schedule')
+        ->assertDontSee('SmartLocking')
+        ->assertDontSee('Announcements')
+        ->assertDontSee('Faculty Reports');
 });
 
-it('lets super admins use existing admin pages and redirects them to their overview after login', function () {
+it('limits super admins to user and room management and redirects them to their overview after login', function () {
     $superAdmin = User::factory()->create([
         'role' => 'super_admin',
         'status' => 'active',
@@ -47,6 +53,19 @@ it('lets super admins use existing admin pages and redirects them to their overv
         ->get(route('admin.users'))
         ->assertOk();
 
+    $this->get(route('admin.classrooms'))->assertOk();
+
+    foreach ([
+        'admin.dashboard',
+        'admin.schedule',
+        'smartlocking.index',
+        'admin.notifications.create',
+        'admin.instructor-attendance',
+        'accessLogs',
+    ] as $routeName) {
+        $this->get(route($routeName))->assertForbidden();
+    }
+
     auth()->logout();
 
     $this->post(route('auth.login.submit'), [
@@ -55,7 +74,7 @@ it('lets super admins use existing admin pages and redirects them to their overv
     ])->assertRedirect(route('super-admin.dashboard'));
 });
 
-it('allows super admins to use existing admin API mutations', function () {
+it('limits super admin API mutations to room management', function () {
     $superAdmin = User::factory()->create([
         'role' => 'super_admin',
         'status' => 'active',
@@ -69,6 +88,24 @@ it('allows super admins to use existing admin API mutations', function () {
             'access_mode' => 'manual',
         ])
         ->assertCreated();
+
+    $this->postJson('/api/v1/courses', [
+        'name' => 'Restricted Course',
+        'code' => 'RST-101',
+    ])->assertForbidden();
+});
+
+it('preserves regular admin access to admin-only modules', function () {
+    $admin = User::factory()->create([
+        'role' => 'admin',
+        'status' => 'active',
+    ]);
+
+    $this->actingAs($admin)
+        ->get(route('admin.schedule'))
+        ->assertOk();
+
+    $this->get(route('admin.notifications.create'))->assertOk();
 });
 
 it('allows the existing admin to establish the first super admin only once', function () {

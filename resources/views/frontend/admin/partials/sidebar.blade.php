@@ -121,7 +121,7 @@
 </button>
 <div class="admin-sidebar-backdrop" id="adminSidebarBackdrop" aria-hidden="true"></div>
 <aside class="sidebar admin-sidebar" id="adminSidebar" aria-label="Administrator navigation">
-    <a href="{{ route('admin.dashboard') }}" class="sidebar-logo">
+    <a href="{{ route($dashboardRoute) }}" class="sidebar-logo">
         <span class="logo-mark"><img class="admin-sidebar-logo-img" src="{{ asset('images/logo.png') }}" alt=""></span>
         <span class="logo-text"><span class="brand-psu">PSU</span><span class="brand-main">Smart<span>Room</span></span></span>
     </a>
@@ -129,11 +129,13 @@
     <ul class="sidebar-nav">
         <li><a href="{{ route($dashboardRoute) }}" @class(['active' => $dashboardActive])><span class="nav-icon"><i class="fas fa-chart-line" aria-hidden="true"></i></span><span>{{ $isSuperAdmin ? 'System Overview' : 'Dashboard' }}</span></a></li>
         <li><a href="{{ route('admin.classrooms') }}" @class(['active' => $roomsActive])><span class="nav-icon"><i class="fas fa-school" aria-hidden="true"></i></span><span>Room Management</span></a></li>
-        <li><a href="{{ route('admin.schedule') }}" @class(['active' => $scheduleActive])><span class="nav-icon"><i class="fas fa-calendar-days" aria-hidden="true"></i></span><span>Schedule</span></a></li>
         <li><a href="{{ route('admin.users') }}" @class(['active' => $usersActive])><span class="nav-icon"><i class="fas fa-users-cog" aria-hidden="true"></i></span><span>{{ $isSuperAdmin ? 'User & Admin Access' : 'User Management' }}</span></a></li>
-        <li><a href="{{ route('smartlocking.index') }}" @class(['active' => $smartLockingActive])><span class="nav-icon"><i class="fas fa-lock" aria-hidden="true"></i></span><span>SmartLocking</span></a></li>
-        <li><a href="{{ route('admin.notifications.create') }}" @class(['active' => $announcementsActive])><span class="nav-icon"><i class="fas fa-bullhorn" aria-hidden="true"></i></span><span>Announcements</span></a></li>
-        <li><a href="{{ route('admin.instructor-attendance') }}" @class(['active' => $facultyReportsActive])><span class="nav-icon"><i class="fas fa-user-check" aria-hidden="true"></i></span><span>Faculty Reports</span></a></li>
+        @if (! $isSuperAdmin)
+            <li><a href="{{ route('admin.schedule') }}" @class(['active' => $scheduleActive])><span class="nav-icon"><i class="fas fa-calendar-days" aria-hidden="true"></i></span><span>Schedule</span></a></li>
+            <li><a href="{{ route('smartlocking.index') }}" @class(['active' => $smartLockingActive])><span class="nav-icon"><i class="fas fa-lock" aria-hidden="true"></i></span><span>SmartLocking</span></a></li>
+            <li><a href="{{ route('admin.notifications.create') }}" @class(['active' => $announcementsActive])><span class="nav-icon"><i class="fas fa-bullhorn" aria-hidden="true"></i></span><span>Announcements</span></a></li>
+            <li><a href="{{ route('admin.instructor-attendance') }}" @class(['active' => $facultyReportsActive])><span class="nav-icon"><i class="fas fa-user-check" aria-hidden="true"></i></span><span>Faculty Reports</span></a></li>
+        @endif
     </ul>
     <div class="sidebar-footer">
         <div class="user-widget">

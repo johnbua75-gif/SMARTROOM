@@ -135,10 +135,12 @@ Route::middleware(['auth', 'active', 'password.changed', 'role:super_admin'])->p
 });
 
 Route::middleware(['auth', 'active', 'password.changed', 'role:admin,super_admin'])->group(function (): void {
-    Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
-    Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
-    Route::get('/admin/notifications/create', [NotificationAdminController::class, 'create'])->name('admin.notifications.create');
-    Route::post('/admin/notifications', [NotificationAdminController::class, 'store'])->name('admin.notifications.store');
+    Route::middleware('role:admin')->group(function (): void {
+        Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+        Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
+        Route::get('/admin/notifications/create', [NotificationAdminController::class, 'create'])->name('admin.notifications.create');
+        Route::post('/admin/notifications', [NotificationAdminController::class, 'store'])->name('admin.notifications.store');
+    });
 
     Route::get('/admin/classrooms', [ClassroomController::class, 'index'])->name('admin.classrooms');
     Route::get('/admin/classrooms/{id}', [ClassroomController::class, 'show'])->name('admin.classrooms.show');
@@ -151,49 +153,51 @@ Route::middleware(['auth', 'active', 'password.changed', 'role:admin,super_admin
     Route::match(['put', 'patch'], '/admin/classrooms/{classroom}', [ClassroomController::class, 'update'])->name('admin.classrooms.update');
     Route::delete('/admin/classrooms/{classroom}', [ClassroomController::class, 'destroy'])->name('admin.classrooms.destroy');
 
-    Route::get('/admin/schedule', [ScheduleController::class, 'index'])->name('admin.schedule');
-    Route::get('/admin/schedule/export/csv', [ScheduleController::class, 'exportCsv'])->name('admin.schedule.export.csv');
-    Route::get('/admin/schedule/subjects', [ScheduleController::class, 'subjectsByYearLevel'])->name('admin.schedule.subjects');
-    Route::delete('/admin/schedule/bulk-delete', [ScheduleController::class, 'bulkDestroy'])->name('admin.schedule.bulk-destroy');
-    Route::get('/admin/schedule/{id}', [ScheduleController::class, 'show'])->name('admin.schedule.show');
-    Route::post('/admin/schedule', [ScheduleController::class, 'store'])->name('admin.schedule.store');
-    Route::post('/admin/schedule/import/preview', [ScheduleController::class, 'importPreview'])->name('admin.schedule.import.preview');
-    Route::post('/admin/schedule/import', [ScheduleController::class, 'importStore'])->name('admin.schedule.import.store');
-    Route::match(['put', 'patch'], '/admin/schedule/{schedule}', [ScheduleController::class, 'update'])->name('admin.schedule.update');
-    Route::delete('/admin/schedule/{schedule}', [ScheduleController::class, 'destroy'])->name('admin.schedule.destroy');
+    Route::middleware('role:admin')->group(function (): void {
+        Route::get('/admin/schedule', [ScheduleController::class, 'index'])->name('admin.schedule');
+        Route::get('/admin/schedule/export/csv', [ScheduleController::class, 'exportCsv'])->name('admin.schedule.export.csv');
+        Route::get('/admin/schedule/subjects', [ScheduleController::class, 'subjectsByYearLevel'])->name('admin.schedule.subjects');
+        Route::delete('/admin/schedule/bulk-delete', [ScheduleController::class, 'bulkDestroy'])->name('admin.schedule.bulk-destroy');
+        Route::get('/admin/schedule/{id}', [ScheduleController::class, 'show'])->name('admin.schedule.show');
+        Route::post('/admin/schedule', [ScheduleController::class, 'store'])->name('admin.schedule.store');
+        Route::post('/admin/schedule/import/preview', [ScheduleController::class, 'importPreview'])->name('admin.schedule.import.preview');
+        Route::post('/admin/schedule/import', [ScheduleController::class, 'importStore'])->name('admin.schedule.import.store');
+        Route::match(['put', 'patch'], '/admin/schedule/{schedule}', [ScheduleController::class, 'update'])->name('admin.schedule.update');
+        Route::delete('/admin/schedule/{schedule}', [ScheduleController::class, 'destroy'])->name('admin.schedule.destroy');
 
-    Route::post('/admin/courses', [AdminDataController::class, 'storeCourse'])->name('admin.courses.store');
-    Route::match(['put', 'patch'], '/admin/courses/{course}', [AdminDataController::class, 'updateCourse'])->name('admin.courses.update');
-    Route::delete('/admin/courses/{course}', [AdminDataController::class, 'destroyCourse'])->name('admin.courses.destroy');
+        Route::post('/admin/courses', [AdminDataController::class, 'storeCourse'])->name('admin.courses.store');
+        Route::match(['put', 'patch'], '/admin/courses/{course}', [AdminDataController::class, 'updateCourse'])->name('admin.courses.update');
+        Route::delete('/admin/courses/{course}', [AdminDataController::class, 'destroyCourse'])->name('admin.courses.destroy');
 
-    Route::post('/admin/access-cards', [AdminDataController::class, 'storeAccessCard'])->name('admin.access-cards.store');
-    Route::match(['put', 'patch'], '/admin/access-cards/{accessCard}', [AdminDataController::class, 'updateAccessCard'])->name('admin.access-cards.update');
-    Route::delete('/admin/access-cards/{accessCard}', [AdminDataController::class, 'destroyAccessCard'])->name('admin.access-cards.destroy');
+        Route::post('/admin/access-cards', [AdminDataController::class, 'storeAccessCard'])->name('admin.access-cards.store');
+        Route::match(['put', 'patch'], '/admin/access-cards/{accessCard}', [AdminDataController::class, 'updateAccessCard'])->name('admin.access-cards.update');
+        Route::delete('/admin/access-cards/{accessCard}', [AdminDataController::class, 'destroyAccessCard'])->name('admin.access-cards.destroy');
 
-    Route::post('/admin/access-logs', [AdminDataController::class, 'storeAccessLog'])->name('admin.access-logs.store');
-    Route::match(['put', 'patch'], '/admin/access-logs/{accessLog}', [AdminDataController::class, 'updateAccessLog'])->name('admin.access-logs.update');
-    Route::delete('/admin/access-logs/{accessLog}', [AdminDataController::class, 'destroyAccessLog'])->name('admin.access-logs.destroy');
+        Route::post('/admin/access-logs', [AdminDataController::class, 'storeAccessLog'])->name('admin.access-logs.store');
+        Route::match(['put', 'patch'], '/admin/access-logs/{accessLog}', [AdminDataController::class, 'updateAccessLog'])->name('admin.access-logs.update');
+        Route::delete('/admin/access-logs/{accessLog}', [AdminDataController::class, 'destroyAccessLog'])->name('admin.access-logs.destroy');
 
-    Route::get('/smartlocking', [AdminController::class, 'smartlocking'])->name('smartlocking.index');
-    Route::get('/smartlocking/{id}', [AdminController::class, 'smartlockingDetail'])->name('smartlocking.show');
+        Route::get('/smartlocking', [AdminController::class, 'smartlocking'])->name('smartlocking.index');
+        Route::get('/smartlocking/{id}', [AdminController::class, 'smartlockingDetail'])->name('smartlocking.show');
 
-    // Admin SmartLocking route for tab navigation
-    Route::get('/admin/smartlocking', [AdminController::class, 'smartlocking'])->name('admin.smartlocking');
+        // Admin SmartLocking route for tab navigation
+        Route::get('/admin/smartlocking', [AdminController::class, 'smartlocking'])->name('admin.smartlocking');
 
-    // Access Logs screen
-    Route::get('/admin/accessLogs', [AdminController::class, 'accessLogs'])->name('accessLogs');
-    Route::get('/admin/access-logs/live', [AdminController::class, 'liveAccessLogs'])->name('admin.access-logs.live');
-    Route::get('/admin/accessLogs/export/{format}', [AdminController::class, 'exportAccessLogs'])->name('admin.accessLogs.export');
-    Route::get('/admin/accessLogs/export/csv', [AdminController::class, 'exportAccessLogsCsv'])->name('admin.accessLogs.export.csv');
+        // Access Logs screen
+        Route::get('/admin/accessLogs', [AdminController::class, 'accessLogs'])->name('accessLogs');
+        Route::get('/admin/access-logs/live', [AdminController::class, 'liveAccessLogs'])->name('admin.access-logs.live');
+        Route::get('/admin/accessLogs/export/{format}', [AdminController::class, 'exportAccessLogs'])->name('admin.accessLogs.export');
+        Route::get('/admin/accessLogs/export/csv', [AdminController::class, 'exportAccessLogsCsv'])->name('admin.accessLogs.export.csv');
 
-    // Admin Reports
-    Route::get('/admin/reports', function () {
-        return view('frontend.admin.reports');
-    })->name('admin.reports');
-    Route::get('/admin/instructor-attendance', [AdminInstructorAttendanceController::class, 'index'])
-        ->name('admin.instructor-attendance');
-    Route::get('/admin/instructor-attendance/export/csv', [AdminInstructorAttendanceController::class, 'export'])
-        ->name('admin.instructor-attendance.export');
+        // Admin Reports
+        Route::get('/admin/reports', function () {
+            return view('frontend.admin.reports');
+        })->name('admin.reports');
+        Route::get('/admin/instructor-attendance', [AdminInstructorAttendanceController::class, 'index'])
+            ->name('admin.instructor-attendance');
+        Route::get('/admin/instructor-attendance/export/csv', [AdminInstructorAttendanceController::class, 'export'])
+            ->name('admin.instructor-attendance.export');
+    });
 
     // Admin User Management
     Route::get('/admin/users', [AdminController::class, 'users'])->name('admin.users');
