@@ -64,18 +64,18 @@ Route::prefix('v1')->group(function (): void {
         })->middleware('door.token:device:heartbeat');
 
         Route::apiResource('classrooms', ClassroomController::class)->only(['index', 'show']);
-        Route::apiResource('classrooms', ClassroomController::class)->except(['index', 'show'])->middleware('role:admin');
+        Route::apiResource('classrooms', ClassroomController::class)->except(['index', 'show'])->middleware('role:admin,super_admin');
         Route::apiResource('courses', CourseController::class)->only(['index', 'show']);
-        Route::apiResource('courses', CourseController::class)->except(['index', 'show'])->middleware('role:admin');
+        Route::apiResource('courses', CourseController::class)->except(['index', 'show'])->middleware('role:admin,super_admin');
         Route::apiResource('schedules', ScheduleController::class)->only(['index', 'show']);
-        Route::apiResource('schedules', ScheduleController::class)->except(['index', 'show'])->middleware('role:admin');
-        Route::get('schedules/reservation/temporary', [ScheduleController::class, 'getTemporarySchedulesByReservation'])->middleware('role:admin');
-        Route::apiResource('access-cards', AccessCardController::class)->except(['index'])->middleware('role:admin');
-        Route::apiResource('access-logs', AccessLogController::class)->only(['index', 'show', 'update', 'destroy'])->middleware('role:admin');
+        Route::apiResource('schedules', ScheduleController::class)->except(['index', 'show'])->middleware('role:admin,super_admin');
+        Route::get('schedules/reservation/temporary', [ScheduleController::class, 'getTemporarySchedulesByReservation'])->middleware('role:admin,super_admin');
+        Route::apiResource('access-cards', AccessCardController::class)->except(['index'])->middleware('role:admin,super_admin');
+        Route::apiResource('access-logs', AccessLogController::class)->only(['index', 'show', 'update', 'destroy'])->middleware('role:admin,super_admin');
 
-        Route::post('enrollments', [EnrollmentController::class, 'store'])->middleware('role:admin');
-        Route::post('enrollments/bulk', [EnrollmentController::class, 'bulkStore'])->middleware('role:admin');
-        Route::delete('enrollments/{enrollment}', [EnrollmentController::class, 'destroy'])->middleware('role:admin');
+        Route::post('enrollments', [EnrollmentController::class, 'store'])->middleware('role:admin,super_admin');
+        Route::post('enrollments/bulk', [EnrollmentController::class, 'bulkStore'])->middleware('role:admin,super_admin');
+        Route::delete('enrollments/{enrollment}', [EnrollmentController::class, 'destroy'])->middleware('role:admin,super_admin');
 
         Route::apiResource('reservations', ReservationController::class)->only(['store', 'update', 'destroy']);
     });

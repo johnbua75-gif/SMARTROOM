@@ -611,6 +611,14 @@ class AdminController extends Controller
 
     public function editUser(User $user): View
     {
+        abort_if(
+            in_array(strtolower((string) $user->role), ['admin', 'super_admin'], true)
+            && strtolower((string) auth()->user()?->role) !== 'super_admin'
+            && ! $user->is(auth()->user()),
+            403,
+            'Only a super administrator can manage administrator accounts.'
+        );
+
         return $this->renderUsersView($user);
     }
 
@@ -622,10 +630,22 @@ class AdminController extends Controller
     private function renderUsersView(?User $editUser = null): View
     {
         $payload = $this->buildUsersPayload();
+        $isSuperAdmin = strtolower((string) auth()->user()?->role) === 'super_admin';
+        $isAdmin = strtolower((string) auth()->user()?->role) === 'admin';
 
         return view('frontend.admin.user_management', [
             ...$payload,
             'editUser' => $editUser,
+            'canManageAdministrators' => $isSuperAdmin,
+            'canEditOwnAdmin' => $editUser?->is(auth()->user()) ?? false,
+            'canManageSuperAdmins' => $isSuperAdmin
+                || (
+                    $isAdmin
+                    && ! ($editUser?->is(auth()->user()) ?? false)
+                    && ! User::query()->where('role', 'super_admin')->exists()
+                ),
+            'firstSuperAdminSetup' => $isAdmin
+                && ! User::query()->where('role', 'super_admin')->exists(),
         ]);
     }
 

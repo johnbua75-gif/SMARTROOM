@@ -11,6 +11,7 @@ use App\Http\Requests\Api\UpdateCourseRequest;
 use App\Mail\TemporaryPasswordMail;
 use App\Models\AccessCard;
 use App\Models\AccessLog;
+use App\Models\AdminAuditLog;
 use App\Models\Course;
 use App\Models\CourseOffering;
 use App\Models\Schedule;
@@ -23,6 +24,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Throwable;
 
@@ -30,12 +32,19 @@ class AdminDataController extends Controller
 {
     public function storeUser(Request $request): RedirectResponse|JsonResponse
     {
+        $isSuperAdmin = strtolower(trim((string) $request->user()?->role)) === 'super_admin';
+        $allowedRoles = $isSuperAdmin ? ['admin', 'faculty', 'student', 'super_admin'] : ['faculty', 'student'];
+
+        if (! $isSuperAdmin && $this->canManageSuperAdminRole($request)) {
+            $allowedRoles[] = 'super_admin';
+        }
+
         $validated = $request->validate([
             'first_name' => ['required', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'department' => ['nullable', 'string', 'max:255'],
-            'role' => ['required', 'string', 'in:admin,faculty,student'],
+            'role' => ['required', 'string', Rule::in($allowedRoles)],
         ]);
 
         $tempPassword = Str::random(random_int(8, 12));
@@ -43,14 +52,26 @@ class AdminDataController extends Controller
         $emailSent = false;
 
         try {
-            $user = User::create([
-                'name' => trim($validated['first_name'].' '.$validated['last_name']),
-                'email' => $validated['email'],
-                'password' => Hash::make($tempPassword),
-                'must_change_password' => true,
-                'department' => $validated['department'] ?? null,
-                'role' => $validated['role'],
-            ]);
+            $user = DB::transaction(function () use ($request, $validated, $tempPassword): User {
+                $user = User::create([
+                    'name' => trim($validated['first_name'].' '.$validated['last_name']),
+                    'email' => $validated['email'],
+                    'password' => Hash::make($tempPassword),
+                    'must_change_password' => true,
+                    'department' => $validated['department'] ?? null,
+                    'role' => $validated['role'],
+                ]);
+
+                $action = in_array($user->role, ['admin', 'super_admin'], true)
+                    ? 'administrator.created'
+                    : 'user.created';
+
+                $this->recordUserAudit($request, $action, $user, [
+                    'role' => $user->role,
+                ]);
+
+                return $user;
+            });
         } catch (Throwable $exception) {
             if ($request->expectsJson()) {
                 return response()->json([
@@ -216,22 +237,115 @@ class AdminDataController extends Controller
 
     public function updateUser(Request $request, User $user): RedirectResponse|JsonResponse
     {
+        $isSuperAdmin = strtolower(trim((string) $request->user()?->role)) === 'super_admin';
+        $isOwnAdminAccount = $user->is($request->user())
+            && strtolower((string) $user->role) === 'admin';
+
+        if (in_array(strtolower((string) $user->role), ['admin', 'super_admin'], true)
+            && ! $isSuperAdmin
+            && ! $isOwnAdminAccount) {
+            abort(403, 'Only a super administrator can manage administrator accounts.');
+        }
+
+        $canManageSuperAdmins = $this->canManageSuperAdminRole($request);
+        $allowedRoles = $isSuperAdmin ? ['admin', 'faculty', 'student', 'super_admin'] : ['faculty', 'student'];
+
+        if ($isOwnAdminAccount) {
+            $allowedRoles[] = 'admin';
+        } elseif (! $isSuperAdmin && $canManageSuperAdmins) {
+            $allowedRoles[] = 'super_admin';
+        }
+
         $validated = $request->validate([
             'name' => ['sometimes', 'string', 'max:255'],
             'email' => ['sometimes', 'email', 'max:255', 'unique:users,email,'.$user->id],
             'department' => ['nullable', 'string', 'max:255'],
-            'role' => ['sometimes', 'string', 'in:admin,faculty,student'],
+            'role' => ['sometimes', 'string', Rule::in($allowedRoles)],
             'status' => ['sometimes', 'string', 'in:active,suspended,inactive'],
         ]);
 
-        if ($user->is($request->user()) && ($validated['status'] ?? 'active') !== 'active') {
-            return redirect()->back()->withErrors(['status' => 'You cannot suspend or deactivate your own account.']);
+        $requestedRole = $validated['role'] ?? $user->role;
+        $requestedStatus = $validated['status'] ?? $user->status ?? 'active';
+
+        if ($user->is($request->user()) && (
+            $requestedStatus !== 'active'
+            || strtolower((string) $requestedRole) !== strtolower((string) $user->role)
+        )) {
+            return redirect()->back()->withErrors(['status' => 'You cannot change your own role or disable your own account.']);
         }
 
-        $user->update($validated);
+        $affectsSuperAdminAccounts = strtolower((string) $user->role) === 'super_admin'
+            || strtolower((string) ($validated['role'] ?? '')) === 'super_admin';
 
-        if (isset($validated['status']) && $validated['status'] !== 'active') {
-            $user->tokens()->delete();
+        $updated = DB::transaction(function () use ($request, $user, $validated, $affectsSuperAdminAccounts): bool {
+            if ($affectsSuperAdminAccounts) {
+                User::query()
+                    ->where('role', 'super_admin')
+                    ->lockForUpdate()
+                    ->get(['id']);
+            }
+
+            $lockedUser = User::query()->lockForUpdate()->findOrFail($user->id);
+            $previousRole = strtolower((string) $lockedUser->role);
+            $previousStatus = strtolower((string) ($lockedUser->status ?? 'active'));
+            $requestedRole = strtolower((string) ($validated['role'] ?? $lockedUser->role));
+            $requestedStatus = strtolower((string) ($validated['status'] ?? $lockedUser->status ?? 'active'));
+
+            if (
+                $previousRole === 'super_admin'
+                && $previousStatus === 'active'
+                && ($requestedRole !== 'super_admin' || $requestedStatus !== 'active')
+                && ! User::query()
+                    ->where('role', 'super_admin')
+                    ->where('status', 'active')
+                    ->where('id', '!=', $lockedUser->id)
+                    ->exists()
+            ) {
+                return false;
+            }
+
+            $profileFields = ['name', 'email', 'department'];
+            $changedProfileFields = array_values(array_filter(
+                $profileFields,
+                fn (string $field): bool => array_key_exists($field, $validated)
+                    && $validated[$field] !== $lockedUser->{$field}
+            ));
+
+            $lockedUser->update($validated);
+            $currentRole = strtolower((string) $lockedUser->role);
+            $currentStatus = strtolower((string) ($lockedUser->status ?? 'active'));
+
+            if ($changedProfileFields !== []) {
+                $this->recordUserAudit($request, 'user.profile_updated', $lockedUser, [
+                    'fields' => $changedProfileFields,
+                ]);
+            }
+
+            if ($previousRole !== $currentRole) {
+                $this->recordUserAudit($request, 'user.role_changed', $lockedUser, [
+                    'from_role' => $previousRole,
+                    'to_role' => $currentRole,
+                ]);
+            }
+
+            if ($previousStatus !== $currentStatus) {
+                $this->recordUserAudit($request, 'user.status_changed', $lockedUser, [
+                    'from_status' => $previousStatus,
+                    'to_status' => $currentStatus,
+                ]);
+            }
+
+            if ($previousStatus !== $currentStatus && $currentStatus !== 'active') {
+                $lockedUser->tokens()->delete();
+            }
+
+            return true;
+        });
+
+        if (! $updated) {
+            return redirect()->back()->withErrors([
+                'role' => 'At least one active super administrator must remain.',
+            ]);
         }
 
         if ($request->expectsJson()) {
@@ -243,14 +357,29 @@ class AdminDataController extends Controller
 
     public function resetUserPassword(Request $request, User $user): RedirectResponse|JsonResponse
     {
+        if (in_array(strtolower((string) $user->role), ['admin', 'super_admin'], true)
+            && strtolower(trim((string) $request->user()?->role)) !== 'super_admin'
+            && ! $user->is($request->user())) {
+            abort(403, 'Only a super administrator can reset administrator accounts.');
+        }
+
         $tempPassword = Str::random(10);
 
-        $user->forceFill([
-            'password' => Hash::make($tempPassword),
-            'must_change_password' => true,
-            'remember_token' => Str::random(60),
-        ])->save();
-        $user->tokens()->delete();
+        DB::transaction(function () use ($request, $user, $tempPassword): void {
+            $lockedUser = User::query()->lockForUpdate()->findOrFail($user->id);
+            $lockedUser->forceFill([
+                'password' => Hash::make($tempPassword),
+                'must_change_password' => true,
+                'remember_token' => Str::random(60),
+            ])->save();
+            $lockedUser->tokens()->delete();
+
+            $this->recordUserAudit($request, 'password.reset', $lockedUser, [
+                'role' => $lockedUser->role,
+            ]);
+        });
+
+        $user->refresh();
 
         try {
             Mail::to($user->email)->send(new TemporaryPasswordMail(
@@ -282,6 +411,22 @@ class AdminDataController extends Controller
 
     public function destroyUser(Request $request, User $user): RedirectResponse|JsonResponse
     {
+        if ($user->is($request->user())) {
+            $message = 'You cannot delete your own account.';
+
+            return $request->expectsJson()
+                ? response()->json(['message' => $message], 422)
+                : redirect()->back()->withErrors(['user' => $message]);
+        }
+
+        if (in_array(strtolower((string) $user->role), ['admin', 'super_admin'], true)) {
+            abort_unless(
+                strtolower(trim((string) $request->user()?->role)) === 'super_admin',
+                403,
+                'Only a super administrator can manage administrator accounts.'
+            );
+        }
+
         $hasCourseHistory = strtolower((string) $user->role) === 'faculty'
             && (
                 Course::query()
@@ -307,7 +452,33 @@ class AdminDataController extends Controller
                 : redirect()->back()->withErrors(['user' => $message]);
         }
 
-        $user->delete();
+        $deleted = DB::transaction(function () use ($request, $user): bool {
+            if (strtolower((string) $user->role) === 'super_admin') {
+                User::query()
+                    ->where('role', 'super_admin')
+                    ->lockForUpdate()
+                    ->get(['id']);
+
+                if (User::query()->where('role', 'super_admin')->where('id', '!=', $user->id)->doesntExist()) {
+                    return false;
+                }
+            }
+
+            $this->recordUserAudit($request, 'user.deleted', $user, [
+                'role' => $user->role,
+            ]);
+            $user->delete();
+
+            return true;
+        });
+
+        if (! $deleted) {
+            $message = 'The last super administrator account cannot be deleted.';
+
+            return $request->expectsJson()
+                ? response()->json(['message' => $message], 422)
+                : redirect()->back()->withErrors(['user' => $message]);
+        }
 
         if ($request->expectsJson()) {
             return response()->json(['message' => 'User deleted successfully.']);
@@ -396,5 +567,31 @@ class AdminDataController extends Controller
         }
 
         return redirect()->back()->with('status', $message);
+    }
+
+    private function canManageSuperAdminRole(Request $request): bool
+    {
+        $role = strtolower(trim((string) $request->user()?->role));
+
+        return $role === 'super_admin'
+            || ($role === 'admin' && ! User::query()->where('role', 'super_admin')->exists());
+    }
+
+    /**
+     * @param  array<string, mixed>  $metadata
+     */
+    private function recordUserAudit(Request $request, string $action, User $target, array $metadata = []): void
+    {
+        AdminAuditLog::query()->create([
+            'actor_user_id' => $request->user()?->id,
+            'target_user_id' => $target->id,
+            'action' => $action,
+            'metadata' => [
+                'actor_name' => $request->user()?->name ?? 'System setup',
+                'target_name' => $target->name,
+                'target_email' => $target->email,
+                ...$metadata,
+            ],
+        ]);
     }
 }

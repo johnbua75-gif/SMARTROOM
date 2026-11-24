@@ -1,20 +1,24 @@
 @php
     $adminUser = auth()->user();
     $adminName = $adminUser?->name ?? 'Admin User';
-    $adminRole = ucfirst((string) ($adminUser?->role ?? 'admin'));
+    $isSuperAdmin = strtolower(trim((string) ($adminUser?->role ?? ''))) === 'super_admin';
+    $adminRole = $isSuperAdmin ? 'Super Admin' : ucfirst((string) ($adminUser?->role ?? 'admin'));
     $adminInitials = collect(explode(' ', trim($adminName)))
         ->filter()
         ->take(2)
         ->map(fn (string $part): string => strtoupper(substr($part, 0, 1)))
         ->join('');
     $currentPath = request()->path();
-    $dashboardActive = in_array($currentPath, ['dashboard', 'admin/dashboard'], true);
+    $dashboardActive = $isSuperAdmin
+        ? $currentPath === 'super-admin/dashboard'
+        : in_array($currentPath, ['dashboard', 'admin/dashboard'], true);
     $roomsActive = request()->is('admin/classrooms*');
     $scheduleActive = request()->is('admin/schedule*');
     $facultyReportsActive = request()->is('admin/instructor-attendance*');
     $usersActive = request()->is('admin/users*');
     $smartLockingActive = request()->is('smartlocking*') || request()->is('admin/accessLogs*') || request()->is('admin/access-logs*');
     $announcementsActive = request()->is('admin/notifications*');
+    $dashboardRoute = $isSuperAdmin ? 'super-admin.dashboard' : 'admin.dashboard';
 @endphp
 <style>
 :root { --sidebar-w: 252px; }
@@ -123,10 +127,10 @@
     </a>
     <span class="nav-section-label">Main Menu</span>
     <ul class="sidebar-nav">
-        <li><a href="{{ route('admin.dashboard') }}" @class(['active' => $dashboardActive])><span class="nav-icon"><i class="fas fa-chart-line" aria-hidden="true"></i></span><span>Dashboard</span></a></li>
+        <li><a href="{{ route($dashboardRoute) }}" @class(['active' => $dashboardActive])><span class="nav-icon"><i class="fas fa-chart-line" aria-hidden="true"></i></span><span>{{ $isSuperAdmin ? 'System Overview' : 'Dashboard' }}</span></a></li>
         <li><a href="{{ route('admin.classrooms') }}" @class(['active' => $roomsActive])><span class="nav-icon"><i class="fas fa-school" aria-hidden="true"></i></span><span>Room Management</span></a></li>
         <li><a href="{{ route('admin.schedule') }}" @class(['active' => $scheduleActive])><span class="nav-icon"><i class="fas fa-calendar-days" aria-hidden="true"></i></span><span>Schedule</span></a></li>
-        <li><a href="{{ route('admin.users') }}" @class(['active' => $usersActive])><span class="nav-icon"><i class="fas fa-users-cog" aria-hidden="true"></i></span><span>User Management</span></a></li>
+        <li><a href="{{ route('admin.users') }}" @class(['active' => $usersActive])><span class="nav-icon"><i class="fas fa-users-cog" aria-hidden="true"></i></span><span>{{ $isSuperAdmin ? 'User & Admin Access' : 'User Management' }}</span></a></li>
         <li><a href="{{ route('smartlocking.index') }}" @class(['active' => $smartLockingActive])><span class="nav-icon"><i class="fas fa-lock" aria-hidden="true"></i></span><span>SmartLocking</span></a></li>
         <li><a href="{{ route('admin.notifications.create') }}" @class(['active' => $announcementsActive])><span class="nav-icon"><i class="fas fa-bullhorn" aria-hidden="true"></i></span><span>Announcements</span></a></li>
         <li><a href="{{ route('admin.instructor-attendance') }}" @class(['active' => $facultyReportsActive])><span class="nav-icon"><i class="fas fa-user-check" aria-hidden="true"></i></span><span>Faculty Reports</span></a></li>

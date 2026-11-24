@@ -529,7 +529,11 @@ body.editing-open {
 </style>
 @include('frontend.admin.partials.minimal-ui-overrides')
 </head>
-<body class="{{ isset($editUser) && $editUser ? 'editing-open' : '' }}">
+<body
+  class="{{ isset($editUser) && $editUser ? 'editing-open' : '' }}"
+  data-can-manage-administrators="{{ $canManageAdministrators ? '1' : '0' }}"
+  data-current-user-id="{{ auth()->id() }}"
+>
 
 @include('frontend.admin.partials.sidebar')
 
@@ -619,6 +623,7 @@ body.editing-open {
         <select class="filter-select" id="roleFilter" onchange="filterTable()">
           <option value="">All Roles</option>
           <option>Admin</option>
+          <option>Super Admin</option>
           <option>Faculty</option>
           <option>Student</option>
         </select>
@@ -685,6 +690,11 @@ body.editing-open {
     <form method="POST" action="{{ route('admin.users.store') }}">
       @csrf
       <div class="modal-body">
+        @if ($firstSuperAdminSetup)
+          <p style="margin-bottom:12px;padding:10px 12px;border:1px solid #f5d875;border-radius:8px;background:#fffbea;color:#725b00;font-size:.8rem;">
+            No super administrator exists yet. Use this option only to establish the first super-admin account.
+          </p>
+        @endif
         <div class="form-row">
           <div class="form-group">
             <label class="form-label" for="first_name">First Name</label>
@@ -704,7 +714,14 @@ body.editing-open {
             <label class="form-label" for="role">Role</label>
             <select class="form-select" id="role" name="role" required>
               <option value="">Select role...</option>
-              <option value="admin" {{ old('role') === 'admin' ? 'selected' : '' }}>Admin</option>
+              @if ($canManageAdministrators)
+                <option value="admin" {{ old('role') === 'admin' ? 'selected' : '' }}>Admin</option>
+              @elseif ($canEditOwnAdmin)
+                <option value="admin" {{ old('role', 'admin') === 'admin' ? 'selected' : '' }}>Admin</option>
+              @endif
+              @if ($canManageSuperAdmins)
+                <option value="super_admin" {{ old('role') === 'super_admin' ? 'selected' : '' }}>Super Admin</option>
+              @endif
               <option value="faculty" {{ old('role') === 'faculty' ? 'selected' : '' }}>Faculty</option>
               <option value="student" {{ old('role') === 'student' ? 'selected' : '' }}>Student</option>
             </select>
@@ -759,7 +776,14 @@ body.editing-open {
             <label class="form-label" style="display:block;margin-bottom:6px;">Role</label>
             <select aria-label="Role" class="form-select" name="role" required>
               @php($currentRole = strtolower((string) old('role', $editUser->role)))
-              <option value="admin" {{ $currentRole === 'admin' ? 'selected' : '' }}>Admin</option>
+              @if ($canManageAdministrators)
+                <option value="admin" {{ $currentRole === 'admin' ? 'selected' : '' }}>Admin</option>
+              @elseif ($canEditOwnAdmin)
+                <option value="admin" {{ $currentRole === 'admin' ? 'selected' : '' }}>Admin</option>
+              @endif
+              @if ($canManageSuperAdmins)
+                <option value="super_admin" {{ $currentRole === 'super_admin' ? 'selected' : '' }}>Super Admin</option>
+              @endif
               <option value="faculty" {{ $currentRole === 'faculty' ? 'selected' : '' }}>Faculty</option>
               <option value="student" {{ $currentRole === 'student' ? 'selected' : '' }}>Student</option>
             </select>
@@ -818,6 +842,8 @@ function avatarColor(name) {
 
 function renderRows(data) {
   const tbody = document.getElementById('tableBody');
+  const canManageAdministrators = document.body.dataset.canManageAdministrators === '1';
+  const currentUserId = document.body.dataset.currentUserId;
   tbody.innerHTML = data.map((u,i)=>`
     <tr data-user-id="${u.user_id}">
       <td><input type="checkbox" style="accent-color:var(--navy);width:15px;height:15px;cursor:pointer;"></td>
@@ -842,12 +868,16 @@ function renderRows(data) {
       <td>
         <div class="action-btns" style="justify-content:center;">
           <button type="button" class="act-btn" title="View"><i class="fas fa-eye"></i></button>
-          <a class="act-btn act-edit" href="/admin/users/${u.user_id}/edit" title="Edit" style="text-decoration:none;"><i class="fas fa-pen"></i></a>
-          <form method="POST" action="/admin/users/${u.user_id}" style="display:inline;">
-            <input type="hidden" name="_token" value="{{ csrf_token() }}">
-            <input type="hidden" name="_method" value="DELETE">
-            <button type="submit" class="act-btn act-delete" title="Delete"><i class="fas fa-trash-can"></i></button>
-          </form>
+          ${(!['Admin','Super Admin'].includes(u.role) || canManageAdministrators || String(u.user_id) === currentUserId)
+            ? `<a class="act-btn act-edit" href="/admin/users/${u.user_id}/edit" title="Edit" style="text-decoration:none;"><i class="fas fa-pen"></i></a>`
+            : ''}
+          ${String(u.user_id) !== currentUserId && (!['Admin','Super Admin'].includes(u.role) || canManageAdministrators)
+            ? `<form method="POST" action="/admin/users/${u.user_id}" style="display:inline;">
+                <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="_method" value="DELETE">
+                <button type="submit" class="act-btn act-delete" title="Delete"><i class="fas fa-trash-can"></i></button>
+              </form>`
+            : ''}
         </div>
       </td>
     </tr>

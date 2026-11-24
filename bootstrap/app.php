@@ -49,7 +49,8 @@ return Application::configure(basePath: dirname(__DIR__))
             $role = strtolower(trim((string) $request->user()?->role));
 
             return match ($role) {
-                'admin', 'super_admin' => route('admin.dashboard'),
+                'super_admin' => route('super-admin.dashboard'),
+                'admin' => route('admin.dashboard'),
                 default => route('faculty.dashboard'),
             };
         });

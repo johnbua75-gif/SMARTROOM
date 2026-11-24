@@ -66,6 +66,14 @@ When an admin creates a user, SmartRoom now:
 
 On first login, the user is redirected to `/password/change` and must set a new password before accessing protected pages.
 
+### Super-admin access
+
+- An existing admin can create the first super-admin from **User Management**. The Super Admin role is available during this initial setup only.
+- After the first super-admin exists, only a super-admin can create or manage administrator accounts, including super-admin roles.
+- Super-admins get a dedicated system overview and can also access the existing admin features. Regular admins cannot manage privileged administrator accounts.
+- The final super-admin account cannot be removed or deactivated through user management, and users cannot change or disable their own administrator account.
+- Sensitive user account actions are recorded in the super-admin overview.
+
 ### 6. Example admin user creation request
 
 `POST /admin/users`
@@ -75,7 +83,7 @@ Form fields:
 - `first_name` (required)
 - `last_name` (required)
 - `email` (required, unique)
-- `role` (required: `admin|super_admin|faculty|staff|student`)
+- `role` (required: `admin|super_admin|faculty|student`; administrator roles are restricted as described above)
 - `department` (optional)
 
 Example payload:

@@ -250,7 +250,7 @@ class AuthController extends Controller
         }
 
         if (in_array($normalizedRole, ['admin', 'super_admin'], true)) {
-            return 'admin.schedule';
+            return $normalizedRole === 'super_admin' ? 'super-admin.dashboard' : 'admin.schedule';
         }
 
         if ($normalizedRole === 'student') {

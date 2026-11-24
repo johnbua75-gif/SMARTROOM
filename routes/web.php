@@ -15,6 +15,7 @@ use App\Http\Controllers\FacultyScheduleAssistantController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\StudentController;
+use App\Http\Controllers\SuperAdminController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -129,7 +130,11 @@ Route::middleware(['auth', 'active', 'password.changed', 'role:faculty'])->group
     });
 });
 
-Route::middleware(['auth', 'active', 'password.changed', 'role:admin'])->group(function (): void {
+Route::middleware(['auth', 'active', 'password.changed', 'role:super_admin'])->prefix('super-admin')->name('super-admin.')->group(function (): void {
+    Route::get('/dashboard', [SuperAdminController::class, 'dashboard'])->name('dashboard');
+});
+
+Route::middleware(['auth', 'active', 'password.changed', 'role:admin,super_admin'])->group(function (): void {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
     Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
     Route::get('/admin/notifications/create', [NotificationAdminController::class, 'create'])->name('admin.notifications.create');
